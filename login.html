@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log in — Boujee Academy</title>
+    <meta name="description" content="Log in to your Boujee Academy account and continue building your audience.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* ... exact same CSS you already have ... */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root,
+        [data-theme="dark"] {
+            --bg: #000000;
+            --bg-mid: #1a1a1a;
+            --bg-card: #111111;
+            --line: #222222;
+            --text: #ffffff;
+            --text-muted: #888888;
+            --text-light: #cccccc;
+            --red: #E8000D;
+            --font-main: 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+        }
+
+        [data-theme="light"] {
+            --bg: #f5f5f5;
+            --bg-mid: #ebebeb;
+            --bg-card: #ffffff;
+            --line: #dddddd;
+            --text: #000000;
+            --text-muted: #666666;
+            --text-light: #333333;
+            --red: #E8000D;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-main);
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            height: 64px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--line);
+            flex-shrink: 0;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .nav-logo img {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+        }
+        .nav-logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+        .nav-logo-text span {
+            color: var(--red);
+        }
+        .nav-right {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        .nav-right a {
+            color: var(--red);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .page {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--line);
+            max-width: 480px;
+            width: 100%;
+            padding: 48px 40px;
+        }
+        .card-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--red);
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        .card-sub {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .field-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            letter-spacing: 0.3px;
+        }
+        .forgot-link {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-mono);
+            transition: color 0.2s;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        .forgot-link:hover {
+            color: var(--red);
+        }
+        input {
+            background: var(--bg-mid);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-family: var(--font-main);
+            font-size: 15px;
+            padding: 14px 16px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+        }
+        input::placeholder {
+            color: var(--text-muted);
+        }
+        input:focus {
+            border-color: var(--text);
+        }
+        input.error {
+            border-color: var(--red);
+        }
+        .field-error {
+            font-size: 12px;
+            color: var(--red);
+            font-family: var(--font-mono);
+            display: none;
+        }
+        .field-error.show {
+            display: block;
+        }
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-wrap input {
+            padding-right: 48px;
+        }
+        .toggle-pw {
+            position: absolute;
+            right: 14px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-family: var(--font-mono);
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        .toggle-pw:hover {
+            color: var(--text);
+        }
+
+        .btn-submit {
+            background: var(--red);
+            color: #fff;
+            border: none;
+            font-family: var(--font-main);
+            font-size: 15px;
+            font-weight: 700;
+            padding: 16px 32px;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+            letter-spacing: 0.3s;
+            position: relative;
+        }
+        .btn-submit:hover {
+            opacity: 0.85;
+        }
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-submit .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .btn-submit.loading .spinner {
+            display: block;
+        }
+        .btn-submit.loading {
+            pointer-events: none;
+        }
+        @keyframes spin {
+            to {
+                transform: translateY(-50%) rotate(360deg);
+            }
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: var(--font-main);
+        }
+        .back-link:hover {
+            color: var(--text);
+        }
+        .back-link span {
+            color: var(--red);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--bg-mid);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-size: 14px;
+            padding: 14px 24px;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+            z-index: 999;
+            white-space: nowrap;
+            font-family: var(--font-mono);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.error {
+            border-color: var(--red);
+            color: var(--red);
+        }
+        .toast.success {
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+
+        @media (max-width: 600px) {
+            nav {
+                padding: 0 20px;
+            }
+            .card {
+                padding: 40px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="./" class="nav-logo">
+            <img src="b.png" alt="Boujee Academy" class="logo-img">
+            <span class="nav-logo-text">boujee<span>academy</span></span>
+        </a>
+        <div class="nav-right">
+            No account yet? <a href="./signup.html">Create free account</a>
+        </div>
+    </nav>
+
+    <div class="page">
+        <!-- LOGIN CARD -->
+        <div class="card" id="loginCard">
+            <p class="card-eyebrow">Your account</p>
+            <h1 class="card-title">Log in</h1>
+            <p class="card-sub">No account? <a href="./signup.html">Create one free</a></p>
+
+            <form class="form" id="loginForm" novalidate>
+                <div class="field">
+                    <label for="loginEmail">Email address</label>
+                    <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+                    <span class="field-error" id="loginEmailErr">Enter a valid email address</span>
+                </div>
+
+                <div class="field">
+                    <div class="field-top">
+                        <label for="loginPassword">Password</label>
+                        <button type="button" class="forgot-link" id="showResetFormBtn">Forgot password?</button>
+                    </div>
+                    <div class="input-wrap">
+                        <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password">
+                        <button type="button" class="toggle-pw" id="togglePasswordBtn">show</button>
+                    </div>
+                    <span class="field-error" id="loginPasswordErr">Enter your password</span>
+                </div>
+
+                <button type="submit" class="btn-submit" id="loginSubmitBtn">
+                    Log in
+                    <span class="spinner"></span>
+                </button>
+            </form>
+        </div>
+
+        <!-- RESET PASSWORD CARD (Simple: just enter email) -->
+        <div class="card hidden" id="resetCard">
+            <p class="card-eyebrow">Reset password</p>
+            <h1 class="card-title">Forgot your password?</h1>
+            <p class="card-sub">Enter your email address and we'll send you a reset link.</p>
+
+            <form class="form" id="resetForm" novalidate>
+                <div class="field">
+                    <label for="resetEmail">Email address</label>
+                    <input type="email" id="resetEmail" placeholder="you@example.com" autocomplete="email">
+                    <span class="field-error" id="resetEmailErr">Enter a valid email address</span>
+                </div>
+                <button type="submit" class="btn-submit" id="resetSubmitBtn">
+                    Send reset link
+                    <span class="spinner"></span>
+                </button>
+            </form>
+            <button class="back-link" id="backToLoginBtn">← Back to <span>Log in</span></button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            sendPasswordResetEmail,
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo",
+            authDomain: "boujee-academy.firebaseapp.com",
+            projectId: "boujee-academy",
+            storageBucket: "boujee-academy.firebasestorage.app",
+            messagingSenderId: "945726464812",
+            appId: "1:945726464812:web:33f6f7eafed0e56f064289",
+            measurementId: "G-JJ33L7KR7M"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Theme
+        const saved = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', saved);
+        document.querySelectorAll('.logo-img').forEach(img => {
+            img.src = saved === 'light' ? 'bdark.png' : 'b.png';
+        });
+
+        // Redirect if already logged in
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.location.href = './dashboard.html';
+            }
+        });
+
+        // DOM elements
+        const loginCard = document.getElementById('loginCard');
+        const resetCard = document.getElementById('resetCard');
+        const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+        const loginEmail = document.getElementById('loginEmail');
+        const loginPassword = document.getElementById('loginPassword');
+        const resetEmail = document.getElementById('resetEmail');
+
+        // View switching
+        function showLoginView() {
+            loginCard.classList.remove('hidden');
+            resetCard.classList.add('hidden');
+        }
+
+        function showResetView() {
+            loginCard.classList.add('hidden');
+            resetCard.classList.remove('hidden');
+            // prefill email from login field
+            if (loginEmail.value.trim()) resetEmail.value = loginEmail.value.trim();
+        }
+
+        document.getElementById('showResetFormBtn').addEventListener('click', showResetView);
+        document.getElementById('backToLoginBtn').addEventListener('click', showLoginView);
+
+        // Toast
+        function showToast(msg, type = '') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + type;
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), 5000);
+        }
+
+        // Field error helpers
+        function showFieldError(id, msg) {
+            const el = document.getElementById(id);
+            if (msg) el.textContent = msg;
+            el.classList.add('show');
+        }
+        function clearFieldError(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('show');
+        }
+        function setInputError(id, hasError) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('error', hasError);
+        }
+
+        // Password toggle
+        togglePasswordBtn.addEventListener('click', () => {
+            const isHidden = loginPassword.type === 'password';
+            loginPassword.type = isHidden ? 'text' : 'password';
+            togglePasswordBtn.textContent = isHidden ? 'hide' : 'show';
+        });
+
+        // LOGIN
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = loginEmail.value.trim();
+            const password = loginPassword.value;
+
+            let valid = true;
+            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRe.test(email)) {
+                showFieldError('loginEmailErr', 'Enter a valid email address');
+                setInputError('loginEmail', true);
+                valid = false;
+            } else {
+                clearFieldError('loginEmailErr');
+                setInputError('loginEmail', false);
+            }
+            if (!password) {
+                showFieldError('loginPasswordErr', 'Enter your password');
+                setInputError('loginPassword', true);
+                valid = false;
+            } else {
+                clearFieldError('loginPasswordErr');
+                setInputError('loginPassword', false);
+            }
+            if (!valid) return;
+
+            const btn = document.getElementById('loginSubmitBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                let userName = user.displayName || '';
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        if (data.name) userName = data.name;
+                    }
+                } catch (fsErr) {
+                    console.warn('Could not fetch Firestore profile');
+                }
+
+                localStorage.setItem('ba_uid', user.uid);
+                localStorage.setItem('ba_email', user.email);
+                localStorage.setItem('ba_name', userName);
+
+                showToast('Welcome back! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = './dashboard.html';
+                }, 1000);
+            } catch (error) {
+                console.error(error);
+                const code = error.code;
+                if (code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password') {
+                    showFieldError('loginEmailErr', 'Email or password is incorrect');
+                    showFieldError('loginPasswordErr', 'Check your password');
+                    setInputError('loginEmail', true);
+                    setInputError('loginPassword', true);
+                } else if (code === 'auth/too-many-requests') {
+                    showToast('Too many failed attempts. Please wait and try again.', 'error');
+                } else if (code === 'auth/user-disabled') {
+                    showToast('This account has been disabled. Contact support.', 'error');
+                } else {
+                    showToast('Login failed. Please try again.', 'error');
+                }
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        });
+
+        // PASSWORD RESET (Firebase built-in)
+        document.getElementById('resetForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = resetEmail.value.trim();
+            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!emailRe.test(email)) {
+                showFieldError('resetEmailErr', 'Enter a valid email address');
+                setInputError('resetEmail', true);
+                return;
+            }
+            clearFieldError('resetEmailErr');
+            setInputError('resetEmail', false);
+
+            const btn = document.getElementById('resetSubmitBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showToast('If an account exists for that email, a reset link has been sent.', 'success');
+                showLoginView();
+            } catch (error) {
+                console.error(error);
+                // Firebase throws an error only for invalid email format or network issues,
+                // but not for non-existent user. Still, show a generic message.
+                showToast('Something went wrong. Please try again.', 'error');
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        });
+
+        // Clear errors on input
+        loginEmail.addEventListener('input', () => { clearFieldError('loginEmailErr'); setInputError('loginEmail', false); });
+        loginPassword.addEventListener('input', () => { clearFieldError('loginPasswordErr'); setInputError('loginPassword', false); });
+        resetEmail.addEventListener('input', () => { clearFieldError('resetEmailErr'); setInputError('resetEmail', false); });
+    </script>
+</body>
+</html>
