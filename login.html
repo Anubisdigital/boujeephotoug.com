@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log in — Boujee Academy</title>
+    <meta name="description" content="Log in to your Boujee Academy account and continue building your audience.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root,
+        [data-theme="dark"] {
+            --bg: #000000;
+            --bg-mid: #1a1a1a;
+            --bg-card: #111111;
+            --line: #222222;
+            --text: #ffffff;
+            --text-muted: #888888;
+            --text-light: #cccccc;
+            --red: #E8000D;
+            --font-main: 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+        }
+
+        [data-theme="light"] {
+            --bg: #f5f5f5;
+            --bg-mid: #ebebeb;
+            --bg-card: #ffffff;
+            --line: #dddddd;
+            --text: #000000;
+            --text-muted: #666666;
+            --text-light: #333333;
+            --red: #E8000D;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-main);
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            height: 64px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--line);
+            flex-shrink: 0;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .nav-logo img {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+        }
+        .nav-logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+        .nav-logo-text span {
+            color: var(--red);
+        }
+        .nav-right {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        .nav-right a {
+            color: var(--red);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .page {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--line);
+            max-width: 480px;
+            width: 100%;
+            padding: 48px 40px;
+        }
+        .card-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--red);
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        .card-sub {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .field-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            letter-spacing: 0.3px;
+        }
+        .forgot-link {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-mono);
+            transition: color 0.2s;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        .forgot-link:hover {
+            color: var(--red);
+        }
+        input {
+            background: var(--bg-mid);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-family: var(--font-main);
+            font-size: 15px;
+            padding: 14px 16px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+        }
+        input::placeholder {
+            color: var(--text-muted);
+        }
+        input:focus {
+            border-color: var(--text);
+        }
+        input.error {
+            border-color: var(--red);
+        }
+        .field-error {
+            font-size: 12px;
+            color: var(--red);
+            font-family: var(--font-mono);
+            display: none;
+        }
+        .field-error.show {
+            display: block;
+        }
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-wrap input {
+            padding-right: 48px;
+        }
+        .toggle-pw {
+            position: absolute;
+            right: 14px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-family: var(--font-mono);
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        .toggle-pw:hover {
+            color: var(--text);
+        }
+
+        .btn-submit {
+            background: var(--red);
+            color: #fff;
+            border: none;
+            font-family: var(--font-main);
+            font-size: 15px;
+            font-weight: 700;
+            padding: 16px 32px;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+            letter-spacing: 0.3px;
+            position: relative;
+        }
+        .btn-submit:hover {
+            opacity: 0.85;
+        }
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-submit .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .btn-submit.loading .spinner {
+            display: block;
+        }
+        .btn-submit.loading {
+            pointer-events: none;
+        }
+        @keyframes spin {
+            to {
+                transform: translateY(-50%) rotate(360deg);
+            }
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: var(--font-main);
+        }
+        .back-link:hover {
+            color: var(--text);
+        }
+        .back-link span {
+            color: var(--red);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .success-icon {
+            font-size: 48px;
+            color: #22c55e;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--bg-mid);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-size: 14px;
+            padding: 14px 24px;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+            z-index: 999;
+            white-space: nowrap;
+            font-family: var(--font-mono);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.error {
+            border-color: var(--red);
+            color: var(--red);
+        }
+        .toast.success {
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+
+        @media (max-width: 600px) {
+            nav {
+                padding: 0 20px;
+            }
+            .card {
+                padding: 40px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="/" class="nav-logo">
+            <img src="b.png" alt="Boujee Academy" class="logo-img">
+            <span class="nav-logo-text">boujee<span>academy</span></span>
+        </a>
+        <div class="nav-right">
+            No account yet? <a href="/signup.html">Create free account</a>
+        </div>
+    </nav>
+
+    <div class="page">
+        <!-- LOGIN CARD -->
+        <div class="card" id="loginCard">
+            <p class="card-eyebrow">Your account</p>
+            <h1 class="card-title">Log in</h1>
+            <p class="card-sub">No account? <a href="/signup.html">Create one free</a></p>
+
+            <form class="form" id="loginForm" novalidate>
+                <div class="field">
+                    <label for="loginEmail">Email address</label>
+                    <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+                    <span class="field-error" id="loginEmailErr">Enter a valid email address</span>
+                </div>
+
+                <div class="field">
+                    <div class="field-top">
+                        <label for="loginPassword">Password</label>
+                        <button type="button" class="forgot-link" id="showResetFormBtn">Forgot password?</button>
+                    </div>
+                    <div class="input-wrap">
+                        <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password">
+                        <button type="button" class="toggle-pw" id="togglePasswordBtn">show</button>
+                    </div>
+                    <span class="field-error" id="loginPasswordErr">Enter your password</span>
+                </div>
+
+                <button type="submit" class="btn-submit" id="loginSubmitBtn">
+                    Log in
+                    <span class="spinner"></span>
+                </button>
+            </form>
+        </div>
+
+        <!-- RESET PASSWORD CARD (Step 1: enter email to receive code) -->
+        <div class="card hidden" id="resetCard">
+            <p class="card-eyebrow">Reset password</p>
+            <h1 class="card-title">Forgot your password?</h1>
+            <p class="card-sub">Enter your email and we'll send a 6‑digit code to reset it.</p>
+
+            <form class="form" id="resetEmailForm" novalidate>
+                <div class="field">
+                    <label for="resetEmail">Email address</label>
+                    <input type="email" id="resetEmail" placeholder="you@example.com" autocomplete="email">
+                    <span class="field-error" id="resetEmailErr">Enter a valid email address</span>
+                </div>
+                <button type="submit" class="btn-submit" id="resetSendCodeBtn">
+                    Send reset code
+                    <span class="spinner"></span>
+                </button>
+            </form>
+            <button class="back-link" id="backToLoginFromResetBtn">← Back to <span>Log in</span></button>
+        </div>
+
+        <!-- RESET PASSWORD CARD (Step 2: enter code & new password) -->
+        <div class="card hidden" id="codeCard">
+            <p class="card-eyebrow">Reset password</p>
+            <h1 class="card-title">Check your email</h1>
+            <p class="card-sub">
+                We sent a 6‑digit code to <strong id="codeEmailDisplay"></strong>. Enter it below along with your new password.
+            </p>
+
+            <form class="form" id="codeForm" novalidate>
+                <div class="field">
+                    <label for="resetCode">6‑digit code</label>
+                    <input type="text" id="resetCode" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+                    <span class="field-error" id="resetCodeErr">Enter the code from your email</span>
+                </div>
+                <div class="field">
+                    <label for="newPassword">New password</label>
+                    <input type="password" id="newPassword" placeholder="At least 8 characters" autocomplete="new-password">
+                    <span class="field-error" id="newPasswordErr">Password must be at least 8 characters</span>
+                </div>
+                <div class="field">
+                    <label for="confirmNewPassword">Confirm new password</label>
+                    <input type="password" id="confirmNewPassword" placeholder="Repeat your password" autocomplete="new-password">
+                    <span class="field-error" id="confirmNewPasswordErr">Passwords do not match</span>
+                </div>
+                <button type="submit" class="btn-submit" id="resetSubmitBtn">
+                    Reset password
+                    <span class="spinner"></span>
+                </button>
+            </form>
+            <button class="back-link" id="backToResetEmailBtn">← Back to <span>email entry</span></button>
+        </div>
+
+        <!-- SUCCESS CARD (password updated) -->
+        <div class="card hidden" id="successCard">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h1 class="card-title" style="text-align:center;">Password reset</h1>
+            <p class="card-sub" style="text-align:center; margin-bottom:24px;">
+                Your password has been updated. You can now log in with your new password.
+            </p>
+            <a href="#" id="goToLoginFromSuccess" class="btn-submit" style="display:block; text-align:center; text-decoration:none;">Log in</a>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Firebase SDK for login only -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo",
+            authDomain: "boujee-academy.firebaseapp.com",
+            projectId: "boujee-academy",
+            storageBucket: "boujee-academy.firebasestorage.app",
+            messagingSenderId: "945726464812",
+            appId: "1:945726464812:web:33f6f7eafed0e56f064289",
+            measurementId: "G-JJ33L7KR7M"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const EMAIL_WORKER_URL = 'https://boujee-email-worker.kakoozaronald71.workers.dev';
+
+        // ---------- DOM elements ----------
+        const loginCard = document.getElementById('loginCard');
+        const resetCard = document.getElementById('resetCard');
+        const codeCard = document.getElementById('codeCard');
+        const successCard = document.getElementById('successCard');
+
+        const loginEmail = document.getElementById('loginEmail');
+        const loginPassword = document.getElementById('loginPassword');
+        const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+        const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+
+        const resetEmail = document.getElementById('resetEmail');
+        const resetSendCodeBtn = document.getElementById('resetSendCodeBtn');
+
+        const codeEmailDisplay = document.getElementById('codeEmailDisplay');
+        const resetCode = document.getElementById('resetCode');
+        const newPassword = document.getElementById('newPassword');
+        const confirmNewPassword = document.getElementById('confirmNewPassword');
+        const resetSubmitBtn = document.getElementById('resetSubmitBtn');
+
+        let currentResetEmail = '';
+
+        // ---------- View switching ----------
+        function showLoginView() {
+            loginCard.classList.remove('hidden');
+            resetCard.classList.add('hidden');
+            codeCard.classList.add('hidden');
+            successCard.classList.add('hidden');
+        }
+
+        function showResetEmailView() {
+            loginCard.classList.add('hidden');
+            resetCard.classList.remove('hidden');
+            codeCard.classList.add('hidden');
+            successCard.classList.add('hidden');
+            // prefill email from login field if it has a value
+            if (loginEmail.value.trim()) resetEmail.value = loginEmail.value.trim();
+        }
+
+        function showCodeView() {
+            resetCard.classList.add('hidden');
+            codeCard.classList.remove('hidden');
+            successCard.classList.add('hidden');
+            codeEmailDisplay.textContent = currentResetEmail;
+        }
+
+        function showSuccessView() {
+            codeCard.classList.add('hidden');
+            successCard.classList.remove('hidden');
+        }
+
+        // Navigation buttons
+        document.getElementById('showResetFormBtn').addEventListener('click', showResetEmailView);
+        document.getElementById('backToLoginFromResetBtn').addEventListener('click', showLoginView);
+        document.getElementById('backToResetEmailBtn').addEventListener('click', showResetEmailView);
+        document.getElementById('goToLoginFromSuccess').addEventListener('click', (e) => {
+            e.preventDefault();
+            showLoginView();
+        });
+
+        // ---------- Toast ----------
+        function showToast(msg, type = '') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + type;
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), 5000);
+        }
+
+        // ---------- Field error helpers ----------
+        function showFieldError(id, msg) {
+            const el = document.getElementById(id);
+            if (msg) el.textContent = msg;
+            el.classList.add('show');
+        }
+        function clearFieldError(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('show');
+        }
+        function setInputError(id, hasError) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('error', hasError);
+        }
+
+        // ---------- Password toggle ----------
+        togglePasswordBtn.addEventListener('click', () => {
+            const isHidden = loginPassword.type === 'password';
+            loginPassword.type = isHidden ? 'text' : 'password';
+            togglePasswordBtn.textContent = isHidden ? 'hide' : 'show';
+        });
+
+        // ---------- Redirect if already logged in ----------
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.location.href = '/dashboard.html';
+            }
+        });
+
+        // ---------- LOGIN ----------
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = loginEmail.value.trim();
+            const password = loginPassword.value;
+
+            let valid = true;
+            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRe.test(email)) {
+                showFieldError('loginEmailErr', 'Enter a valid email address');
+                setInputError('loginEmail', true);
+                valid = false;
+            } else {
+                clearFieldError('loginEmailErr');
+                setInputError('loginEmail', false);
+            }
+            if (!password) {
+                showFieldError('loginPasswordErr', 'Enter your password');
+                setInputError('loginPassword', true);
+                valid = false;
+            } else {
+                clearFieldError('loginPasswordErr');
+                setInputError('loginPassword', false);
+            }
+            if (!valid) return;
+
+            loginSubmitBtn.classList.add('loading');
+            loginSubmitBtn.disabled = true;
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                let userName = user.displayName || '';
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        if (data.name) userName = data.name;
+                    }
+                } catch (fsErr) {
+                    console.warn('Could not fetch Firestore profile');
+                }
+
+                localStorage.setItem('ba_uid', user.uid);
+                localStorage.setItem('ba_email', user.email);
+                localStorage.setItem('ba_name', userName);
+
+                showToast('Welcome back! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html';
+                }, 1000);
+            } catch (error) {
+                console.error(error);
+                const code = error.code;
+                if (code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password') {
+                    showFieldError('loginEmailErr', 'Email or password is incorrect');
+                    showFieldError('loginPasswordErr', 'Check your password');
+                    setInputError('loginEmail', true);
+                    setInputError('loginPassword', true);
+                } else if (code === 'auth/too-many-requests') {
+                    showToast('Too many failed attempts. Please wait and try again.', 'error');
+                } else if (code === 'auth/user-disabled') {
+                    showToast('This account has been disabled. Contact support.', 'error');
+                } else {
+                    showToast('Login failed. Please try again.', 'error');
+                }
+            } finally {
+                loginSubmitBtn.classList.remove('loading');
+                loginSubmitBtn.disabled = false;
+            }
+        });
+
+        // ---------- RESET: Send code ----------
+        document.getElementById('resetEmailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = resetEmail.value.trim();
+            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!emailRe.test(email)) {
+                showFieldError('resetEmailErr', 'Enter a valid email address');
+                setInputError('resetEmail', true);
+                return;
+            }
+            clearFieldError('resetEmailErr');
+            setInputError('resetEmail', false);
+
+            resetSendCodeBtn.classList.add('loading');
+            resetSendCodeBtn.disabled = true;
+
+            try {
+                const res = await fetch(`${EMAIL_WORKER_URL}/send-verification`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email }),
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (res.ok && data.sent) {
+                    currentResetEmail = email;
+                    showCodeView();
+                    showToast('Reset code sent! Check your inbox.', 'success');
+                } else {
+                    // Even if email not found, proceed to code view for privacy
+                    currentResetEmail = email;
+                    showCodeView();
+                    showToast('If that email exists, a code has been sent.', 'success');
+                }
+            } catch (err) {
+                showToast('Network error. Please try again.', 'error');
+                console.error(err);
+            } finally {
+                resetSendCodeBtn.classList.remove('loading');
+                resetSendCodeBtn.disabled = false;
+            }
+        });
+
+        // ---------- RESET: Verify code & set new password ----------
+        document.getElementById('codeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const code = resetCode.value.trim();
+            const pw = newPassword.value;
+            const confirmPw = confirmNewPassword.value;
+
+            let valid = true;
+
+            if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+                showFieldError('resetCodeErr', 'Enter a valid 6‑digit code');
+                setInputError('resetCode', true);
+                valid = false;
+            } else {
+                clearFieldError('resetCodeErr');
+                setInputError('resetCode', false);
+            }
+
+            if (pw.length < 8) {
+                showFieldError('newPasswordErr', 'Password must be at least 8 characters');
+                setInputError('newPassword', true);
+                valid = false;
+            } else {
+                clearFieldError('newPasswordErr');
+                setInputError('newPassword', false);
+            }
+
+            if (pw !== confirmPw) {
+                showFieldError('confirmNewPasswordErr', 'Passwords do not match');
+                setInputError('confirmNewPassword', true);
+                valid = false;
+            } else {
+                clearFieldError('confirmNewPasswordErr');
+                setInputError('confirmNewPassword', false);
+            }
+
+            if (!valid) return;
+
+            resetSubmitBtn.classList.add('loading');
+            resetSubmitBtn.disabled = true;
+
+            try {
+                const res = await fetch(`${EMAIL_WORKER_URL}/verify-reset-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: currentResetEmail,
+                        code,
+                        newPassword: pw,
+                    }),
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (res.ok && data.success) {
+                    showSuccessView();
+                } else {
+                    const errorMsg = data.error || 'Invalid or expired code.';
+                    if (errorMsg.includes('expired')) {
+                        showFieldError('resetCodeErr', 'This code has expired. Request a new one.');
+                    } else if (errorMsg.includes('already been used')) {
+                        showFieldError('resetCodeErr', 'This code has already been used.');
+                    } else {
+                        showFieldError('resetCodeErr', 'Invalid code. Please check and try again.');
+                    }
+                    setInputError('resetCode', true);
+                }
+            } catch (err) {
+                showToast('Network error. Please try again.', 'error');
+                console.error(err);
+            } finally {
+                resetSubmitBtn.classList.remove('loading');
+                resetSubmitBtn.disabled = false;
+            }
+        });
+
+        // Clear errors on input (all relevant fields)
+        loginEmail.addEventListener('input', () => { clearFieldError('loginEmailErr'); setInputError('loginEmail', false); });
+        loginPassword.addEventListener('input', () => { clearFieldError('loginPasswordErr'); setInputError('loginPassword', false); });
+        resetEmail.addEventListener('input', () => { clearFieldError('resetEmailErr'); setInputError('resetEmail', false); });
+        resetCode.addEventListener('input', () => { clearFieldError('resetCodeErr'); setInputError('resetCode', false); });
+        newPassword.addEventListener('input', () => { clearFieldError('newPasswordErr'); setInputError('newPassword', false); });
+        confirmNewPassword.addEventListener('input', () => { clearFieldError('confirmNewPasswordErr'); setInputError('confirmNewPassword', false); });
+    </script>
+</body>
+  </html>
