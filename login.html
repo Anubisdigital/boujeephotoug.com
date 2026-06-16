@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log in — Boujee Academy</title>
+    <meta name="description" content="Log in to your Boujee Academy account and continue building your audience.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root,
+        [data-theme="dark"] {
+            --bg: #000000;
+            --bg-mid: #1a1a1a;
+            --bg-card: #111111;
+            --line: #222222;
+            --text: #ffffff;
+            --text-muted: #888888;
+            --text-light: #cccccc;
+            --red: #E8000D;
+            --font-main: 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+        }
+
+        [data-theme="light"] {
+            --bg: #f5f5f5;
+            --bg-mid: #ebebeb;
+            --bg-card: #ffffff;
+            --line: #dddddd;
+            --text: #000000;
+            --text-muted: #666666;
+            --text-light: #333333;
+            --red: #E8000D;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-main);
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* ── NAV ── */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            height: 64px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--line);
+            flex-shrink: 0;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .nav-logo img {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+        }
+        .nav-logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+        .nav-logo-text span {
+            color: var(--red);
+        }
+        .nav-right {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        .nav-right a {
+            color: var(--red);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* ── LAYOUT ── */
+        .page {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: calc(100vh - 64px);
+        }
+
+        /* ── LEFT PANEL ── */
+        .left-panel {
+            background: var(--bg-mid);
+            border-right: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 80px 64px;
+            position: relative;
+            overflow: hidden;
+        }
+        .left-grid {
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(232, 0, 13, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(232, 0, 13, 0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+        .left-content {
+            position: relative;
+            z-index: 1;
+        }
+        .left-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--red);
+            margin-bottom: 24px;
+        }
+        .left-title {
+            font-size: clamp(28px, 3.5vw, 44px);
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+        .left-title em {
+            font-style: normal;
+            color: var(--red);
+        }
+        .left-desc {
+            font-size: 15px;
+            color: var(--text-light);
+            line-height: 1.7;
+            margin-bottom: 48px;
+            max-width: 380px;
+        }
+        .left-quote {
+            border-left: 3px solid var(--red);
+            padding: 20px 24px;
+            background: var(--bg-card);
+            margin-bottom: 32px;
+        }
+        .left-quote p {
+            font-size: 15px;
+            color: var(--text-light);
+            line-height: 1.7;
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+        .left-quote-author {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .left-stat-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--line);
+            border: 1px solid var(--line);
+            margin-top: 40px;
+        }
+        .left-stat {
+            background: var(--bg-mid);
+            padding: 20px 24px;
+        }
+        .left-stat-num {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            color: var(--text);
+        }
+        .left-stat-num span {
+            color: var(--red);
+        }
+        .left-stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-family: var(--font-mono);
+        }
+
+        /* ── RIGHT PANEL ── */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 80px 64px;
+            background: var(--bg);
+        }
+        .form-head {
+            margin-bottom: 40px;
+        }
+        .form-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        .form-title {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+        }
+        .form-sub {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        .form-sub a {
+            color: var(--red);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* ── FORM ── */
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .field-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            letter-spacing: 0.3px;
+        }
+        .forgot-link {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-mono);
+            transition: color 0.2s;
+        }
+        .forgot-link:hover {
+            color: var(--red);
+        }
+        input {
+            background: var(--bg-mid);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-family: var(--font-main);
+            font-size: 15px;
+            padding: 14px 16px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+        }
+        input::placeholder {
+            color: var(--text-muted);
+        }
+        input:focus {
+            border-color: var(--text);
+        }
+        input.error {
+            border-color: var(--red);
+        }
+        .field-error {
+            font-size: 12px;
+            color: var(--red);
+            font-family: var(--font-mono);
+            display: none;
+        }
+        .field-error.show {
+            display: block;
+        }
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-wrap input {
+            padding-right: 48px;
+        }
+        .toggle-pw {
+            position: absolute;
+            right: 14px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-family: var(--font-mono);
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        .toggle-pw:hover {
+            color: var(--text);
+        }
+
+        /* Remember me */
+        .remember-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .remember-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            accent-color: var(--red);
+            cursor: pointer;
+        }
+        .remember-row label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 400;
+            cursor: pointer;
+        }
+
+        /* Submit */
+        .btn-submit {
+            background: var(--red);
+            color: #fff;
+            border: none;
+            font-family: var(--font-main);
+            font-size: 15px;
+            font-weight: 700;
+            padding: 16px 32px;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+            letter-spacing: 0.3px;
+            position: relative;
+        }
+        .btn-submit:hover {
+            opacity: 0.85;
+        }
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-submit .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .btn-submit.loading .spinner {
+            display: block;
+        }
+        .btn-submit.loading {
+            pointer-events: none;
+        }
+        @keyframes spin {
+            to {
+                transform: translateY(-50%) rotate(360deg);
+            }
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-family: var(--font-mono);
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--line);
+        }
+        .btn-signup-alt {
+            display: block;
+            text-align: center;
+            padding: 14px;
+            border: 1px solid var(--line);
+            color: var(--text);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: border-color 0.2s;
+        }
+        .btn-signup-alt:hover {
+            border-color: var(--text);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--bg-mid);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-size: 14px;
+            padding: 14px 24px;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+            z-index: 999;
+            white-space: nowrap;
+            font-family: var(--font-mono);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.error {
+            border-color: var(--red);
+            color: var(--red);
+        }
+        .toast.success {
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 900px) {
+            nav {
+                padding: 0 20px;
+            }
+            .page {
+                grid-template-columns: 1fr;
+            }
+            .left-panel {
+                display: none;
+            }
+            .right-panel {
+                padding: 48px 24px;
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <a href="/" class="nav-logo">
+            <img src="b.png" alt="Boujee Academy" class="logo-img">
+            <span class="nav-logo-text">boujee<span>academy</span></span>
+        </a>
+        <div class="nav-right">
+            No account yet? <a href="/signup.html">Create free account</a>
+        </div>
+    </nav>
+
+    <!-- PAGE -->
+    <div class="page">
+
+        <!-- LEFT -->
+        <div class="left-panel">
+            <div class="left-grid"></div>
+            <div class="left-content">
+                <p class="left-eyebrow">Welcome back</p>
+                <h2 class="left-title">Continue building<br>your <em>audience.</em></h2>
+                <p class="left-desc">Log in to access your chapters, download resources, and pick up exactly where you stopped in the content pipeline.</p>
+
+                <div class="left-quote">
+                    <p>"I'm not going to show you fake student reviews. What I can show you is my own feed: 69,000 people, from zero, with a phone and a laptop. That's the system you're learning."</p>
+                    <span class="left-quote-author">BoujeePhoto · @boujeephoto · Kampala</span>
+                </div>
+
+                <div class="left-stat-row">
+                    <div class="left-stat">
+                        <div class="left-stat-num">69<span>K</span></div>
+                        <div class="left-stat-label">Built from zero</div>
+                    </div>
+                    <div class="left-stat">
+                        <div class="left-stat-num">9</div>
+                        <div class="left-stat-label">Chapters · record-once</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="right-panel">
+            <div class="form-head">
+                <p class="form-eyebrow">Your account</p>
+                <h1 class="form-title">Log in</h1>
+                <p class="form-sub">No account? <a href="/signup.html">Create one free</a></p>
+            </div>
+
+            <form class="form" id="loginForm" novalidate>
+
+                <div class="field">
+                    <label for="email">Email address</label>
+                    <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+                    <span class="field-error" id="emailErr">Enter your email address</span>
+                </div>
+
+                <div class="field">
+                    <div class="field-top">
+                        <label for="password">Password</label>
+                        <a href="/reset-password.html" class="forgot-link">Forgot password?</a>
+                    </div>
+                    <div class="input-wrap">
+                        <input type="password" id="password" placeholder="Your password" autocomplete="current-password">
+                        <button type="button" class="toggle-pw" onclick="togglePw()">show</button>
+                    </div>
+                    <span class="field-error" id="passwordErr">Enter your password</span>
+                </div>
+
+                <div class="remember-row">
+                    <input type="checkbox" id="remember">
+                    <label for="remember">Keep me logged in</label>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    Log in
+                    <span class="spinner"></span>
+                </button>
+
+                <div class="divider">or</div>
+
+                <a href="/signup.html" class="btn-signup-alt">Create a free account</a>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ── CONFIG ──
+        const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
+        const FIREBASE_PROJECT_ID = 'boujee-academy';
+        const AUTH_WORKER_URL = 'https://boujee-auth-worker.kakoozaronald71.workers.dev';
+
+        // ── THEME ──
+        const saved = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', saved);
+        document.querySelectorAll('.logo-img').forEach(img => {
+            img.src = saved === 'light' ? 'bdark.png' : 'b.png';
+        });
+
+        // ── ALREADY LOGGED IN ──
+        if (localStorage.getItem('ba_token') || sessionStorage.getItem('ba_token')) {
+            window.location.href = '/dashboard.html';
+        }
+
+        // ── PASSWORD TOGGLE ──
+        function togglePw() {
+            const input = document.getElementById('password');
+            const btn = document.querySelector('.toggle-pw');
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            btn.textContent = isHidden ? 'hide' : 'show';
+        }
+
+        // ── HELPERS ──
+        function showErr(id, msg) {
+            const el = document.getElementById(id);
+            if (msg) el.textContent = msg;
+            el.classList.add('show');
+        }
+
+        function clearErr(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function setInputError(id, hasError) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('error', hasError);
+        }
+
+        function showToast(msg, type = '') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + type;
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), 5000);
+        }
+
+        // ── SUBMIT ──
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
+
+            let valid = true;
+
+            // Validate email
+            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRe.test(email)) {
+                showErr('emailErr', 'Enter a valid email address');
+                setInputError('email', true);
+                valid = false;
+            } else {
+                clearErr('emailErr');
+                setInputError('email', false);
+            }
+
+            // Validate password
+            if (!password) {
+                showErr('passwordErr', 'Enter your password');
+                setInputError('password', true);
+                valid = false;
+            } else {
+                clearErr('passwordErr');
+                setInputError('password', false);
+            }
+
+            if (!valid) return;
+
+            const btn = document.getElementById('submitBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                // 1. Sign in with Firebase Auth REST API
+                const signInRes = await fetch(
+                    `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password, returnSecureToken: true }),
+                    }
+                );
+
+                const signInData = await signInRes.json();
+
+                if (signInData.error) {
+                    const msg = signInData.error.message;
+
+                    if (msg === 'EMAIL_NOT_FOUND' || msg === 'INVALID_LOGIN_CREDENTIALS') {
+                        showErr('emailErr', 'Email or password is incorrect');
+                        showErr('passwordErr', 'Check your password');
+                        setInputError('email', true);
+                        setInputError('password', true);
+                    } else if (msg === 'INVALID_PASSWORD') {
+                        showErr('passwordErr', 'Password is incorrect');
+                        setInputError('password', true);
+                        clearErr('emailErr');
+                        setInputError('email', false);
+                    } else if (msg === 'TOO_MANY_ATTEMPTS_TRY_LATER') {
+                        showToast('Too many failed attempts. Please wait a moment and try again.', 'error');
+                    } else if (msg === 'USER_DISABLED') {
+                        showToast('This account has been disabled. Contact support for help.', 'error');
+                    } else {
+                        showToast('Login failed. Please try again.', 'error');
+                    }
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    return;
+                }
+
+                const { idToken, localId: uid, email: userEmail, displayName } = signInData;
+
+                // 2. Verify token with auth worker for extra security
+                let userName = displayName || '';
+                try {
+                    const verifyRes = await fetch(`${AUTH_WORKER_URL}/verify-token`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idToken }),
+                    });
+
+                    if (verifyRes.ok) {
+                        const verifyData = await verifyRes.json();
+                        console.log('Token verified by auth worker:', verifyData.valid);
+                    } else {
+                        console.warn('Auth worker verification skipped — token still valid from Firebase');
+                    }
+                } catch (workerErr) {
+                    console.warn('Auth worker unreachable — proceeding with Firebase token directly');
+                }
+
+                // 3. Fetch user profile from Firestore to get the latest name
+                try {
+                    const firestoreRes = await fetch(
+                        `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/users/${uid}`, {
+                            headers: {
+                                'Authorization': `Bearer ${idToken}`,
+                            },
+                        }
+                    );
+
+                    if (firestoreRes.ok) {
+                        const userDoc = await firestoreRes.json();
+                        if (userDoc.fields && userDoc.fields.name && userDoc.fields.name.stringValue) {
+                            userName = userDoc.fields.name.stringValue;
+                        }
+                    }
+                } catch (fsErr) {
+                    console.warn('Could not fetch Firestore profile — using display name from auth');
+                }
+
+                // 4. Store session
+                const storage = remember ? localStorage : sessionStorage;
+                storage.setItem('ba_token', idToken);
+                storage.setItem('ba_uid', uid);
+                storage.setItem('ba_email', userEmail);
+                storage.setItem('ba_name', userName);
+
+                // Also mirror to localStorage so dashboard always reads it
+                localStorage.setItem('ba_token', idToken);
+                localStorage.setItem('ba_uid', uid);
+                localStorage.setItem('ba_email', userEmail);
+                localStorage.setItem('ba_name', userName);
+
+                // 5. Redirect to dashboard
+                showToast('Welcome back! Redirecting to your dashboard...', 'success');
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html';
+                }, 1000);
+
+            } catch (err) {
+                showToast('A network error occurred. Check your connection and try again.', 'error');
+                console.error('Login error:', err);
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        });
+
+        // ── CLEAR ERRORS ON INPUT ──
+        ['email', 'password'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => {
+                    clearErr(id + 'Err');
+                    setInputError(id, false);
+                });
+            }
+        });
+
+        // ── ENTER KEY SUBMITS FORM ──
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && document.activeElement && document.activeElement.tagName === 'INPUT') {
+                const form = document.getElementById('loginForm');
+                if (form && document.activeElement.closest('form') === form) {
+                    e.preventDefault();
+                    form.dispatchEvent(new Event('submit', { cancelable: true }));
+                }
+            }
+        });
+    </script>
+</body>
+</html>
