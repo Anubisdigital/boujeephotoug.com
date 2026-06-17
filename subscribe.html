@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Access — Boujee Academy</title>
+    <meta name="description" content="Get lifetime access to Boujee Academy. One payment. Learn content creation and video editing.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #000000;
+            --bg-mid: #111111;
+            --bg-card: #0E0E0E;
+            --line: #1E1E1E;
+            --line-soft: #2A2A2A;
+            --text: #ffffff;
+            --text-muted: #888888;
+            --text-light: #cccccc;
+            --red: #FA0001;
+            --gold: #E8B84B;
+            --teal: #5FB6AD;
+            --font-main: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            --font-mono: 'Space Mono', monospace;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-main);
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── NAV ── */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            height: 64px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--line);
+            flex-shrink: 0;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-logo img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .nav-logo-text {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.3px;
+        }
+
+        .nav-logo-text span {
+            color: var(--red);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        .nav-user {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .nav-logout {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color .2s;
+            cursor: pointer;
+        }
+
+        .nav-logout:hover {
+            color: var(--red);
+        }
+
+        /* ── MAIN ── */
+        main {
+            flex: 1;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 64px 24px 80px;
+            width: 100%;
+        }
+
+        /* ── PAGE HEAD ── */
+        .page-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--red);
+            margin-bottom: 14px;
+        }
+
+        .page-title {
+            font-size: clamp(28px, 5vw, 48px);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1.05;
+            margin-bottom: 14px;
+        }
+
+        .page-sub {
+            font-size: 16px;
+            color: var(--text-muted);
+            max-width: 52ch;
+            line-height: 1.65;
+            margin-bottom: 48px;
+        }
+
+        /* ── STEP INDICATOR ── */
+        .steps-bar {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-bottom: 48px;
+            border: 1px solid var(--line);
+        }
+
+        .step-item {
+            flex: 1;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-right: 1px solid var(--line);
+            background: var(--bg-card);
+        }
+
+        .step-item:last-child {
+            border-right: none;
+        }
+
+        .step-item.active {
+            background: var(--bg-mid);
+        }
+        .step-item.done {
+            background: var(--bg-card);
+        }
+
+        .step-num {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--line-soft);
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .step-item.active .step-num {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .step-item.done .step-num {
+            background: var(--red);
+            border-color: var(--red);
+            color: #fff;
+        }
+
+        .step-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .step-item.active .step-label {
+            color: var(--text);
+        }
+
+        /* ── PLAN CARDS ── */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--line);
+            border: 1px solid var(--line);
+            margin-bottom: 32px;
+        }
+
+        .plan-card {
+            background: var(--bg-card);
+            padding: 36px 32px;
+            cursor: pointer;
+            transition: background .2s;
+            position: relative;
+            border: 2px solid transparent;
+            margin: -1px;
+        }
+
+        .plan-card:hover {
+            background: var(--bg-mid);
+        }
+
+        .plan-card.selected {
+            background: var(--bg-mid);
+            border-color: var(--red);
+            z-index: 1;
+        }
+
+        .plan-badge {
+            position: absolute;
+            top: -1px;
+            left: 32px;
+            background: var(--gold);
+            color: #1A1206;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            padding: 4px 10px;
+        }
+
+        .plan-name {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            margin-top: 8px;
+        }
+
+        .plan-price {
+            font-size: 44px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .plan-price small {
+            font-size: 16px;
+            color: var(--text-muted);
+            font-weight: 400;
+            letter-spacing: 0;
+        }
+
+        .plan-type {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .plan-features {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .plan-features li {
+            font-size: 14px;
+            color: var(--text-light);
+            padding: 9px 0 9px 20px;
+            border-bottom: 1px solid var(--line);
+            position: relative;
+            line-height: 1.4;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .plan-features li::before {
+            content: "+";
+            position: absolute;
+            left: 0;
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        .plan-select-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--line-soft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .plan-card.selected .plan-select-indicator {
+            background: var(--red);
+            border-color: var(--red);
+        }
+
+        .plan-select-indicator::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: transparent;
+        }
+
+        .plan-card.selected .plan-select-indicator::after {
+            background: #fff;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+
+        /* ── PROMO CODE ── */
+        .promo-wrap {
+            margin-bottom: 32px;
+        }
+
+        .promo-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .promo-row {
+            display: flex;
+            gap: 0;
+            border: 1px solid var(--line);
+        }
+
+        .promo-input {
+            flex: 1;
+            background: var(--bg-mid);
+            border: none;
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            padding: 13px 16px;
+            outline: none;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .promo-input::placeholder {
+            color: var(--text-muted);
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .promo-btn {
+            background: var(--bg-card);
+            border: none;
+            border-left: 1px solid var(--line);
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 13px 20px;
+            cursor: pointer;
+            transition: background .2s, color .2s;
+            white-space: nowrap;
+        }
+
+        .promo-btn:hover {
+            background: var(--bg-mid);
+            color: var(--text);
+        }
+        .promo-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .promo-result {
+            margin-top: 10px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            display: none;
+        }
+
+        .promo-result.success {
+            color: var(--teal);
+            display: block;
+        }
+        .promo-result.error {
+            color: var(--red);
+            display: block;
+        }
+
+        /* ── ORDER SUMMARY ── */
+        .order-summary {
+            border: 1px solid var(--line);
+            background: var(--bg-card);
+            margin-bottom: 28px;
+        }
+
+        .order-summary-head {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--line);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .order-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 13px 20px;
+            border-bottom: 1px solid var(--line);
+            font-size: 14px;
+        }
+
+        .order-row:last-child {
+            border-bottom: none;
+        }
+
+        .order-row .label {
+            color: var(--text-muted);
+        }
+        .order-row .value {
+            color: var(--text);
+            font-weight: 600;
+        }
+        .order-row .value.discount {
+            color: var(--teal);
+        }
+
+        .order-row.total {
+            padding: 16px 20px;
+            background: var(--bg-mid);
+        }
+
+        .order-row.total .label {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        .order-row.total .value {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        /* ── TEST MODE BANNER ── */
+        .test-banner {
+            display: none;
+            background: rgba(232, 184, 75, .08);
+            border: 1px solid rgba(232, 184, 75, .25);
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--gold);
+            letter-spacing: 0.5px;
+        }
+
+        .test-banner.show {
+            display: block;
+        }
+
+        /* ── PAY BUTTON ── */
+        .pay-btn {
+            width: 100%;
+            background: var(--red);
+            color: #fff;
+            border: none;
+            font-family: var(--font-main);
+            font-size: 15px;
+            font-weight: 700;
+            padding: 18px 32px;
+            cursor: pointer;
+            transition: opacity .2s;
+            letter-spacing: 0.3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .pay-btn:hover {
+            opacity: .88;
+        }
+        .pay-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .pay-btn .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, .3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            flex-shrink: 0;
+        }
+
+        .pay-btn.loading .spinner {
+            display: block;
+        }
+        .pay-btn.loading {
+            pointer-events: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .pay-note {
+            margin-top: 12px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── PAYMENT METHODS ── */
+        .pay-methods {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pay-method-tag {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            border: 1px solid var(--line);
+            padding: 5px 10px;
+        }
+
+        /* ── ALREADY HAS ACCESS ── */
+        .already-access {
+            display: none;
+            text-align: center;
+            padding: 60px 24px;
+            border: 1px solid var(--line);
+            background: var(--bg-card);
+        }
+
+        .already-access.show {
+            display: block;
+        }
+
+        .already-access .check-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .already-access h2 {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+        }
+
+        .already-access p {
+            color: var(--text-muted);
+            font-size: 15px;
+            margin-bottom: 24px;
+        }
+
+        .btn-secondary {
+            display: inline-block;
+            border: 1px solid var(--line);
+            color: var(--text);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 13px 28px;
+            transition: border-color .2s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text);
+        }
+
+        /* ── NOT LOGGED IN ── */
+        .login-required {
+            display: none;
+            text-align: center;
+            padding: 60px 24px;
+            border: 1px solid var(--line);
+            background: var(--bg-card);
+        }
+
+        .login-required.show {
+            display: block;
+        }
+
+        .login-required h2 {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+        }
+
+        .login-required p {
+            color: var(--text-muted);
+            font-size: 15px;
+            margin-bottom: 24px;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            background: var(--red);
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 14px 28px;
+            transition: opacity .2s;
+            margin-right: 12px;
+        }
+
+        .btn-primary:hover {
+            opacity: .85;
+        }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--bg-mid);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-size: 13px;
+            padding: 13px 22px;
+            opacity: 0;
+            transition: opacity .3s, transform .3s;
+            pointer-events: none;
+            z-index: 999;
+            white-space: nowrap;
+            font-family: var(--font-mono);
+            letter-spacing: 0.5px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.error {
+            border-color: var(--red);
+            color: var(--red);
+        }
+        .toast.success {
+            border-color: var(--teal);
+            color: var(--teal);
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            border-top: 1px solid var(--line);
+            padding: 24px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        footer p {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        footer a {
+            color: var(--red);
+            text-decoration: none;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 680px) {
+            nav {
+                padding: 0 20px;
+            }
+            main {
+                padding: 40px 16px 60px;
+            }
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+            .steps-bar {
+                display: none;
+            }
+            footer {
+                padding: 20px;
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <a href="./" class="nav-logo">
+            <img src="b.png" alt="Boujee Academy" id="logoImg">
+            <span class="nav-logo-text">boujee<span>academy</span></span>
+        </a>
+        <div class="nav-right">
+            <span class="nav-user" id="navUser"></span>
+            <a href="#" class="nav-logout" id="logoutBtn" onclick="logout()">Log out</a>
+        </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main>
+
+        <!-- NOT LOGGED IN STATE -->
+        <div class="login-required" id="loginRequired">
+            <div style="width:56px;height:56px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:22px;">
+                &#128274;
+            </div>
+            <h2>Log in to get access</h2>
+            <p>You need an account to purchase Boujee Academy. Create one free or log in to continue.</p>
+            <a href="./login.html" class="btn-primary">Log in</a>
+            <a href="./signup.html" class="btn-secondary">Create account</a>
+        </div>
+
+        <!-- ALREADY HAS ACCESS STATE -->
+        <div class="already-access" id="alreadyAccess">
+            <div class="check-icon">&#10003;</div>
+            <h2>You already have access.</h2>
+            <p>Your Boujee Academy account has lifetime access. Go to your dashboard to continue learning.</p>
+            <a href="./dashboard.html" class="btn-primary">Go to Dashboard</a>
+        </div>
+
+        <!-- PAYMENT FORM -->
+        <div id="paymentForm" style="display:none;">
+
+            <p class="page-eyebrow">Get access</p>
+            <h1 class="page-title">Choose your plan.</h1>
+            <p class="page-sub">One payment. Lifetime access. No subscriptions, no renewals. Pay once and the course is yours forever.</p>
+
+            <!-- STEPS -->
+            <div class="steps-bar">
+                <div class="step-item active" id="step1">
+                    <div class="step-num">1</div>
+                    <span class="step-label">Choose plan</span>
+                </div>
+                <div class="step-item" id="step2">
+                    <div class="step-num">2</div>
+                    <span class="step-label">Review order</span>
+                </div>
+                <div class="step-item" id="step3">
+                    <div class="step-num">3</div>
+                    <span class="step-label">Pay securely</span>
+                </div>
+            </div>
+
+            <!-- TEST MODE BANNER (hidden when TEST_MODE=false) -->
+            <div class="test-banner" id="testBanner" style="display:none;">
+                TEST MODE ACTIVE — Prices are 2,000 UGX (Full) and 1,000 UGX (Founding). Real Pesapal sandbox. No real money.
+            </div>
+
+            <!-- PLAN CARDS -->
+            <div class="plans-grid">
+
+                <!-- FOUNDING -->
+                <div class="plan-card" id="planFounding" onclick="selectPlan('founding')">
+                    <div class="plan-badge">30 seats only</div>
+                    <div class="plan-select-indicator"></div>
+                    <div class="plan-name">Founding cohort</div>
+                    <div class="plan-price" id="priceFounding">50k<small> UGX</small></div>
+                    <div class="plan-type">One-time · half price · limited</div>
+                    <ul class="plan-features">
+                        <li>All 9 chapters — full curriculum</li>
+                        <li>The Edit chapter — DaVinci Resolve</li>
+                        <li>PDF resources and presets</li>
+                        <li>Discord community access</li>
+                        <li>Chapter 10 Monetization when released</li>
+                        <li>Direct feedback from the instructor</li>
+                    </ul>
+                </div>
+
+                <!-- FULL -->
+                <div class="plan-card" id="planFull" onclick="selectPlan('full')">
+                    <div class="plan-select-indicator"></div>
+                    <div class="plan-name">Full course</div>
+                    <div class="plan-price" id="priceFull">100k<small> UGX</small></div>
+                    <div class="plan-type">One-time · lifetime access</div>
+                    <ul class="plan-features">
+                        <li>All 9 chapters — full curriculum</li>
+                        <li>The Edit chapter — DaVinci Resolve</li>
+                        <li>PDF resources and presets</li>
+                        <li>Discord community access</li>
+                        <li>All future chapter updates</li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- PROMO CODE -->
+            <div class="promo-wrap">
+                <span class="promo-label">Promo code</span>
+                <div class="promo-row">
+                    <input type="text" class="promo-input" id="promoInput" placeholder="Enter code if you have one" maxlength="20">
+                    <button class="promo-btn" id="promoBtn" onclick="applyPromo()">Apply</button>
+                </div>
+                <div class="promo-result" id="promoResult"></div>
+            </div>
+
+            <!-- ORDER SUMMARY -->
+            <div class="order-summary">
+                <div class="order-summary-head">Order summary</div>
+                <div class="order-row">
+                    <span class="label">Plan</span>
+                    <span class="value" id="summaryPlan">— select a plan above</span>
+                </div>
+                <div class="order-row" id="discountRow" style="display:none;">
+                    <span class="label">Promo discount</span>
+                    <span class="value discount" id="summaryDiscount"></span>
+                </div>
+                <div class="order-row total">
+                    <span class="label">Total</span>
+                    <span class="value" id="summaryTotal">—</span>
+                </div>
+            </div>
+
+            <!-- PAY BUTTON -->
+            <button class="pay-btn" id="payBtn" onclick="handlePay()" disabled>
+                <span id="payBtnText">Select a plan to continue</span>
+                <span class="spinner"></span>
+            </button>
+
+            <p class="pay-note">You will be redirected to Pesapal's secure payment page</p>
+
+            <!-- PAYMENT METHODS -->
+            <div class="pay-methods">
+                <span class="pay-method-tag">MTN Mobile Money</span>
+                <span class="pay-method-tag">Airtel Money</span>
+                <span class="pay-method-tag">Visa</span>
+                <span class="pay-method-tag">Mastercard</span>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>&copy; 2026 Boujee Academy. Built in Uganda.</p>
+        <p>Secured by <a href="https://pesapal.com" target="_blank" rel="noopener">Pesapal</a></p>
+    </footer>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ── CONFIG ──
+        const PAYMENT_WORKER = 'https://boujee-payment-worker.kakoozaronald71.workers.dev';
+        const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
+
+        // ✅ FIX: Set to false for real production prices
+        const TEST_MODE = false;
+        const TEST_ADMIN_SECRET = 'An_daddblhogjfn-47374$$7_ufjfddjddsuwu6494247hdryqsud';
+
+        // ── STATE ──
+        let selectedPlan = null;
+        let promoCode = null;
+        let promoDiscount = 0;
+        let originalAmount = 0;
+        let finalAmount = 0;
+        let idToken = null;
+        let uid = null;
+
+        const PRICES = {
+            production: { full: 100000, founding: 50000 },
+            test: { full: 2000, founding: 1000 },
+        };
+
+        // ── INIT ──
+        document.addEventListener('DOMContentLoaded', async () => {
+            const theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+
+            // Test mode banner (only shown when TEST_MODE=true)
+            if (TEST_MODE) {
+                document.getElementById('testBanner').style.display = 'block';
+                document.getElementById('priceFounding').innerHTML = '1k<small> UGX</small>';
+                document.getElementById('priceFull').innerHTML = '2k<small> UGX</small>';
+            }
+
+            // Check login
+            const token = localStorage.getItem('ba_token');
+            const storedUid = localStorage.getItem('ba_uid');
+            const name = localStorage.getItem('ba_name') || localStorage.getItem('ba_email') || '';
+
+            if (!token || !storedUid) {
+                document.getElementById('loginRequired').classList.add('show');
+                document.getElementById('logoutBtn').style.display = 'none';
+                return;
+            }
+
+            // Refresh token
+            try {
+                const refreshed = await refreshToken(token);
+                if (!refreshed) {
+                    localStorage.clear();
+                    document.getElementById('loginRequired').classList.add('show');
+                    document.getElementById('logoutBtn').style.display = 'none';
+                    return;
+                }
+                idToken = refreshed;
+                uid = storedUid;
+                localStorage.setItem('ba_token', idToken);
+            } catch {
+                document.getElementById('loginRequired').classList.add('show');
+                document.getElementById('logoutBtn').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('navUser').textContent = name.split(' ')[0].toUpperCase();
+            document.getElementById('logoutBtn').style.display = 'inline';
+
+            const hasAccess = await checkAccess();
+            if (hasAccess) {
+                document.getElementById('alreadyAccess').classList.add('show');
+                return;
+            }
+
+            document.getElementById('paymentForm').style.display = 'block';
+        });
+
+        // ── REFRESH FIREBASE TOKEN ──
+        async function refreshToken(currentToken) {
+            try {
+                const parts = currentToken.split('.');
+                if (parts.length !== 3) return null;
+                const payload = JSON.parse(atob(parts[1]));
+                const now = Math.floor(Date.now() / 1000);
+                if (payload.exp > now + 300) return currentToken;
+
+                const refreshTokenStored = localStorage.getItem('ba_refresh_token');
+                if (!refreshTokenStored) return null;
+
+                const res = await fetch(
+                    `https://securetoken.googleapis.com/v1/token?key=${FIREBASE_API_KEY}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `grant_type=refresh_token&refresh_token=${refreshTokenStored}`,
+                    }
+                );
+                const data = await res.json();
+                if (data.id_token) {
+                    localStorage.setItem('ba_refresh_token', data.refresh_token);
+                    return data.id_token;
+                }
+                return null;
+            } catch {
+                return null;
+            }
+        }
+
+        // ── CHECK ACCESS ──
+        async function checkAccess() {
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                const body = TEST_MODE ?
+                    { adminSecret: TEST_ADMIN_SECRET, testUid: uid } :
+                    { idToken };
+
+                if (TEST_MODE) headers['X-Test-Mode'] = 'true';
+
+                const res = await fetch(`${PAYMENT_WORKER}/check-access-proxy`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(body),
+                }).catch(() => null);
+
+                if (res && res.ok) {
+                    const data = await res.json();
+                    if (data.hasAccess) {
+                        localStorage.setItem('ba_has_access', 'true');
+                        return true;
+                    }
+                }
+
+                return localStorage.getItem('ba_has_access') === 'true';
+            } catch {
+                return localStorage.getItem('ba_has_access') === 'true';
+            }
+        }
+
+        // ── SELECT PLAN ──
+        function selectPlan(plan) {
+            selectedPlan = plan;
+            document.getElementById('planFounding').classList.toggle('selected', plan === 'founding');
+            document.getElementById('planFull').classList.toggle('selected', plan === 'full');
+
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step1').classList.add('done');
+            document.getElementById('step2').classList.add('active');
+
+            updateSummary();
+        }
+
+        // ── UPDATE SUMMARY ──
+        function updateSummary() {
+            if (!selectedPlan) return;
+
+            const priceSet = TEST_MODE ? PRICES.test : PRICES.production;
+            originalAmount = priceSet[selectedPlan];
+
+            const planLabel = selectedPlan === 'founding' ?
+                'Founding Cohort — Lifetime' :
+                'Full Course — Lifetime';
+
+            document.getElementById('summaryPlan').textContent = planLabel;
+
+            if (promoDiscount > 0) {
+                const discountAmt = Math.round(originalAmount * (promoDiscount / 100));
+                finalAmount = Math.max(originalAmount - discountAmt, 0);
+                document.getElementById('discountRow').style.display = 'flex';
+                document.getElementById('summaryDiscount').textContent =
+                    `- ${formatAmount(discountAmt)} UGX (${promoDiscount}% off)`;
+            } else {
+                finalAmount = originalAmount;
+                document.getElementById('discountRow').style.display = 'none';
+            }
+
+            document.getElementById('summaryTotal').textContent = `${formatAmount(finalAmount)} UGX`;
+
+            const payBtn = document.getElementById('payBtn');
+            payBtn.disabled = false;
+            document.getElementById('payBtnText').textContent =
+                `Pay ${formatAmount(finalAmount)} UGX — Proceed to Pesapal`;
+
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step2').classList.add('done');
+            document.getElementById('step3').classList.add('active');
+        }
+
+        // ── APPLY PROMO ──
+        async function applyPromo() {
+            const code = document.getElementById('promoInput').value.trim();
+            if (!code) return;
+            if (!selectedPlan) {
+                showToast('Select a plan first', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('promoBtn');
+            const result = document.getElementById('promoResult');
+            btn.disabled = true;
+            btn.textContent = '...';
+            result.className = 'promo-result';
+            result.textContent = '';
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (TEST_MODE) headers['X-Test-Mode'] = 'true';
+
+                const res = await fetch(`${PAYMENT_WORKER}/validate-promo`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ promoCode: code, plan: selectedPlan }),
+                });
+
+                const data = await res.json();
+
+                if (data.error) {
+                    result.textContent = data.error;
+                    result.className = 'promo-result error';
+                    promoCode = null;
+                    promoDiscount = 0;
+                } else {
+                    promoCode = code.toUpperCase().trim();
+                    promoDiscount = data.discountPercent;
+                    result.textContent = `Code applied — ${data.discountPercent}% off`;
+                    result.className = 'promo-result success';
+                    updateSummary();
+                }
+            } catch {
+                result.textContent = 'Could not validate code. Try again.';
+                result.className = 'promo-result error';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Apply';
+            }
+        }
+
+        // ── HANDLE PAY ──
+        async function handlePay() {
+            if (!selectedPlan) return;
+
+            const btn = document.getElementById('payBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+            document.getElementById('payBtnText').textContent = 'Creating order...';
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                const body = { plan: selectedPlan };
+
+                if (TEST_MODE) {
+                    headers['X-Test-Mode'] = 'true';
+                    body.adminSecret = TEST_ADMIN_SECRET;
+                    body.testUid = uid || 'test-uid-001';
+                    body.testEmail = localStorage.getItem('ba_email') || 'test@boujeephotoug.com';
+                } else {
+                    body.idToken = idToken;
+                }
+
+                if (promoCode) body.promoCode = promoCode;
+
+                const res = await fetch(`${PAYMENT_WORKER}/create-order`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(body),
+                });
+
+                const data = await res.json();
+
+                if (data.error) {
+                    if (res.status === 409) {
+                        showToast('Your account already has lifetime access', 'error');
+                        setTimeout(() => { window.location.href = './dashboard.html'; }, 2000);
+                        return;
+                    }
+                    showToast(data.error, 'error');
+                    return;
+                }
+
+                localStorage.setItem('ba_order_tracking_id', data.orderTrackingId);
+                localStorage.setItem('ba_order_plan', data.plan);
+                localStorage.setItem('ba_order_amount', data.amount);
+
+                window.location.href = data.redirectUrl;
+
+            } catch (err) {
+                showToast('Something went wrong. Please try again.', 'error');
+                console.error(err);
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                document.getElementById('payBtnText').textContent =
+                    `Pay ${formatAmount(finalAmount)} UGX — Proceed to Pesapal`;
+            }
+        }
+
+        // ── LOGOUT ──
+        function logout() {
+            localStorage.removeItem('ba_token');
+            localStorage.removeItem('ba_uid');
+            localStorage.removeItem('ba_name');
+            localStorage.removeItem('ba_email');
+            localStorage.removeItem('ba_refresh_token');
+            localStorage.removeItem('ba_has_access');
+            sessionStorage.clear();
+            window.location.href = './login.html';
+        }
+
+        // ── HELPERS ──
+        function formatAmount(amount) {
+            if (amount >= 1000) return (amount / 1000).toLocaleString() + 'k';
+            return amount.toLocaleString();
+        }
+
+        function showToast(msg, type = '') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + type;
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), 4000);
+        }
+
+        // ── PROMO ON ENTER ──
+        document.addEventListener('DOMContentLoaded', () => {
+            const promoInput = document.getElementById('promoInput');
+            if (promoInput) {
+                promoInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') applyPromo();
+                });
+            }
+        });
+    </script>
+</body>
+  </html>
