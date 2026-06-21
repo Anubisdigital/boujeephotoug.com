@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Boujee Academy</title>
+<meta name="description" content="Boujee Academy admin console.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #000000;
+    --bg-mid: #111111;
+    --bg-card: #0E0E0E;
+    --line: #1E1E1E;
+    --line-soft: #2A2A2A;
+    --text: #ffffff;
+    --text-muted: #888888;
+    --text-light: #cccccc;
+    --red: #FA0001;
+    --gold: #E8B84B;
+    --teal: #5FB6AD;
+    --font-main: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-main);
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    height: 64px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .nav-logo img { width: 32px; height: 32px; object-fit: contain; }
+
+  .nav-logo-text {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .nav-logo-text span { color: var(--red); }
+
+  .nav-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid rgba(232,184,75,.3);
+    padding: 3px 8px;
+    margin-left: 12px;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 14px;
+  }
+
+  .nav-user {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    display: none;
+  }
+
+  @media (min-width: 560px) { .nav-user { display: inline; } }
+
+  .nav-logout {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    cursor: pointer;
+    transition: color .2s;
+    background: none;
+    border: none;
+    font-family: var(--font-main);
+  }
+
+  .nav-logout:hover { color: var(--red); }
+
+  /* ── TAB BAR ── */
+  .tab-bar {
+    display: flex;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+    overflow-x: auto;
+    flex-shrink: 0;
+    position: sticky;
+    top: 64px;
+    z-index: 49;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .tab-bar::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 16px 20px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color .2s, border-color .2s;
+    flex-shrink: 0;
+  }
+
+  .tab-btn:hover { color: var(--text-light); }
+
+  .tab-btn.active {
+    color: var(--text);
+    border-bottom-color: var(--red);
+  }
+
+  /* ── MAIN ── */
+  main {
+    flex: 1;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    width: 100%;
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .view-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 10px;
+  }
+
+  .view-title {
+    font-size: clamp(22px, 3.6vw, 32px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+
+  .view-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    max-width: 60ch;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  .view-head-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .view-head-row .view-sub { margin-bottom: 0; }
+
+  /* ── GATE STATES ── */
+  .gate-state {
+    display: none;
+    text-align: center;
+    padding: 60px 24px;
+    border: 1px solid var(--line);
+    background: var(--bg-card);
+    max-width: 960px;
+    margin: 64px auto;
+  }
+
+  .gate-state.show { display: block; }
+
+  .gate-icon {
+    width: 56px;
+    height: 56px;
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 22px;
+  }
+
+  .gate-state h2 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 10px;
+  }
+
+  .gate-state p {
+    color: var(--text-muted);
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--red);
+    color: #fff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 13px 24px;
+    border: none;
+    cursor: pointer;
+    transition: opacity .2s;
+    font-family: var(--font-main);
+  }
+
+  .btn-primary:hover { opacity: .85; }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--line);
+    background: none;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 22px;
+    cursor: pointer;
+    transition: border-color .2s;
+    font-family: var(--font-main);
+  }
+
+  .btn-secondary:hover { border-color: var(--text); }
+  .btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
+
+  .btn-danger {
+    border-color: rgba(250,0,1,.4);
+    color: var(--red);
+  }
+
+  .btn-danger:hover { border-color: var(--red); background: rgba(250,0,1,.06); }
+
+  .btn-small {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    border: 1px solid var(--line);
+    background: var(--bg-card);
+    margin-bottom: 24px;
+  }
+
+  .card-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .card-body { padding: 20px; }
+
+  /* ── FORM FIELDS ── */
+  .field { margin-bottom: 18px; }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 8px;
+  }
+
+  .field-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+
+  .field input, .field textarea, .field select {
+    width: 100%;
+    background: var(--bg-mid);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: var(--font-main);
+    font-size: 15px;
+    padding: 12px 14px;
+    outline: none;
+  }
+
+  .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--text); }
+  .field textarea { resize: vertical; min-height: 90px; }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .checkbox-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--red);
+    cursor: pointer;
+  }
+
+  .checkbox-row label {
+    font-size: 14px;
+    color: var(--text-light);
+    cursor: pointer;
+  }
+
+  /* ── TABLE ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .data-table th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+
+  .data-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    color: var(--text-light);
+    vertical-align: middle;
+  }
+
+  .data-table tr:last-child td { border-bottom: none; }
+
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--line-soft);
+    display: inline-block;
+  }
+
+  .badge.paid { color: var(--teal); border-color: rgba(95,182,173,.35); }
+  .badge.unpaid { color: var(--text-muted); }
+  .badge.admin { color: var(--gold); border-color: rgba(232,184,75,.35); }
+  .badge.active { color: var(--teal); border-color: rgba(95,182,173,.35); }
+  .badge.inactive { color: var(--red); border-color: rgba(250,0,1,.35); }
+
+  .row-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* ── EMPTY / LOADING STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  /* ── STATS GRID ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    padding: 22px 20px;
+  }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.85);
+    z-index: 300;
+    overflow-y: auto;
+    padding: 24px 16px;
+  }
+
+  .modal-overlay.show { display: block; }
+
+  .modal-box {
+    max-width: 520px;
+    margin: 40px auto;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+  }
+
+  .modal-head {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-title {
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+  }
+
+  .modal-close:hover { color: var(--text); }
+
+  .modal-body { padding: 22px; }
+
+  /* ── STEP INDICATOR (lesson flow) ── */
+  .steps-bar {
+    display: flex;
+    border: 1px solid var(--line);
+    margin-bottom: 28px;
+  }
+
+  .step-item {
+    flex: 1;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-right: 1px solid var(--line);
+    background: var(--bg-card);
+  }
+
+  .step-item:last-child { border-right: none; }
+  .step-item.active { background: var(--bg-mid); }
+
+  .step-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line-soft);
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .step-item.active .step-num { border-color: var(--red); color: var(--red); }
+  .step-item.done .step-num { background: var(--red); border-color: var(--red); color: #fff; }
+
+  .step-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .step-item.active .step-label { color: var(--text); }
+
+  /* ── UPLOAD PROGRESS ── */
+  .upload-progress-track {
+    height: 6px;
+    background: var(--line);
+    width: 100%;
+    margin-top: 12px;
+    overflow: hidden;
+  }
+
+  .upload-progress-fill {
+    height: 100%;
+    background: var(--red);
+    width: 0%;
+    transition: width .2s;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--bg-mid);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-size: 13px;
+    padding: 13px 22px;
+    opacity: 0;
+    transition: opacity .3s, transform .3s;
+    pointer-events: none;
+    z-index: 999;
+    max-width: 90vw;
+    font-family: var(--font-mono);
+    letter-spacing: 0.5px;
+  }
+
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error { border-color: var(--red); color: var(--red); }
+  .toast.success { border-color: var(--teal); color: var(--teal); }
+
+  @media (max-width: 680px) {
+    nav { padding: 0 16px; }
+    main { padding: 28px 16px 60px; }
+    .tab-btn { padding: 14px 14px; }
+    .field-row { grid-template-columns: 1fr; }
+    .nav-tag { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="./this-is-admin-page-no-one-should-access-or-guess.html" class="nav-logo">
+    <img src="b.png" alt="Boujee Academy" id="logoImg">
+    <span class="nav-logo-text">boujee<span>academy</span></span>
+    <span class="nav-tag">ADMIN</span>
+  </a>
+  <div class="nav-right">
+    <span class="nav-user" id="navUser"></span>
+    <button class="nav-logout" id="logoutBtn" onclick="logout()">Log out</button>
+  </div>
+</nav>
+
+<!-- LOGIN REQUIRED -->
+<div class="gate-state" id="loginRequired">
+  <div class="gate-icon">&#128274;</div>
+  <h2>Log in to continue</h2>
+  <p>Admin access requires a Boujee Academy admin account.</p>
+  <a href="./login.html?next=this-is-admin-page-no-one-should-access-or-guess.html" class="btn-primary">Log in</a>
+  <p style="margin-top:20px; margin-bottom:0;">
+    <button class="nav-logout" style="text-decoration:underline;" onclick="showAdminSignupGate()">Have a setup code? Create an admin account</button>
+  </p>
+</div>
+
+<!-- ADMIN SIGNUP -->
+<div class="gate-state" id="adminSignupGate">
+  <div class="gate-icon">&#128273;</div>
+  <h2>Create an admin account</h2>
+  <p>This requires a setup code from whoever manages Boujee Academy. Without it, no account is created.</p>
+
+  <div style="max-width:380px; margin:0 auto; text-align:left;">
+    <div class="field">
+      <label for="adminSignupCode">Setup code</label>
+      <input type="text" id="adminSignupCode" placeholder="Provided to you separately">
+    </div>
+    <div class="field">
+      <label for="adminSignupName">Full name</label>
+      <input type="text" id="adminSignupName" placeholder="Your name">
+    </div>
+    <div class="field">
+      <label for="adminSignupEmail">Email address</label>
+      <input type="email" id="adminSignupEmail" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label for="adminSignupPassword">Password</label>
+      <input type="password" id="adminSignupPassword" placeholder="At least 8 characters">
+    </div>
+    <button class="btn-primary" id="adminSignupBtn" onclick="submitAdminSignup()" style="width:100%; justify-content:center;">Create admin account</button>
+    <p style="margin-top:16px;">
+      <button class="nav-logout" style="text-decoration:underline;" onclick="hideAdminSignupGate()">Back to log in</button>
+    </p>
+  </div>
+</div>
+
+<!-- NOT ADMIN -->
+<div class="gate-state" id="notAdmin">
+  <div class="gate-icon">&#128683;</div>
+  <h2>This account doesn't have admin access</h2>
+  <p>If you believe this is a mistake, contact whoever manages the Boujee Academy admin accounts.</p>
+  <a href="./dashboard.html" class="btn-primary">Go to your dashboard</a>
+</div>
+
+<!-- APP SHELL -->
+<div id="appShell" style="display:none;">
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-view="overview" onclick="switchView('overview')">Overview</button>
+    <button class="tab-btn" data-view="courses" onclick="switchView('courses')">Courses</button>
+    <button class="tab-btn" data-view="promos" onclick="switchView('promos')">Promo codes</button>
+    <button class="tab-btn" data-view="users" onclick="switchView('users')">Users</button>
+    <button class="tab-btn" data-view="announcements" onclick="switchView('announcements')">Announcements</button>
+    <button class="tab-btn" data-view="testimonials" onclick="switchView('testimonials')">Testimonials</button>
+    <button class="tab-btn" data-view="auditlog" onclick="switchView('auditlog')">Audit log</button>
+  </div>
+
+  <main>
+    <!-- Views are inserted in subsequent parts of this build -->
+    <!-- ══════════ OVERVIEW VIEW ══════════ -->
+<div class="view active" id="view-overview">
+  <p class="view-eyebrow">Dashboard</p>
+  <h1 class="view-title">Overview.</h1>
+  <p class="view-sub">A quick read on courses, users, and recent admin activity.</p>
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="stat-label">Total students</div>
+      <div class="stat-value" id="statTotalUsers">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Paid students</div>
+      <div class="stat-value" id="statPaidUsers">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pending testimonials</div>
+      <div class="stat-value" id="statPendingTestimonials">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active promo codes</div>
+      <div class="stat-value" id="statActivePromos">—</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">Recent admin activity</div>
+    <div class="card-body" id="overviewAuditContainer">
+      <div class="empty-state">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ COURSES VIEW ══════════ -->
+<div class="view" id="view-courses">
+  <div class="view-head-row">
+    <div>
+      <p class="view-eyebrow">Curriculum</p>
+      <h1 class="view-title">Courses.</h1>
+      <p class="view-sub">Manage chapters and lessons, including video uploads.</p>
+    </div>
+    <button class="btn-primary" onclick="openCreateCourseModal()">+ New course</button>
+  </div>
+
+  <div id="coursesAdminContainer">
+    <div class="empty-state">Loading courses…</div>
+  </div>
+</div>
+
+<!-- ══════════ PROMO CODES VIEW ══════════ -->
+<div class="view" id="view-promos">
+  <div class="view-head-row">
+    <div>
+      <p class="view-eyebrow">Discounts</p>
+      <h1 class="view-title">Promo codes.</h1>
+      <p class="view-sub">Create and manage discount codes for checkout.</p>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="btn-secondary" onclick="loadPromos()">↻ Refresh</button>
+      <button class="btn-primary" onclick="openCreatePromoModal()">+ New code</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-scroll">
+      <table class="data-table" id="promosTable">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Discount</th>
+            <th>Status</th>
+            <th>Uses</th>
+            <th>Expires</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="promosTableBody">
+          <tr><td colspan="6"><div class="empty-state">Loading…</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ USERS VIEW ══════════ -->
+<div class="view" id="view-users">
+  <div class="view-head-row">
+    <div>
+      <p class="view-eyebrow">Accounts</p>
+      <h1 class="view-title">Users.</h1>
+      <p class="view-sub">View accounts, grant or revoke access, or delete an account entirely.</p>
+    </div>
+    <button class="btn-secondary" onclick="loadUsers()">↻ Refresh</button>
+  </div>
+
+  <div class="card">
+    <div class="table-scroll">
+      <table class="data-table" id="usersTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Access</th>
+            <th>Plan</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody">
+          <tr><td colspan="5"><div class="empty-state">Loading…</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ANNOUNCEMENTS VIEW ══════════ -->
+<div class="view" id="view-announcements">
+  <div class="view-head-row">
+    <div>
+      <p class="view-eyebrow">Updates</p>
+      <h1 class="view-title">Announcements.</h1>
+      <p class="view-sub">Posts students see on their dashboard.</p>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="btn-secondary" onclick="loadAnnouncements()">↻ Refresh</button>
+      <button class="btn-primary" onclick="openCreateAnnouncementModal()">+ New post</button>
+    </div>
+  </div>
+
+  <div id="announcementsAdminContainer">
+    <div class="empty-state">Loading…</div>
+  </div>
+</div>
+
+<!-- ══════════ TESTIMONIALS VIEW ══════════ -->
+<div class="view" id="view-testimonials">
+  <div class="view-head-row">
+    <div>
+      <p class="view-eyebrow">Moderation</p>
+      <h1 class="view-title">Testimonials.</h1>
+      <p class="view-sub">Approve, reject, or feature student testimonials before they go public.</p>
+    </div>
+    <button class="btn-secondary" onclick="loadPendingTestimonials()">↻ Refresh</button>
+  </div>
+
+  <div id="testimonialsAdminContainer">
+    <div class="empty-state">Loading…</div>
+  </div>
+</div>
+
+<!-- ══════════ AUDIT LOG VIEW ══════════ -->
+<div class="view" id="view-auditlog">
+  <div class="view-head-row">
+    <div>
+      <p class="view-eyebrow">Accountability</p>
+      <h1 class="view-title">Audit log.</h1>
+      <p class="view-sub">Every sensitive action taken from this admin console, with who and when.</p>
+    </div>
+    <button class="btn-secondary" onclick="loadAuditLog()">↻ Refresh</button>
+  </div>
+
+  <div class="card">
+    <div class="table-scroll">
+      <table class="data-table" id="auditTable">
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Admin</th>
+            <th>Action</th>
+            <th>Target</th>
+          </tr>
+        </thead>
+        <tbody id="auditTableBody">
+          <tr><td colspan="4"><div class="empty-state">Loading…</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODALS ══════════ -->
+
+<!-- CREATE COURSE -->
+<div class="modal-overlay" id="createCourseModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span class="modal-title">New course</span>
+      <button class="modal-close" onclick="closeModal('createCourseModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label for="newCourseId">Course ID</label>
+        <input type="text" id="newCourseId" placeholder="e.g. chapter-1-fundamentals">
+        <p class="field-hint">Lowercase, no spaces — used internally, not shown to students.</p>
+      </div>
+      <div class="field">
+        <label for="newCourseTitle">Title</label>
+        <input type="text" id="newCourseTitle" placeholder="e.g. Blender Fundamentals">
+      </div>
+      <div class="field">
+        <label for="newCourseDescription">Description</label>
+        <textarea id="newCourseDescription" placeholder="Short description shown to students"></textarea>
+      </div>
+      <div class="field">
+        <label for="newCourseOrder">Order</label>
+        <input type="number" id="newCourseOrder" placeholder="1" value="1">
+      </div>
+      <div class="field">
+        <label>Thumbnail</label>
+        <div style="display:flex; align-items:center; gap:14px;">
+          <img id="newCourseThumbPreview" alt="" style="width:64px; height:64px; object-fit:cover; border:1px solid var(--line); background:var(--bg-mid); display:none;">
+          <button type="button" class="btn-secondary btn-small" id="newCourseThumbBtn" onclick="document.getElementById('newCourseThumbFile').click()">Choose image</button>
+          <input type="file" id="newCourseThumbFile" accept="image/*" style="display:none;">
+        </div>
+        <p class="field-hint">Optional. Shown on the course card in the student dashboard.</p>
+      </div>
+      <button class="btn-primary" id="createCourseBtn" onclick="submitCreateCourse()">Create course</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD LESSON — MULTI-STEP FLOW -->
+<div class="modal-overlay" id="addLessonModal">
+  <div class="modal-box" style="max-width: 600px;">
+    <div class="modal-head">
+      <span class="modal-title">Add lesson</span>
+      <button class="modal-close" onclick="closeModal('addLessonModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="steps-bar">
+        <div class="step-item active" id="lessonStep1Bar">
+          <div class="step-num">1</div>
+          <span class="step-label">Details</span>
+        </div>
+        <div class="step-item" id="lessonStep2Bar">
+          <div class="step-num">2</div>
+          <span class="step-label">Video</span>
+        </div>
+        <div class="step-item" id="lessonStep3Bar">
+          <div class="step-num">3</div>
+          <span class="step-label">Confirm</span>
+        </div>
+      </div>
+
+      <!-- STEP 1: DETAILS -->
+      <div id="lessonStep1">
+        <div class="field">
+          <label>Course</label>
+          <input type="text" id="lessonCourseTitleDisplay" disabled>
+        </div>
+        <div class="field">
+          <label for="newLessonId">Lesson ID</label>
+          <input type="text" id="newLessonId" placeholder="e.g. lesson-1-intro">
+        </div>
+        <div class="field">
+          <label for="newLessonTitle">Title</label>
+          <input type="text" id="newLessonTitle" placeholder="e.g. Introduction to the Viewport">
+        </div>
+        <div class="field">
+          <label for="newLessonOrder">Order</label>
+          <input type="number" id="newLessonOrder" value="1">
+        </div>
+        <div class="field checkbox-row">
+          <input type="checkbox" id="newLessonFreePreview">
+          <label for="newLessonFreePreview">Free preview — visible without payment</label>
+        </div>
+        <button class="btn-primary" onclick="lessonFlowGoToStep(2)">Next: upload video</button>
+      </div>
+
+      <!-- STEP 2: VIDEO UPLOAD -->
+      <div id="lessonStep2" style="display:none;">
+        <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">
+          Choose a video file. It uploads directly to Cloudflare Stream with playback locked to signed links only — no public link will ever work for this video.
+        </p>
+        <div class="field">
+          <label for="lessonVideoFile">Video file</label>
+          <input type="file" id="lessonVideoFile" accept="video/*">
+        </div>
+        <div class="upload-progress-track" id="lessonUploadTrack" style="display:none;">
+          <div class="upload-progress-fill" id="lessonUploadFill"></div>
+        </div>
+        <p class="field-hint" id="lessonUploadStatus"></p>
+        <div style="display:flex; gap:10px; margin-top:16px;">
+          <button class="btn-secondary" onclick="lessonFlowGoToStep(1)">Back</button>
+          <button class="btn-secondary" onclick="lessonFlowSkipVideo()">Skip — add video later</button>
+          <button class="btn-primary" id="lessonUploadBtn" onclick="uploadLessonVideo()">Upload</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: CONFIRM -->
+      <div id="lessonStep3" style="display:none;">
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-body" id="lessonConfirmSummary"></div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:16px;">
+          <button class="btn-secondary" onclick="lessonFlowGoToStep(2)">Back</button>
+          <button class="btn-primary" id="saveLessonBtn" onclick="submitCreateLesson()">Save lesson</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CREATE PROMO -->
+<div class="modal-overlay" id="createPromoModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span class="modal-title">New promo code</span>
+      <button class="modal-close" onclick="closeModal('createPromoModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label for="newPromoCode">Code</label>
+        <input type="text" id="newPromoCode" placeholder="e.g. LAUNCH20" style="text-transform:uppercase;">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="newPromoDiscount">Discount %</label>
+          <input type="number" id="newPromoDiscount" placeholder="20" min="1" max="100">
+        </div>
+        <div class="field">
+          <label for="newPromoMaxUses">Max uses</label>
+          <input type="number" id="newPromoMaxUses" placeholder="0 = unlimited" value="0">
+        </div>
+      </div>
+      <button class="btn-primary" id="createPromoBtn" onclick="submitCreatePromo()">Create code</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE ANNOUNCEMENT -->
+<div class="modal-overlay" id="createAnnouncementModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span class="modal-title">New announcement</span>
+      <button class="modal-close" onclick="closeModal('createAnnouncementModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label for="newPostTitle">Title</label>
+        <input type="text" id="newPostTitle" placeholder="e.g. Chapter 7 is live">
+      </div>
+      <div class="field">
+        <label for="newPostBody">Body</label>
+        <textarea id="newPostBody" placeholder="What's new"></textarea>
+      </div>
+      <button class="btn-primary" id="createAnnouncementBtn" onclick="submitCreateAnnouncement()">Post announcement</button>
+    </div>
+  </div>
+</div>
+
+<!-- GRANT ACCESS -->
+<div class="modal-overlay" id="grantAccessModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span class="modal-title">Grant access</span>
+      <button class="modal-close" onclick="closeModal('grantAccessModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;" id="grantAccessUserLabel"></p>
+      <div class="field">
+        <label for="grantAccessPlan">Plan</label>
+        <select id="grantAccessPlan">
+          <option value="full">Full course</option>
+          <option value="founding">Founding cohort</option>
+        </select>
+      </div>
+      <button class="btn-primary" id="confirmGrantAccessBtn" onclick="submitGrantAccess()">Grant access</button>
+    </div>
+  </div>
+</div>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── CONFIG ──
+  const ADMIN_WORKER = 'https://boujee-admin-worker.kakoozaronald71.workers.dev';
+  const CONTENT_WORKER = 'https://boujee-content-worker.kakoozaronald71.workers.dev';
+  const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
+
+  // NOTE: test-mode credentials were deliberately removed from this file.
+  // This is the admin console — exposing an admin-level test secret in
+  // page source here would be especially severe, since test mode grants
+  // the same full admin capabilities as a real verified admin login.
+
+  // ── STATE ──
+  let idToken = null;
+  let adminUid = null;
+  let coursesData = [];
+  let usersData = [];
+  let promosData = [];
+  let pendingTestimonialsData = [];
+  let auditLogData = [];
+
+  // Lesson flow state
+  let lessonFlowCourseId = null;
+  let lessonFlowUploadedVideoUid = null;
+
+  // Grant access modal state
+  let grantAccessTargetUid = null;
+
+  // ── INIT ──
+  document.addEventListener('DOMContentLoaded', async () => {
+    const theme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+
+    const token = localStorage.getItem('ba_token');
+    const storedUid = localStorage.getItem('ba_uid');
+    const name = localStorage.getItem('ba_name') || localStorage.getItem('ba_email') || '';
+
+    if (!token || !storedUid) {
+      document.getElementById('loginRequired').classList.add('show');
+      return;
+    }
+
+    try {
+      const refreshed = await refreshToken(token);
+      if (!refreshed) {
+        document.getElementById('loginRequired').classList.add('show');
+        return;
+      }
+      idToken = refreshed;
+      adminUid = storedUid;
+      localStorage.setItem('ba_token', idToken);
+    } catch {
+      document.getElementById('loginRequired').classList.add('show');
+      return;
+    }
+
+    // Verify admin status — non-admins get bounced, never see the shell
+    const verified = await verifyAdmin();
+    if (!verified) {
+      document.getElementById('notAdmin').classList.add('show');
+      return;
+    }
+
+    document.getElementById('navUser').textContent = (name.split(' ')[0] || 'ADMIN').toUpperCase();
+    document.getElementById('appShell').style.display = 'block';
+
+    loadOverview();
+    loadCourses();
+  });
+
+  // ── TOKEN REFRESH (same pattern as dashboard.html) ──
+  async function refreshToken(currentToken) {
+    try {
+      const parts = currentToken.split('.');
+      if (parts.length !== 3) return null;
+      const payload = JSON.parse(atob(parts[1]));
+      const now = Math.floor(Date.now() / 1000);
+      if (payload.exp > now + 300) return currentToken;
+
+      const refreshTokenStored = localStorage.getItem('ba_refresh_token');
+      if (!refreshTokenStored) return null;
+
+      const res = await fetch(
+        `https://securetoken.googleapis.com/v1/token?key=${FIREBASE_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `grant_type=refresh_token&refresh_token=${refreshTokenStored}`,
+        }
+      );
+      const data = await res.json();
+      if (data.id_token) {
+        localStorage.setItem('ba_refresh_token', data.refresh_token);
+        return data.id_token;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  // ── ADMIN API HELPER ──
+  function authBody(extra = {}) {
+    return { idToken, ...extra };
+  }
+
+  function authHeaders() {
+    return { 'Content-Type': 'application/json' };
+  }
+
+  async function callAdmin(route, extra = {}) {
+    const res = await fetch(`${ADMIN_WORKER}${route}`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(authBody(extra)),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  }
+
+  async function verifyAdmin() {
+    try {
+      const data = await callAdmin('/verify-admin');
+      return data.isAdmin === true;
+    } catch {
+      return false;
+    }
+  }
+
+  // ── ADMIN SIGNUP GATE ──
+  function showAdminSignupGate() {
+    document.getElementById('loginRequired').classList.remove('show');
+    document.getElementById('adminSignupGate').classList.add('show');
+  }
+
+  function hideAdminSignupGate() {
+    document.getElementById('adminSignupGate').classList.remove('show');
+    document.getElementById('loginRequired').classList.add('show');
+  }
+
+  async function submitAdminSignup() {
+    const setupCode = document.getElementById('adminSignupCode').value.trim();
+    const name = document.getElementById('adminSignupName').value.trim();
+    const email = document.getElementById('adminSignupEmail').value.trim();
+    const password = document.getElementById('adminSignupPassword').value;
+
+    if (!setupCode) { showToast('Enter the setup code', 'error'); return; }
+    if (!name || !email) { showToast('Name and email are required', 'error'); return; }
+    if (password.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
+
+    const btn = document.getElementById('adminSignupBtn');
+    btn.disabled = true; btn.textContent = 'Creating…';
+
+    try {
+      const res = await fetch(`${ADMIN_WORKER}/admin-signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ setupCode, name, email, password }),
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        showToast(data.error, 'error');
+        return;
+      }
+
+      showToast('Admin account created — logging in…', 'success');
+
+      // Log straight in with the credentials just created, via the same
+      // Firebase REST sign-in pattern login.html uses, so there's no
+      // separate manual login step right after signing up.
+      const signInRes = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, returnSecureToken: true }),
+        }
+      );
+      const signInData = await signInRes.json();
+
+      if (signInData.idToken) {
+        localStorage.setItem('ba_token', signInData.idToken);
+        localStorage.setItem('ba_refresh_token', signInData.refreshToken);
+        localStorage.setItem('ba_uid', signInData.localId);
+        localStorage.setItem('ba_email', email);
+        localStorage.setItem('ba_name', name);
+        setTimeout(() => { window.location.reload(); }, 800);
+      } else {
+        // Account was created fine — fall back to a manual login if
+        // the auto-login step itself failed for any reason.
+        setTimeout(() => {
+          window.location.href = './login.html?next=this-is-admin-page-no-one-should-access-or-guess.html';
+        }, 1200);
+      }
+    } catch (err) {
+      showToast('Could not create account — try again', 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Create admin account';
+    }
+  }
+
+  // ── TAB SWITCHING ──
+  let loadedTabs = new Set(['overview', 'courses']);
+
+  function switchView(view) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`view-${view}`).classList.add('active');
+    document.querySelector(`.tab-btn[data-view="${view}"]`).classList.add('active');
+
+    if (!loadedTabs.has(view)) {
+      loadedTabs.add(view);
+      if (view === 'promos') loadPromos();
+      if (view === 'users') loadUsers();
+      if (view === 'announcements') loadAnnouncements();
+      if (view === 'testimonials') loadPendingTestimonials();
+      if (view === 'auditlog') loadAuditLog();
+    }
+  }
+
+  // ── MODAL HELPERS ──
+  function openModal(id) { document.getElementById(id).classList.add('show'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+  // ════════════════════════════════════════════════════════
+  // OVERVIEW
+  // ════════════════════════════════════════════════════════
+  async function loadOverview() {
+    try {
+      const [usersRes, promosRes, testimonialsRes, auditRes] = await Promise.all([
+        callAdmin('/list-users'),
+        callAdmin('/list-promos'),
+        callAdmin('/list-pending-testimonials'),
+        callAdmin('/get-audit-log'),
+      ]);
+
+      usersData = usersRes.users || [];
+      promosData = promosRes.promos || [];
+      pendingTestimonialsData = testimonialsRes.testimonials || [];
+      auditLogData = auditRes.entries || [];
+
+      document.getElementById('statTotalUsers').textContent = usersData.length;
+      document.getElementById('statPaidUsers').textContent = usersData.filter(u => u.hasPaid).length;
+      document.getElementById('statPendingTestimonials').textContent = pendingTestimonialsData.length;
+      document.getElementById('statActivePromos').textContent = promosData.filter(p => p.active).length;
+
+      renderOverviewAudit();
+    } catch (err) {
+      showToast(err.message || 'Could not load overview', 'error');
+    }
+  }
+
+  function renderOverviewAudit() {
+    const container = document.getElementById('overviewAuditContainer');
+    const recent = auditLogData.slice(0, 8);
+
+    if (!recent.length) {
+      container.innerHTML = '<div class="empty-state">No admin activity yet.</div>';
+      return;
+    }
+
+    container.innerHTML = recent.map(e => `
+      <div style="padding:10px 0; border-bottom:1px solid var(--line); font-size:13px;">
+        <span style="color:var(--text-muted); font-family:var(--font-mono); font-size:11px;">${formatDate(e.timestamp)}</span>
+        — <strong>${escapeHtml(e.action)}</strong>
+        ${e.targetUid ? `on <span style="color:var(--text-muted);">${escapeHtml(e.targetUid)}</span>` : ''}
+        by ${escapeHtml(e.adminEmail || e.adminUid)}
+      </div>
+    `).join('');
+  }
+
+  // ════════════════════════════════════════════════════════
+  // COURSES & LESSONS
+  // ════════════════════════════════════════════════════════
+  async function loadCourses() {
+    const container = document.getElementById('coursesAdminContainer');
+    try {
+      // Reuses content2-worker's public read — admin worker doesn't
+      // duplicate a read route for data that's already public-safe.
+      const res = await fetch('https://boujee-content2-worker.kakoozaronald71.workers.dev/get-courses', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      coursesData = data.courses || [];
+      renderCoursesAdmin();
+    } catch {
+      container.innerHTML = '<div class="empty-state">Could not load courses.</div>';
+    }
+  }
+
+  function renderCoursesAdmin() {
+    const container = document.getElementById('coursesAdminContainer');
+    if (!coursesData.length) {
+      container.innerHTML = '<div class="empty-state">No courses yet. Create one to get started.</div>';
+      return;
+    }
+
+    container.innerHTML = coursesData.map(course => `
+      <div class="card">
+        <div class="card-head">
+          <span style="display:flex; align-items:center; gap:12px;">
+            ${course.thumbnailUrl
+              ? `<img src="${escapeAttr(course.thumbnailUrl)}" alt="" style="width:40px; height:40px; object-fit:cover; border:1px solid var(--line); flex-shrink:0;">`
+              : `<span style="width:40px; height:40px; border:1px dashed var(--line-soft); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--text-muted);">—</span>`
+            }
+            ${escapeHtml(course.title)} <span style="color:var(--text-muted); font-weight:400;">(${course.lessons.length} lessons)</span>
+          </span>
+          <div class="row-actions">
+            <button class="btn-secondary btn-small" onclick="openAddLessonModal('${course.courseId}', '${escapeAttr(course.title)}')">+ Add lesson</button>
+            <button class="btn-secondary btn-small btn-danger" onclick="deleteCourse('${course.courseId}', '${escapeAttr(course.title)}')">Delete course</button>
+          </div>
+        </div>
+        <div class="card-body">
+          ${course.lessons.length === 0
+            ? '<div class="empty-state">No lessons yet.</div>'
+            : course.lessons.map(l => `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); font-size:14px;">
+                <span>${escapeHtml(l.title)} ${l.isFreePreview ? '<span class="badge active" style="margin-left:8px;">Free</span>' : ''} ${!l.hasVideo ? '<span class="badge inactive" style="margin-left:8px;">No video</span>' : ''}</span>
+                <button class="btn-secondary btn-small btn-danger" onclick="deleteLesson('${course.courseId}','${l.lessonId}','${escapeAttr(l.title)}')">Delete</button>
+              </div>
+            `).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  let newCourseThumbFile = null;
+
+  function openCreateCourseModal() {
+    document.getElementById('newCourseId').value = '';
+    document.getElementById('newCourseTitle').value = '';
+    document.getElementById('newCourseDescription').value = '';
+    document.getElementById('newCourseOrder').value = String(coursesData.length + 1);
+    document.getElementById('newCourseThumbFile').value = '';
+    document.getElementById('newCourseThumbPreview').style.display = 'none';
+    newCourseThumbFile = null;
+    openModal('createCourseModal');
+  }
+
+  document.getElementById('newCourseThumbFile').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    newCourseThumbFile = file;
+    const preview = document.getElementById('newCourseThumbPreview');
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      preview.src = ev.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Uploads to Cloudinary via boujee-content-worker's existing
+  // upload-signature route (target: "thumbnail", admin-only, public delivery).
+  async function uploadCourseThumbnail(file) {
+    const sigRes = await fetch(`${CONTENT_WORKER}/upload-signature`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target: 'thumbnail', idToken }),
+    });
+    const sig = await sigRes.json();
+    if (sig.error) throw new Error(sig.error);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', sig.apiKey);
+    formData.append('timestamp', sig.timestamp);
+    formData.append('signature', sig.signature);
+    formData.append('folder', sig.folder);
+    formData.append('type', sig.type);
+
+    const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`, {
+      method: 'POST', body: formData,
+    });
+    const uploadData = await uploadRes.json();
+    if (!uploadData.secure_url) throw new Error('Thumbnail upload failed');
+    return uploadData.secure_url;
+  }
+
+  async function submitCreateCourse() {
+    const courseId = document.getElementById('newCourseId').value.trim();
+    const title = document.getElementById('newCourseTitle').value.trim();
+    const description = document.getElementById('newCourseDescription').value.trim();
+    const order = parseInt(document.getElementById('newCourseOrder').value, 10) || 0;
+
+    if (!courseId || !title) { showToast('Course ID and title are required', 'error'); return; }
+
+    const btn = document.getElementById('createCourseBtn');
+    btn.disabled = true; btn.textContent = 'Creating…';
+
+    try {
+      let thumbnailUrl = null;
+      if (newCourseThumbFile) {
+        btn.textContent = 'Uploading thumbnail…';
+        thumbnailUrl = await uploadCourseThumbnail(newCourseThumbFile);
+        btn.textContent = 'Creating…';
+      }
+
+      const extra = { courseId, title, description, order };
+      if (thumbnailUrl) extra.thumbnailUrl = thumbnailUrl;
+
+      await callAdmin('/create-course', extra);
+      showToast('Course created', 'success');
+      closeModal('createCourseModal');
+      loadCourses();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Create course';
+    }
+  }
+
+  async function deleteCourse(courseId, title) {
+    if (!confirm(`Delete "${title}" and all its lessons? This cannot be undone.`)) return;
+    try {
+      await callAdmin('/delete-course', { courseId });
+      showToast('Course deleted', 'success');
+      loadCourses();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  async function deleteLesson(courseId, lessonId, title) {
+    if (!confirm(`Delete lesson "${title}"?`)) return;
+    try {
+      await callAdmin('/delete-lesson', { courseId, lessonId });
+      showToast('Lesson deleted', 'success');
+      loadCourses();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ── ADD LESSON — MULTI-STEP FLOW ──
+  function openAddLessonModal(courseId, courseTitle) {
+    lessonFlowCourseId = courseId;
+    lessonFlowUploadedVideoUid = null;
+
+    document.getElementById('lessonCourseTitleDisplay').value = courseTitle;
+    document.getElementById('newLessonId').value = '';
+    document.getElementById('newLessonTitle').value = '';
+    document.getElementById('newLessonOrder').value = '1';
+    document.getElementById('newLessonFreePreview').checked = false;
+    document.getElementById('lessonVideoFile').value = '';
+    document.getElementById('lessonUploadStatus').textContent = '';
+    document.getElementById('lessonUploadTrack').style.display = 'none';
+    document.getElementById('lessonUploadFill').style.width = '0%';
+
+    lessonFlowGoToStep(1);
+    openModal('addLessonModal');
+  }
+
+  function lessonFlowGoToStep(step) {
+    [1, 2, 3].forEach(n => {
+      document.getElementById(`lessonStep${n}`).style.display = n === step ? 'block' : 'none';
+      const bar = document.getElementById(`lessonStep${n}Bar`);
+      bar.classList.toggle('active', n === step);
+      bar.classList.toggle('done', n < step);
+    });
+
+    if (step === 1) {
+      const lessonId = document.getElementById('newLessonId').value.trim();
+      const title = document.getElementById('newLessonTitle').value.trim();
+      if (!lessonId || !title) {
+        // allow going back freely, but block forward nav without details
+      }
+    }
+
+    if (step === 3) {
+      const title = document.getElementById('newLessonTitle').value.trim();
+      const freePreview = document.getElementById('newLessonFreePreview').checked;
+      document.getElementById('lessonConfirmSummary').innerHTML = `
+        <div class="receipt-row" style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line);"><span style="color:var(--text-muted);">Title</span><span>${escapeHtml(title)}</span></div>
+        <div class="receipt-row" style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line);"><span style="color:var(--text-muted);">Free preview</span><span>${freePreview ? 'Yes' : 'No'}</span></div>
+        <div class="receipt-row" style="display:flex; justify-content:space-between; padding:8px 0;"><span style="color:var(--text-muted);">Video</span><span>${lessonFlowUploadedVideoUid ? 'Uploaded ✓' : 'None — can add later'}</span></div>
+      `;
+    }
+  }
+
+  function lessonFlowSkipVideo() {
+    lessonFlowUploadedVideoUid = null;
+    lessonFlowGoToStep(3);
+  }
+
+  async function uploadLessonVideo() {
+    const fileInput = document.getElementById('lessonVideoFile');
+    const file = fileInput.files[0];
+    if (!file) { showToast('Choose a video file first', 'error'); return; }
+
+    const btn = document.getElementById('lessonUploadBtn');
+    const statusEl = document.getElementById('lessonUploadStatus');
+    const track = document.getElementById('lessonUploadTrack');
+    const fill = document.getElementById('lessonUploadFill');
+
+    btn.disabled = true;
+    statusEl.textContent = 'Requesting upload URL…';
+
+    try {
+      const data = await callAdmin('/create-stream-upload-url');
+      const { uploadURL, videoUid } = data;
+
+      track.style.display = 'block';
+      statusEl.textContent = 'Uploading…';
+
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        const formData = new FormData();
+        formData.append('file', file);
+
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 100);
+            fill.style.width = pct + '%';
+            statusEl.textContent = `Uploading… ${pct}%`;
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else reject(new Error('Upload failed: ' + xhr.status));
+        });
+        xhr.addEventListener('error', () => reject(new Error('Upload failed — network error')));
+
+        xhr.open('POST', uploadURL);
+        xhr.send(formData);
+      });
+
+      lessonFlowUploadedVideoUid = videoUid;
+      statusEl.textContent = 'Upload complete.';
+      showToast('Video uploaded', 'success');
+      lessonFlowGoToStep(3);
+    } catch (err) {
+      statusEl.textContent = err.message || 'Upload failed';
+      showToast(err.message || 'Upload failed', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function submitCreateLesson() {
+    const lessonId = document.getElementById('newLessonId').value.trim();
+    const title = document.getElementById('newLessonTitle').value.trim();
+    const order = parseInt(document.getElementById('newLessonOrder').value, 10) || 0;
+    const isFreePreview = document.getElementById('newLessonFreePreview').checked;
+
+    if (!lessonFlowCourseId || !lessonId || !title) {
+      showToast('Lesson ID and title are required', 'error');
+      lessonFlowGoToStep(1);
+      return;
+    }
+
+    const btn = document.getElementById('saveLessonBtn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+
+    try {
+      const extra = { courseId: lessonFlowCourseId, lessonId, title, order, isFreePreview };
+      if (lessonFlowUploadedVideoUid) extra.streamVideoUid = lessonFlowUploadedVideoUid;
+
+      await callAdmin('/create-lesson', extra);
+      showToast('Lesson saved', 'success');
+      closeModal('addLessonModal');
+      loadCourses();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Save lesson';
+    }
+  }
+
+  // ════════════════════════════════════════════════════════
+  // PROMO CODES
+  // ════════════════════════════════════════════════════════
+  async function loadPromos() {
+    try {
+      const data = await callAdmin('/list-promos');
+      promosData = data.promos || [];
+      renderPromosTable();
+    } catch (err) {
+      document.getElementById('promosTableBody').innerHTML =
+        `<tr><td colspan="6"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
+    }
+  }
+
+  function renderPromosTable() {
+    const body = document.getElementById('promosTableBody');
+    if (!promosData.length) {
+      body.innerHTML = '<tr><td colspan="6"><div class="empty-state">No promo codes yet.</div></td></tr>';
+      return;
+    }
+
+    body.innerHTML = promosData.map(p => `
+      <tr>
+        <td><strong>${escapeHtml(p.code)}</strong></td>
+        <td>${p.discountPercent}%</td>
+        <td><span class="badge ${p.active ? 'active' : 'inactive'}">${p.active ? 'Active' : 'Inactive'}</span></td>
+        <td>${p.usedCount}${p.maxUses > 0 ? ' / ' + p.maxUses : ' / ∞'}</td>
+        <td>${p.expiresAt ? formatDate(p.expiresAt) : '—'}</td>
+        <td>
+          ${p.active ? `<button class="btn-secondary btn-small btn-danger" onclick="deactivatePromo('${escapeAttr(p.code)}')">Deactivate</button>` : ''}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function openCreatePromoModal() {
+    document.getElementById('newPromoCode').value = '';
+    document.getElementById('newPromoDiscount').value = '';
+    document.getElementById('newPromoMaxUses').value = '0';
+    openModal('createPromoModal');
+  }
+
+  async function submitCreatePromo() {
+    const code = document.getElementById('newPromoCode').value.trim();
+    const discountPercent = parseInt(document.getElementById('newPromoDiscount').value, 10);
+    const maxUses = parseInt(document.getElementById('newPromoMaxUses').value, 10) || 0;
+
+    if (!code || !discountPercent || discountPercent < 1 || discountPercent > 100) {
+      showToast('Enter a code and a discount between 1–100', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('createPromoBtn');
+    btn.disabled = true; btn.textContent = 'Creating…';
+
+    try {
+      await callAdmin('/create-promo', { code, discountPercent, maxUses });
+      showToast('Promo code created', 'success');
+      closeModal('createPromoModal');
+      loadPromos();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Create code';
+    }
+  }
+
+  async function deactivatePromo(code) {
+    if (!confirm(`Deactivate promo code "${code}"?`)) return;
+    try {
+      await callAdmin('/deactivate-promo', { code });
+      showToast('Promo code deactivated', 'success');
+      loadPromos();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ════════════════════════════════════════════════════════
+  // USERS
+  // ════════════════════════════════════════════════════════
+  async function loadUsers() {
+    try {
+      const data = await callAdmin('/list-users');
+      usersData = data.users || [];
+      renderUsersTable();
+    } catch (err) {
+      document.getElementById('usersTableBody').innerHTML =
+        `<tr><td colspan="5"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
+    }
+  }
+
+  function renderUsersTable() {
+    const body = document.getElementById('usersTableBody');
+    if (!usersData.length) {
+      body.innerHTML = '<tr><td colspan="5"><div class="empty-state">No users yet.</div></td></tr>';
+      return;
+    }
+
+    body.innerHTML = usersData.map(u => `
+      <tr>
+        <td>${escapeHtml(u.name || '—')} ${u.isAdmin ? '<span class="badge admin" style="margin-left:6px;">Admin</span>' : ''}</td>
+        <td>${escapeHtml(u.email || '—')}</td>
+        <td><span class="badge ${u.hasPaid ? 'paid' : 'unpaid'}">${u.hasPaid ? 'Paid' : 'Free'}</span></td>
+        <td>${escapeHtml(u.plan || '—')}</td>
+        <td>
+          <div class="row-actions">
+            ${!u.hasPaid
+              ? `<button class="btn-secondary btn-small" onclick="openGrantAccessModal('${u.uid}', '${escapeAttr(u.email || u.name || u.uid)}')">Grant access</button>`
+              : `<button class="btn-secondary btn-small" onclick="revokeAccess('${u.uid}', '${escapeAttr(u.email || u.name)}')">Revoke</button>`
+            }
+            <button class="btn-secondary btn-small btn-danger" onclick="deleteUser('${u.uid}', '${escapeAttr(u.email || u.name || u.uid)}')">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function openGrantAccessModal(uid, label) {
+    grantAccessTargetUid = uid;
+    document.getElementById('grantAccessUserLabel').textContent = `Granting access to: ${label}`;
+    document.getElementById('grantAccessPlan').value = 'full';
+    openModal('grantAccessModal');
+  }
+
+  async function submitGrantAccess() {
+    if (!grantAccessTargetUid) return;
+    const plan = document.getElementById('grantAccessPlan').value;
+
+    const btn = document.getElementById('confirmGrantAccessBtn');
+    btn.disabled = true; btn.textContent = 'Granting…';
+
+    try {
+      await callAdmin('/grant-access', { targetUid: grantAccessTargetUid, plan });
+      showToast('Access granted', 'success');
+      closeModal('grantAccessModal');
+      loadUsers();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Grant access';
+    }
+  }
+
+  async function revokeAccess(uid, label) {
+    if (!confirm(`Revoke access for ${label}? Use this only after refunding outside this system.`)) return;
+    try {
+      await callAdmin('/revoke-access', { targetUid: uid });
+      showToast('Access revoked', 'success');
+      loadUsers();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  async function deleteUser(uid, label) {
+    if (!confirm(`Permanently delete ${label}'s account? This removes their login and profile data and cannot be undone. Transaction records are kept for financial history.`)) return;
+    try {
+      await callAdmin('/delete-user', { targetUid: uid });
+      showToast('User deleted', 'success');
+      loadUsers();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ════════════════════════════════════════════════════════
+  // ANNOUNCEMENTS
+  // ════════════════════════════════════════════════════════
+  async function loadAnnouncements() {
+    const container = document.getElementById('announcementsAdminContainer');
+    try {
+      const res = await fetch('https://boujee-content2-worker.kakoozaronald71.workers.dev/get-announcements', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      const posts = data.posts || [];
+
+      if (!posts.length) {
+        container.innerHTML = '<div class="empty-state">No announcements yet.</div>';
+        return;
+      }
+
+      container.innerHTML = posts.map(p => `
+        <div class="card">
+          <div class="card-head">
+            <span>${escapeHtml(p.title)} <span style="color:var(--text-muted); font-weight:400; font-size:11px;">${formatDate(p.createdAt)}</span></span>
+            <button class="btn-secondary btn-small btn-danger" onclick="deleteAnnouncement('${p.postId}')">Delete</button>
+          </div>
+          <div class="card-body" style="font-size:14px; color:var(--text-light);">${escapeHtml(p.body)}</div>
+        </div>
+      `).join('');
+    } catch {
+      container.innerHTML = '<div class="empty-state">Could not load announcements.</div>';
+    }
+  }
+
+  function openCreateAnnouncementModal() {
+    document.getElementById('newPostTitle').value = '';
+    document.getElementById('newPostBody').value = '';
+    openModal('createAnnouncementModal');
+  }
+
+  async function submitCreateAnnouncement() {
+    const title = document.getElementById('newPostTitle').value.trim();
+    const postBody = document.getElementById('newPostBody').value.trim();
+
+    if (!title || !postBody) { showToast('Title and body are required', 'error'); return; }
+
+    const btn = document.getElementById('createAnnouncementBtn');
+    btn.disabled = true; btn.textContent = 'Posting…';
+
+    try {
+      await callAdmin('/create-announcement', { title, postBody });
+      showToast('Announcement posted', 'success');
+      closeModal('createAnnouncementModal');
+      loadAnnouncements();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Post announcement';
+    }
+  }
+
+  async function deleteAnnouncement(postId) {
+    if (!confirm('Delete this announcement?')) return;
+    try {
+      await callAdmin('/delete-announcement', { postId });
+      showToast('Announcement deleted', 'success');
+      loadAnnouncements();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ════════════════════════════════════════════════════════
+  // TESTIMONIALS — MODERATION
+  // ════════════════════════════════════════════════════════
+  async function loadPendingTestimonials() {
+    const container = document.getElementById('testimonialsAdminContainer');
+    try {
+      const data = await callAdmin('/list-pending-testimonials');
+      pendingTestimonialsData = data.testimonials || [];
+
+      if (!pendingTestimonialsData.length) {
+        container.innerHTML = '<div class="empty-state">No testimonials waiting for review.</div>';
+        return;
+      }
+
+      container.innerHTML = pendingTestimonialsData.map(t => `
+        <div class="card">
+          <div class="card-head">
+            <span>${escapeHtml(t.name)} <span style="color:var(--gold);">${'★'.repeat(t.rating)}${'☆'.repeat(5 - t.rating)}</span></span>
+            <span style="color:var(--text-muted); font-size:11px;">${formatDate(t.createdAt)}</span>
+          </div>
+          <div class="card-body">
+            <p style="font-size:14px; color:var(--text-light); margin-bottom:16px;">${escapeHtml(t.text)}</p>
+            <div class="row-actions">
+              <button class="btn-primary btn-small" onclick="moderateTestimonial('${t.testimonialId}','approve',false)">Approve</button>
+              <button class="btn-secondary btn-small" onclick="moderateTestimonial('${t.testimonialId}','approve',true)">Approve & feature</button>
+              <button class="btn-secondary btn-small btn-danger" onclick="moderateTestimonial('${t.testimonialId}','reject',false)">Reject</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      container.innerHTML = `<div class="empty-state">${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  async function moderateTestimonial(testimonialId, action, featured) {
+    try {
+      await callAdmin('/moderate-testimonial', { testimonialId, action, featured });
+      showToast(action === 'approve' ? 'Testimonial approved' : 'Testimonial rejected', 'success');
+      loadPendingTestimonials();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ════════════════════════════════════════════════════════
+  // AUDIT LOG
+  // ════════════════════════════════════════════════════════
+  async function loadAuditLog() {
+    try {
+      const data = await callAdmin('/get-audit-log');
+      auditLogData = data.entries || [];
+      renderAuditTable();
+    } catch (err) {
+      document.getElementById('auditTableBody').innerHTML =
+        `<tr><td colspan="4"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
+    }
+  }
+
+  function renderAuditTable() {
+    const body = document.getElementById('auditTableBody');
+    if (!auditLogData.length) {
+      body.innerHTML = '<tr><td colspan="4"><div class="empty-state">No activity logged yet.</div></td></tr>';
+      return;
+    }
+
+    body.innerHTML = auditLogData.map(e => `
+      <tr>
+        <td style="font-family:var(--font-mono); font-size:11px;">${formatDate(e.timestamp)}</td>
+        <td>${escapeHtml(e.adminEmail || e.adminUid)}</td>
+        <td>${escapeHtml(e.action)}</td>
+        <td style="font-family:var(--font-mono); font-size:11px;">${escapeHtml(e.targetUid || '—')}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ── LOGOUT ──
+  function logout() {
+    localStorage.removeItem('ba_token');
+    localStorage.removeItem('ba_uid');
+    localStorage.removeItem('ba_name');
+    localStorage.removeItem('ba_email');
+    localStorage.removeItem('ba_refresh_token');
+    sessionStorage.clear();
+    window.location.href = './login.html';
+  }
+
+  // ── HELPERS ──
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 4500);
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return iso;
+    }
+  }
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function escapeAttr(str) {
+    return escapeHtml(str).replace(/'/g, '&#39;');
+  }
+
+  // Close modals on overlay click (not on the box itself)
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.classList.remove('show');
+    });
+  });
+</script>
+
+</body>
+</html>
