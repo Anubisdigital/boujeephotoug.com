@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rewards Dashboard — BoujeePhoto</title>
+    <meta name="description" content="Manage your Creator Rewards campaigns or runner submissions.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root, [data-theme="dark"] {
+            --bg: #000000; --bg-mid: #1a1a1a; --bg-card: #111111;
+            --line: #222222; --text: #ffffff; --text-muted: #888888;
+            --text-light: #cccccc; --red: #E8000D;
+            --font-main: 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+        }
+        [data-theme="light"] {
+            --bg: #f5f5f5; --bg-mid: #ebebeb; --bg-card: #ffffff;
+            --line: #dddddd; --text: #000000; --text-muted: #666666;
+            --text-light: #333333; --red: #E8000D;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            background: var(--bg); color: var(--text); font-family: var(--font-main);
+            font-size: 16px; line-height: 1.6; min-height: 100vh;
+            display: flex; flex-direction: column; transition: background 0.3s, color 0.3s;
+        }
+        nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 40px; height: 64px; background: var(--bg); border-bottom: 1px solid var(--line);
+            flex-shrink: 0; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px);
+        }
+        .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .nav-logo img { width: 36px; height: 36px; object-fit: contain; }
+        .nav-logo-text { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+        .nav-logo-text span { color: var(--red); }
+        .nav-right { display: flex; align-items: center; gap: 20px; font-size: 14px; }
+        .nav-right a { color: var(--red); text-decoration: none; font-weight: 600; cursor: pointer; }
+        .nav-right a:hover { opacity: 0.8; }
+        .theme-toggle {
+            background: none; border: 1px solid var(--line); cursor: pointer;
+            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+            color: var(--text); font-size: 16px; transition: border-color 0.2s;
+        }
+        .theme-toggle:hover { border-color: var(--text); }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 24px 60px; }
+        .loading-state { text-align: center; padding: 100px 0; color: var(--text-muted); font-family: var(--font-mono); }
+        .hidden { display: none !important; }
+
+        /* Cards & Grids */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .card {
+            background: var(--bg-mid); border: 1px solid var(--line); border-radius: 12px;
+            padding: 24px; transition: border-color 0.2s;
+        }
+        .card:hover { border-color: var(--text-muted); }
+        .card .label { font-size: 12px; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .card .value { font-size: 28px; font-weight: 700; margin-top: 8px; }
+        .card .value.red { color: var(--red); }
+        .card .value.green { color: #22c55e; }
+
+        .section-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin: 32px 0 16px; }
+        .section-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--red); color: #fff; border: none; font-family: var(--font-main);
+            font-size: 14px; font-weight: 600; padding: 12px 24px; cursor: pointer;
+            transition: opacity 0.2s; display: inline-block; text-decoration: none;
+        }
+        .btn-primary:hover { opacity: 0.85; }
+        .btn-ghost {
+            background: transparent; color: var(--text); border: 1px solid var(--line);
+            font-family: var(--font-main); font-size: 14px; font-weight: 600; padding: 12px 24px;
+            cursor: pointer; transition: border-color 0.2s; text-decoration: none; display: inline-block;
+        }
+        .btn-ghost:hover { border-color: var(--text); }
+        .btn-outline-red {
+            background: transparent; color: var(--red); border: 1px solid var(--red);
+            font-family: var(--font-main); font-size: 14px; font-weight: 600; padding: 12px 24px;
+            cursor: pointer; transition: background 0.2s, color 0.2s; text-decoration: none; display: inline-block;
+        }
+        .btn-outline-red:hover { background: var(--red); color: #fff; }
+
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-light); margin-bottom: 6px; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--line);
+            color: var(--text); font-family: var(--font-main); font-size: 15px; outline: none; transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus { border-color: var(--text); }
+
+        /* Tables */
+        .table-wrap { overflow-x: auto; border: 1px solid var(--line); }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+        th { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: var(--text-muted); background: var(--bg); }
+        tr:last-child td { border-bottom: none; }
+        .badge {
+            display: inline-block; padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 999px;
+            background: var(--bg-mid); color: var(--text-muted);
+        }
+        .badge.pending { background: #fef3c7; color: #92400e; }
+        .badge.verified { background: #d1fae5; color: #065f46; }
+        .badge.rejected { background: #fee2e2; color: #991b1b; }
+
+        @media (max-width: 900px) {
+            nav { padding: 0 20px; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .grid-3 { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 600px) {
+            .grid-3 { grid-template-columns: 1fr; }
+            .container { padding: 0 16px 40px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="/" class="nav-logo">
+            <img src="b.png" alt="BoujeePhoto" class="logo-img">
+            <span class="nav-logo-text">Boujee<span>Photo</span></span>
+        </a>
+        <div class="nav-right">
+            <span id="userName" style="color: var(--text-light); font-size: 14px;"></span>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"><i class="fas fa-sun"></i></button>
+            <a id="logoutBtn">Log out</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Loading -->
+        <div id="loadingState" class="loading-state">
+            <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 16px;"></i><br>
+            Checking your account...
+        </div>
+
+        <!-- ================== BUSINESS VIEW ================== -->
+        <div id="businessView" class="hidden">
+            <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 4px;">Your Campaigns</h2>
+            <p class="section-sub">Select a campaign below to view its status and submissions.</p>
+
+            <div id="campaignList" class="grid-3"></div>
+
+            <div id="campaignDetail" class="hidden" style="margin-top: 32px;">
+                <div class="grid-2" id="campaignStats"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin: 16px 0;">
+                    <h3 class="section-title" style="margin:0;">Submissions</h3>
+                    <a href="/subscribe.html" class="btn-primary">Top up campaign</a>
+                </div>
+                <div class="table-wrap" id="submissionsWrap">
+                    <table><thead><tr>
+                        <th>Runner</th><th>Views</th><th>Payout</th><th>Status</th><th>Action</th>
+                    </tr></thead><tbody id="submissionsBody"></tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================== RUNNER VIEW ================== -->
+        <div id="runnerView" class="hidden">
+            <div class="grid-2" id="runnerProfile">
+                <div class="card">
+                    <div class="label">TikTok Handle</div>
+                    <div class="value" id="runnerHandle">@...</div>
+                </div>
+                <div class="card">
+                    <div class="label">Earned Balance</div>
+                    <div class="value green" id="runnerBalance">0 UGX</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                <div class="card">
+                    <h4 style="margin-bottom: 12px;">Submit a new video</h4>
+                    <form id="submitForm">
+                        <div class="form-group">
+                            <label>Select Campaign</label>
+                            <select id="campaignSelect" required><option value="">— Select —</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Video URL (TikTok/YouTube)</label>
+                            <input type="url" id="videoUrl" placeholder="https://www.tiktok.com/..." required>
+                        </div>
+                        <button type="submit" class="btn-primary" style="width: 100%;">Submit Video</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h4 style="margin-bottom: 12px;">Your submissions</h4>
+                    <div class="table-wrap" id="mySubmissionsWrap">
+                        <table><thead><tr>
+                            <th>Campaign</th><th>Views</th><th>Status</th>
+                        </tr></thead><tbody id="mySubmissionsBody"></tbody></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── CONFIG ──
+        const FIREBASE_PROJECT_ID = 'boujee-academy';
+        const FIREBASE_API_KEY    = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
+        const TOKEN = localStorage.getItem('ba_token');
+        const UID = localStorage.getItem('ba_uid');
+
+        // ── THEME ──
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.innerHTML = savedTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const next = isDark ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            themeToggle.innerHTML = next === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        });
+
+        // ── AUTH GUARD ──
+        if (!TOKEN || !UID) {
+            window.location.href = '/login.html';
+        }
+
+        document.getElementById('userName').textContent = localStorage.getItem('ba_name') || 'User';
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = '/login.html';
+        });
+
+        // ── HELPERS ──
+        async function apiCall(url, body) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idToken: TOKEN, ...body })
+            });
+            if (!res.ok) throw new Error(`API error: ${res.status}`);
+            return res.json();
+        }
+
+        function formatMoney(n) { return Math.round(n).toLocaleString() + ' UGX'; }
+
+        // ── INIT ──
+        async function init() {
+            try {
+                // Determine role: check users/{uid} first, then runners/{uid}
+                const userRes = await fetch(
+                    `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/users/${UID}`,
+                    { headers: { Authorization: `Bearer ${TOKEN}` } }
+                );
+                if (userRes.ok) {
+                    // It's a Business user
+                    document.getElementById('loadingState').classList.add('hidden');
+                    document.getElementById('businessView').classList.remove('hidden');
+                    await loadBusinessDashboard();
+                    return;
+                }
+
+                const runnerRes = await fetch(
+                    `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/runners/${UID}`,
+                    { headers: { Authorization: `Bearer ${TOKEN}` } }
+                );
+                if (runnerRes.ok) {
+                    // It's a Runner
+                    document.getElementById('loadingState').classList.add('hidden');
+                    document.getElementById('runnerView').classList.remove('hidden');
+                    await loadRunnerDashboard();
+                    return;
+                }
+
+                // Neither found – redirect to signup
+                window.location.href = '/subscribe.html';
+            } catch (err) {
+                console.error('Init error:', err);
+                document.getElementById('loadingState').innerHTML = 'Error loading account. <a href="/login.html" style="color:var(--red)">Log in again</a>';
+            }
+        }
+
+        // ============================================================
+        // BUSINESS DASHBOARD
+        // ============================================================
+        async function loadBusinessDashboard() {
+            const data = await apiCall('/list-campaigns', {});
+            const campaigns = data.campaigns.filter(c => c.uid === UID);
+            const listEl = document.getElementById('campaignList');
+            listEl.innerHTML = '';
+
+            if (campaigns.length === 0) {
+                listEl.innerHTML = `<div class="card" style="grid-column: 1/-1; text-align:center; color:var(--text-muted);">
+                    You haven't launched any campaigns yet. <a href="/subscribe.html" style="color:var(--red);">Start a campaign</a>
+                </div>`;
+                return;
+            }
+
+            campaigns.forEach(c => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.cursor = 'pointer';
+                const used = c.creatorPool - c.poolRemaining;
+                const pct = c.creatorPool > 0 ? Math.round((used / c.creatorPool) * 100) : 0;
+                card.innerHTML = `
+                    <div class="label">${c.status}</div>
+                    <div class="value">${formatMoney(c.businessPayment)}</div>
+                    <div style="font-size:13px; color:var(--text-muted); margin-top:8px;">
+                        Pool: ${formatMoney(c.poolRemaining)} remaining
+                    </div>
+                    <div style="height:4px; background:var(--line); margin-top:12px; border-radius:999px; overflow:hidden;">
+                        <div style="height:100%; background:var(--red); width:${pct}%;"></div>
+                    </div>
+                `;
+                card.addEventListener('click', () => loadCampaignDetail(c.orderTrackingId));
+                listEl.appendChild(card);
+            });
+        }
+
+        async function loadCampaignDetail(id) {
+            const detailEl = document.getElementById('campaignDetail');
+            detailEl.classList.remove('hidden');
+            const statsEl = document.getElementById('campaignStats');
+            statsEl.innerHTML = '<div class="loading-state" style="padding:20px;">Loading...</div>';
+
+            // Fetch campaign details
+            const campaignsData = await apiCall('/list-campaigns', {});
+            const camp = campaignsData.campaigns.find(c => c.orderTrackingId === id);
+            if (!camp) return;
+
+            statsEl.innerHTML = `
+                <div class="card"><div class="label">Creator Pool</div><div class="value green">${formatMoney(camp.creatorPool)}</div></div>
+                <div class="card"><div class="label">Pool Remaining</div><div class="value">${formatMoney(camp.poolRemaining)}</div></div>
+            `;
+
+            // Fetch submissions for this campaign
+            const subsData = await apiCall('/list-submissions', { campaignId: id });
+            const tbody = document.getElementById('submissionsBody');
+            tbody.innerHTML = '';
+            if (!subsData.submissions || subsData.submissions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No submissions yet.</td></tr>`;
+                return;
+            }
+            subsData.submissions.forEach(s => {
+                const payout = Math.min((s.verifiedViews / 1000) * 2000, camp.maxPayoutPerVideo);
+                const statusClass = s.status === 'verified' ? 'verified' : s.status === 'rejected' ? 'rejected' : 'pending';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${s.runnerUid || 'Unknown'}</strong></td>
+                    <td>${s.verifiedViews.toLocaleString()}</td>
+                    <td>${formatMoney(payout)}</td>
+                    <td><span class="badge ${statusClass}">${s.status}</span></td>
+                    <td>
+                        <button class="btn-outline-red" style="padding:4px 12px; font-size:12px;"
+                            onclick="forceRecheck('${s.submissionId}')">
+                            Force Recheck
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function forceRecheck(submissionId) {
+            try {
+                await apiCall('/force-verify-submission', { submissionId });
+                alert('Force recheck triggered successfully.');
+                // Reload details
+                const activeId = document.querySelector('.card[style*="cursor:pointer"]')?.innerText; // quick hack
+                if (activeId) loadCampaignDetail(activeId);
+            } catch (e) {
+                alert('Failed to trigger recheck: ' + e.message);
+            }
+        }
+
+        // ============================================================
+        // RUNNER DASHBOARD
+        // ============================================================
+        async function loadRunnerDashboard() {
+            // Profile
+            const runnerRes = await fetch(
+                `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/runners/${UID}`,
+                { headers: { Authorization: `Bearer ${TOKEN}` } }
+            );
+            const runnerData = await runnerRes.json();
+            const fields = runnerData.fields || {};
+            document.getElementById('runnerHandle').textContent = fields.tiktokHandle?.stringValue || '@unknown';
+            const bal = parseInt(fields.earnedBalance?.integerValue || '0');
+            document.getElementById('runnerBalance').textContent = formatMoney(bal);
+
+            // Dropdown: active campaigns
+            const activeIds = fields.activeCampaignIds?.arrayValue?.values?.map(v => v.stringValue) || [];
+            const select = document.getElementById('campaignSelect');
+            if (activeIds.length === 0) {
+                select.innerHTML = `<option value="">— No active campaigns —</option>`;
+            } else {
+                // Fetch campaign names (we need to list campaigns by ID)
+                const campaignsData = await apiCall('/list-campaigns', {});
+                const activeCampaigns = campaignsData.campaigns.filter(c => activeIds.includes(c.orderTrackingId));
+                activeCampaigns.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.orderTrackingId;
+                    opt.textContent = `Campaign ${c.orderTrackingId.slice(0,6)} (${formatMoney(c.businessPayment)})`;
+                    select.appendChild(opt);
+                });
+            }
+
+            // My submissions
+            const subsData = await apiCall('/list-submissions', { runnerUid: UID });
+            const tbody = document.getElementById('mySubmissionsBody');
+            tbody.innerHTML = '';
+            if (!subsData.submissions || subsData.submissions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">No submissions yet.</td></tr>`;
+                return;
+            }
+            subsData.submissions.forEach(s => {
+                const statusClass = s.status === 'verified' ? 'verified' : s.status === 'rejected' ? 'rejected' : 'pending';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${s.campaignId.slice(0,8)}...</td>
+                    <td>${s.verifiedViews.toLocaleString()}</td>
+                    <td><span class="badge ${statusClass}">${s.status}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ── SUBMIT VIDEO ──
+        document.getElementById('submitForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const campaignId = document.getElementById('campaignSelect').value;
+            const videoUrl = document.getElementById('videoUrl').value;
+
+            if (!campaignId || !videoUrl) return alert('Please select a campaign and enter a video URL.');
+
+            try {
+                // NOTE: This calls a NEW route that you will need to implement in a worker.
+                // It should create a document in `submissions` with status "pending".
+                const res = await fetch('/submit-video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken: TOKEN, campaignId, videoUrl })
+                });
+                if (!res.ok) throw new Error('Submit failed');
+                alert('Video submitted successfully! It will be reviewed shortly.');
+                document.getElementById('videoUrl').value = '';
+                loadRunnerDashboard(); // refresh
+            } catch (err) {
+                alert('Error submitting video: ' + err.message);
+            }
+        });
+
+        // ── START ──
+        init();
+    </script>
+</body>
+</html>
