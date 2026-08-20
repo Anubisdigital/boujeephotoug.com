@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reserve — BoujeePhoto</title>
-    <meta name="description" content="Reserve your filming date with BoujeePhoto. Secure your content day with a 200,000 UGX deposit.">
+    <meta name="description" content="Reserve your filming date or launch a Creator Rewards campaign with BoujeePhoto.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -124,7 +124,7 @@
         /* ── MAIN ── */
         main {
             flex: 1;
-            max-width: 720px;
+            max-width: 960px;
             margin: 0 auto;
             padding: 64px 24px 80px;
             width: 100%;
@@ -156,13 +156,26 @@
             margin-bottom: 48px;
         }
 
+        /* ── PLAN GRID ── */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
         /* ── SINGLE PLAN CARD ── */
         .single-plan-card {
             border: 1px solid var(--red);
             background: var(--bg-mid);
             padding: 40px 36px;
-            margin-bottom: 32px;
             position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .single-plan-card.rewards {
+            border-color: var(--teal);
         }
 
         .plan-tag {
@@ -173,6 +186,10 @@
             color: var(--red);
             margin-bottom: 24px;
             display: block;
+        }
+
+        .single-plan-card.rewards .plan-tag {
+            color: var(--teal);
         }
 
         .plan-price {
@@ -226,6 +243,26 @@
             clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
         }
 
+        .single-plan-card.rewards .plan-features li::before {
+            background: var(--teal);
+        }
+
+        /* ── INPUT FOR REWARDS ── */
+        .rewards-input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-family: var(--font-main);
+            font-size: 15px;
+            padding: 13px 14px;
+            outline: none;
+            margin-bottom: 16px;
+        }
+        .rewards-input:focus {
+            border-color: var(--text);
+        }
+
         /* ── PAY BUTTON ── */
         .pay-btn {
             width: 100%;
@@ -244,6 +281,10 @@
             align-items: center;
             justify-content: center;
             gap: 12px;
+        }
+
+        .single-plan-card.rewards .pay-btn {
+            background: var(--teal);
         }
 
         .pay-btn:hover {
@@ -466,6 +507,10 @@
             main {
                 padding: 40px 16px 60px;
             }
+            .plans-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
             .single-plan-card {
                 padding: 32px 24px;
             }
@@ -511,43 +556,79 @@
             <a href="./dashboard.html" class="btn-primary">Go to Dashboard</a>
         </div>
 
-        <!-- DEPOSIT FORM -->
+        <!-- DEPOSIT FORM / PLAN SELECTOR -->
         <div id="depositForm" style="display:none;">
 
             <p class="page-eyebrow">Reserve</p>
-            <h1 class="page-title">Lock in your<br>filming date.</h1>
-            <p class="page-sub">Pay a 200,000 UGX deposit to secure your filming day. This deposit is fully credited toward the 900,000 UGX monthly package if you proceed within 7 days.</p>
+            <h1 class="page-title">Choose your<br>growth plan.</h1>
+            <p class="page-sub">Pick the plan that fits your business—whether you need a full 30-video content engine or a flexible creator rewards campaign.</p>
 
-            <!-- SINGLE PLAN CARD -->
-            <div class="single-plan-card">
-                <span class="plan-tag">Monthly content package</span>
-                <div class="plan-price"><strong>900,000</strong><span>UGX / month</span></div>
-                <p class="plan-desc">One organised filming day, 30 vertical videos, editing, captions, music, branding, and posting to one social platform. Transport within Kampala included.</p>
-                <ul class="plan-features">
-                    <li>30 vertical videos, up to 60 seconds each</li>
-                    <li>Ideas, hooks and on‑camera guidance</li>
-                    <li>One organised filming day, up to five hours</li>
-                    <li>Shooting, editing, captions, music and branding</li>
-                    <li>Posting to one selected social platform</li>
-                    <li>Transport within Kampala on filming day</li>
-                    <li>200,000 UGX deposit rolls fully into package if you proceed within 7 days</li>
-                </ul>
+            <!-- PLANS GRID -->
+            <div class="plans-grid">
 
-                <!-- PAY BUTTON -->
-                <button class="pay-btn" id="payBtn" onclick="handlePay()">
-                    <span id="payBtnText">Reserve — 200,000 UGX</span>
-                    <span class="spinner"></span>
-                </button>
-                <p class="pay-note">You will be redirected to Pesapal's secure payment page</p>
+                <!-- ═══════════ PLAN 1: 30-DAY ENGINE (Kakooza Plan) ═══════════ -->
+                <div class="single-plan-card">
+                    <span class="plan-tag">Monthly content package</span>
+                    <div class="plan-price"><strong>900,000</strong><span>UGX / month</span></div>
+                    <p class="plan-desc">One organised filming day, 30 vertical videos, editing, captions, music, branding, and posting to one social platform. Transport within Kampala included.</p>
+                    <ul class="plan-features">
+                        <li>30 vertical videos, up to 60 seconds each</li>
+                        <li>Ideas, hooks and on‑camera guidance</li>
+                        <li>One organised filming day, up to five hours</li>
+                        <li>Shooting, editing, captions, music and branding</li>
+                        <li>Posting to one selected social platform</li>
+                        <li>Transport within Kampala on filming day</li>
+                        <li>200,000 UGX deposit rolls fully into package if you proceed within 7 days</li>
+                    </ul>
 
-                <div class="pay-methods">
-                    <span class="pay-method-tag">MTN Mobile Money</span>
-                    <span class="pay-method-tag">Airtel Money</span>
-                    <span class="pay-method-tag">Visa</span>
-                    <span class="pay-method-tag">Mastercard</span>
+                    <!-- PAY BUTTON -->
+                    <button class="pay-btn" id="payBtn" onclick="handlePay()">
+                        <span id="payBtnText">Reserve — 200,000 UGX</span>
+                        <span class="spinner"></span>
+                    </button>
+                    <p class="pay-note">You will be redirected to Pesapal's secure payment page</p>
+
+                    <div class="pay-methods">
+                        <span class="pay-method-tag">MTN Mobile Money</span>
+                        <span class="pay-method-tag">Airtel Money</span>
+                        <span class="pay-method-tag">Visa</span>
+                        <span class="pay-method-tag">Mastercard</span>
+                    </div>
                 </div>
-            </div>
 
+                <!-- ═══════════ PLAN 2: CREATOR REWARDS ═══════════ -->
+                <div class="single-plan-card rewards">
+                    <span class="plan-tag">Pay-as-you-go campaign</span>
+                    <div class="plan-price"><strong>From 50,000</strong><span>UGX</span></div>
+                    <p class="plan-desc">Launch a rewards campaign to get short-form content from multiple creators. You only pay for verified views, and the campaign automatically stops when your budget is used.</p>
+                    <ul class="plan-features">
+                        <li>Set your own campaign budget (minimum 50,000 UGX)</li>
+                        <li>Boujee keeps a 25% platform fee</li>
+                        <li>75% of your budget goes directly to creators</li>
+                        <li>Creators earn 2,000 UGX per 1,000 verified views</li>
+                        <li>Max payout per video automatically scales with your budget</li>
+                        <li>Campaign automatically pauses when the pool is exhausted</li>
+                    </ul>
+
+                    <label for="rewardsAmount" style="display:block; font-size:13px; font-weight:600; color:var(--text-light); margin-bottom:8px;">Campaign Budget (UGX)</label>
+                    <input type="number" id="rewardsAmount" min="50000" step="1000" value="100000" class="rewards-input" placeholder="e.g. 100000">
+
+                    <!-- PAY BUTTON -->
+                    <button class="pay-btn" id="rewardsPayBtn" onclick="handleRewardsPay()">
+                        <span id="rewardsPayBtnText">Launch Rewards Campaign</span>
+                        <span class="spinner"></span>
+                    </button>
+                    <p class="pay-note">You will be redirected to Pesapal's secure payment page</p>
+
+                    <div class="pay-methods">
+                        <span class="pay-method-tag">MTN Mobile Money</span>
+                        <span class="pay-method-tag">Airtel Money</span>
+                        <span class="pay-method-tag">Visa</span>
+                        <span class="pay-method-tag">Mastercard</span>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </main>
 
@@ -618,7 +699,6 @@
             if (!res.ok || !data.id_token) {
                 throw new Error(data.error?.message || 'Refresh failed');
             }
-            // Update storage with new tokens
             localStorage.setItem('ba_token', data.id_token);
             if (data.refresh_token) {
                 localStorage.setItem('ba_refresh_token', data.refresh_token);
@@ -632,7 +712,6 @@
             const payload = parseJwt(token);
             const now = Math.floor(Date.now() / 1000);
 
-            // If token expires within 60 seconds or is invalid, force refresh
             if (!payload || payload.exp <= now + 60) {
                 const newToken = await refreshToken();
                 idToken = newToken;
@@ -675,10 +754,8 @@
             const theme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', theme);
 
-            // Run authentication
             await initAuth();
 
-            // If we got here, tokens are valid and idToken/uid are set
             const name = localStorage.getItem('ba_name') || localStorage.getItem('ba_email') || '';
             document.getElementById('navUser').textContent = name.split(' ')[0].toUpperCase();
             document.getElementById('logoutBtn').style.display = 'inline';
@@ -696,7 +773,6 @@
                     
                     let data = await res.json();
 
-                    // If unauthenticated, refresh and retry once
                     if (res.status === 401 || data.error === 'UNAUTHENTICATED' || data.status === 'UNAUTHENTICATED') {
                         activeToken = await refreshToken();
                         res = await fetch(`${PAYMENT_WORKER}/verify-payment`, {
@@ -728,7 +804,7 @@
             window.location.href = './login.html';
         }
 
-        // ── Handle pay ──
+        // ── Handle 30-Day Plan Pay ──
         async function handlePay() {
             const btn = document.getElementById('payBtn');
             btn.classList.add('loading');
@@ -736,7 +812,6 @@
             document.getElementById('payBtnText').textContent = 'Creating order...';
 
             try {
-                // Guaranteed fresh token right before submitting
                 let activeToken = await getValidToken();
 
                 let res = await fetch(`${PAYMENT_WORKER}/create-order`, {
@@ -747,7 +822,6 @@
 
                 let data = await res.json();
 
-                // Automatic retry once on 401 / UNAUTHENTICATED
                 if (res.status === 401 || data.error === 'UNAUTHENTICATED' || data.status === 'UNAUTHENTICATED') {
                     console.warn('Backend rejected token. Refreshing and retrying payment request...');
                     activeToken = await refreshToken();
@@ -785,6 +859,69 @@
             }
         }
 
+        // ── Handle Rewards Campaign Pay (NEW) ──
+        async function handleRewardsPay() {
+            const btn = document.getElementById('rewardsPayBtn');
+            const amountInput = document.getElementById('rewardsAmount');
+            const amount = parseInt(amountInput.value, 10);
+
+            if (isNaN(amount) || amount < 50000) {
+                showToast('Minimum campaign budget is 50,000 UGX.', 'error');
+                return;
+            }
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+            document.getElementById('rewardsPayBtnText').textContent = 'Creating campaign...';
+
+            try {
+                let activeToken = await getValidToken();
+
+                let res = await fetch(`${PAYMENT_WORKER}/create-campaign-order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken: activeToken, amount: amount })
+                });
+
+                let data = await res.json();
+
+                if (res.status === 401 || data.error === 'UNAUTHENTICATED' || data.status === 'UNAUTHENTICATED') {
+                    console.warn('Backend rejected token. Refreshing and retrying payment request...');
+                    activeToken = await refreshToken();
+                    
+                    res = await fetch(`${PAYMENT_WORKER}/create-campaign-order`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idToken: activeToken, amount: amount })
+                    });
+                    data = await res.json();
+                }
+
+                if (data.error) {
+                    showToast(data.error, 'error');
+                    return;
+                }
+
+                if (data.orderTrackingId && data.redirectUrl) {
+                    localStorage.setItem('ba_order_tracking_id', data.orderTrackingId);
+                    window.location.href = data.redirectUrl;
+                } else {
+                    showToast('Failed to retrieve checkout URL.', 'error');
+                }
+            } catch (err) {
+                if (err.message && err.message.includes('Refresh failed')) {
+                    forceLogin();
+                    return;
+                }
+                showToast('Something went wrong. Please try again.', 'error');
+                console.error(err);
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                document.getElementById('rewardsPayBtnText').textContent = 'Launch Rewards Campaign';
+            }
+        }
+
         // ── Toast ──
         function showToast(msg, type = '') {
             const t = document.getElementById('toast');
@@ -795,4 +932,4 @@
         }
     </script>
 </body>
-</html>
+    </html>
