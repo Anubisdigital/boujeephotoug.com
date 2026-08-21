@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
@@ -495,18 +495,17 @@
                 await user.updateProfile({ displayName: `${data.firstName} ${data.lastName}` });
 
                 // Step 3: Create Firestore user document (via SDK – fixes the 401 error)
-                await db.collection('users').doc(user.uid).set({
-                    name: `${data.firstName} ${data.lastName}`,
-                    email: data.email,
-                    phone: data.phone,
-                    createdAt: new Date().toISOString(),
-                    isAdmin: false,
-                    businessName: data.businessName,
-                    businessType: data.businessType,
-                    location: data.location || null,
-                });
-
-                // Step 4: Get ID token and refresh token correctly
+ await db.collection('users').doc(user.uid).set({
+    name: `${data.firstName} ${data.lastName}`,
+    email: data.email,
+    phone: data.phone,
+    createdAt: new Date().toISOString(),
+    isAdmin: false,
+    hasPaid: false,
+    businessName: data.businessName,
+    businessType: data.businessType,
+    location: data.location || null,
+});                // Step 4: Get ID token and refresh token correctly
                 const idToken = await user.getIdToken();
                 const refreshToken = user.refreshToken; // ✅ This is the correct public property
 
@@ -591,4 +590,4 @@
         });
     </script>
 </body>
-    </html>
+</html>
