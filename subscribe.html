@@ -263,6 +263,116 @@
             border-color: var(--text);
         }
 
+        /* ── PROMO INPUT ── */
+        .promo-container {
+            margin-bottom: 16px;
+        }
+        
+        .promo-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+        
+        .promo-row {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .promo-input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            padding: 12px 14px;
+            outline: none;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        
+        .promo-input:focus {
+            border-color: var(--teal);
+        }
+        
+        .apply-promo-btn {
+            background: var(--teal);
+            color: #fff;
+            border: none;
+            font-family: var(--font-main);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: opacity .2s;
+            white-space: nowrap;
+        }
+        
+        .apply-promo-btn:hover {
+            opacity: .85;
+        }
+        
+        .apply-promo-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+        
+        .promo-feedback {
+            margin-top: 8px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+        
+        .promo-feedback.success {
+            color: var(--teal);
+        }
+        
+        .promo-feedback.error {
+            color: var(--red);
+        }
+        
+        /* Discount display */
+        .discount-display {
+            display: none;
+            background: var(--bg);
+            border: 1px solid var(--teal);
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .discount-display.show {
+            display: block;
+        }
+        
+        .discount-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+        
+        .discount-row.total {
+            color: var(--text);
+            font-weight: 700;
+            font-size: 15px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--line);
+        }
+        
+        .discount-row .price {
+            font-family: var(--font-mono);
+        }
+        
+        .discount-row.total .price {
+            color: var(--teal);
+        }
+
         /* ── PAY BUTTON ── */
         .pay-btn {
             width: 100%;
@@ -519,6 +629,12 @@
                 flex-direction: column;
                 text-align: center;
             }
+            .promo-row {
+                flex-direction: column;
+            }
+            .apply-promo-btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -545,7 +661,7 @@
             <h2>Log in to reserve</h2>
             <p>You need an account to reserve a filming date with BoujeePhoto. Create one free or log in to continue.</p>
             <a href="./login.html" class="btn-primary">Log in</a>
-            <a href="./signup.html" class="btn-secondary">Create account</a>
+            <a href="./signup.html" class="btn-secondary">Create me account</a>
         </div>
 
         <!-- ALREADY BOOKED STATE -->
@@ -613,6 +729,32 @@
                     <label for="rewardsAmount" style="display:block; font-size:13px; font-weight:600; color:var(--text-light); margin-bottom:8px;">Campaign Budget (UGX)</label>
                     <input type="number" id="rewardsAmount" min="50000" step="1000" value="100000" class="rewards-input" placeholder="e.g. 100000">
 
+                    <!-- PROMO CODE INPUT -->
+                    <div class="promo-container">
+                        <label for="promoCode" class="promo-label">Promo Code (Optional)</label>
+                        <div class="promo-row">
+                            <input type="text" id="promoCode" class="promo-input" placeholder="Enter code" autocomplete="off">
+                            <button type="button" id="applyPromoBtn" class="apply-promo-btn" onclick="applyPromoCode()">Apply</button>
+                        </div>
+                        <div id="promoFeedback" class="promo-feedback"></div>
+                    </div>
+
+                    <!-- DISCOUNT DISPLAY -->
+                    <div id="discountDisplay" class="discount-display">
+                        <div class="discount-row">
+                            <span>Campaign Budget</span>
+                            <span class="price" id="originalAmount">100,000 UGX</span>
+                        </div>
+                        <div class="discount-row">
+                            <span>Promo Discount (90%)</span>
+                            <span class="price" id="discountAmount">-90,000 UGX</span>
+                        </div>
+                        <div class="discount-row total">
+                            <span>You Pay</span>
+                            <span class="price" id="finalAmount">10,000 UGX</span>
+                        </div>
+                    </div>
+
                     <!-- PAY BUTTON -->
                     <button class="pay-btn" id="rewardsPayBtn" onclick="handleRewardsPay()">
                         <span id="rewardsPayBtnText">Launch Rewards Campaign</span>
@@ -644,9 +786,13 @@
         const PAYMENT_WORKER = 'https://boujee-payment-worker.kakoozaronald71.workers.dev';
         const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
         const DEPOSIT_AMOUNT = 200000;
+        const CAMPAIGN_MIN_AMOUNT = 50000;
+        const PROMO_CHARGE_RATE = 0.10;
 
         let idToken = null;
         let uid = null;
+        let promoApplied = false;
+        let promoCodeValidated = false;
 
         // ── JWT helper (base64url decode) ──
         function base64UrlDecode(str) {
@@ -859,15 +1005,122 @@
             }
         }
 
-        // ── Handle Rewards Campaign Pay (NEW) ──
+        // ── Apply Promo Code ──
+        async function applyPromoCode() {
+            const promoInput = document.getElementById('promoCode');
+            const promoFeedback = document.getElementById('promoFeedback');
+            const applyBtn = document.getElementById('applyPromoBtn');
+            const amountInput = document.getElementById('rewardsAmount');
+            const amount = parseInt(amountInput.value, 10);
+            const code = promoInput.value.trim();
+
+            if (!code) {
+                promoFeedback.textContent = 'Please enter a promo code';
+                promoFeedback.className = 'promo-feedback error';
+                return;
+            }
+
+            if (isNaN(amount) || amount < CAMPAIGN_MIN_AMOUNT) {
+                promoFeedback.textContent = `Minimum campaign budget is ${CAMPAIGN_MIN_AMOUNT.toLocaleString()} UGX`;
+                promoFeedback.className = 'promo-feedback error';
+                return;
+            }
+
+            applyBtn.disabled = true;
+            promoFeedback.textContent = 'Validating...';
+            promoFeedback.className = 'promo-feedback';
+
+            try {
+                let activeToken = await getValidToken();
+
+                let res = await fetch(`${PAYMENT_WORKER}/validate-promo`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken: activeToken, code: code, amount: amount })
+                });
+
+                let data = await res.json();
+
+                if (res.status === 401 || data.error === 'UNAUTHENTICATED' || data.status === 'UNAUTHENTICATED') {
+                    activeToken = await refreshToken();
+                    res = await fetch(`${PAYMENT_WORKER}/validate-promo`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idToken: activeToken, code: code, amount: amount })
+                    });
+                    data = await res.json();
+                }
+
+                if (data.error) {
+                    promoFeedback.textContent = data.error;
+                    promoFeedback.className = 'promo-feedback error';
+                    promoApplied = false;
+                    promoCodeValidated = false;
+                    document.getElementById('discountDisplay').classList.remove('show');
+                } else if (data.valid) {
+                    promoFeedback.textContent = `Promo applied! ${data.usesRemaining} uses remaining.`;
+                    promoFeedback.className = 'promo-feedback success';
+                    promoApplied = true;
+                    promoCodeValidated = true;
+                    
+                    // Show discount display
+                    const discountDisplay = document.getElementById('discountDisplay');
+                    discountDisplay.classList.add('show');
+                    
+                    // Update display
+                    document.getElementById('originalAmount').textContent = amount.toLocaleString() + ' UGX';
+                    document.getElementById('discountAmount').textContent = '-' + (amount - data.chargeAmount).toLocaleString() + ' UGX';
+                    document.getElementById('finalAmount').textContent = data.chargeAmount.toLocaleString() + ' UGX';
+                    
+                    // Update button text
+                    document.getElementById('rewardsPayBtnText').textContent = `Pay ${data.chargeAmount.toLocaleString()} UGX`;
+                }
+            } catch (err) {
+                if (err.message && err.message.includes('Refresh failed')) {
+                    forceLogin();
+                    return;
+                }
+                promoFeedback.textContent = 'Error validating promo code';
+                promoFeedback.className = 'promo-feedback error';
+                promoApplied = false;
+                promoCodeValidated = false;
+                console.error(err);
+            } finally {
+                applyBtn.disabled = false;
+            }
+        }
+
+        // ── Handle Rewards Campaign Pay ──
         async function handleRewardsPay() {
             const btn = document.getElementById('rewardsPayBtn');
             const amountInput = document.getElementById('rewardsAmount');
             const amount = parseInt(amountInput.value, 10);
+            const promoInput = document.getElementById('promoCode');
+            const code = promoInput.value.trim();
 
-            if (isNaN(amount) || amount < 50000) {
-                showToast('Minimum campaign budget is 50,000 UGX.', 'error');
+            if (isNaN(amount) || amount < CAMPAIGN_MIN_AMOUNT) {
+                showToast(`Minimum campaign budget is ${CAMPAIGN_MIN_AMOUNT.toLocaleString()} UGX.`, 'error');
                 return;
+            }
+
+            // If promo code was applied, validate it's still valid
+            if (promoApplied && promoCodeValidated && code) {
+                // Validate again to ensure promo is still available
+                const validationRes = await fetch(`${PAYMENT_WORKER}/validate-promo`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken: await getValidToken(), code: code, amount: amount })
+                });
+                const validationData = await validationRes.json();
+                
+                if (validationData.error || !validationData.valid) {
+                    showToast('Promo code is no longer valid.', 'error');
+                    promoApplied = false;
+                    promoCodeValidated = false;
+                    document.getElementById('discountDisplay').classList.remove('show');
+                    document.getElementById('rewardsPayBtnText').textContent = 'Launch Rewards Campaign';
+                    return;
+                }
             }
 
             btn.classList.add('loading');
@@ -877,10 +1130,16 @@
             try {
                 let activeToken = await getValidToken();
 
+                // Prepare request body
+                const requestBody = { idToken: activeToken, amount: amount };
+                if (promoApplied && promoCodeValidated && code) {
+                    requestBody.promoCode = code;
+                }
+
                 let res = await fetch(`${PAYMENT_WORKER}/create-campaign-order`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ idToken: activeToken, amount: amount })
+                    body: JSON.stringify(requestBody)
                 });
 
                 let data = await res.json();
@@ -892,7 +1151,7 @@
                     res = await fetch(`${PAYMENT_WORKER}/create-campaign-order`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ idToken: activeToken, amount: amount })
+                        body: JSON.stringify({ idToken: activeToken, amount: amount, ...(promoApplied && promoCodeValidated && code ? { promoCode: code } : {}) })
                     });
                     data = await res.json();
                 }
@@ -918,9 +1177,32 @@
             } finally {
                 btn.classList.remove('loading');
                 btn.disabled = false;
-                document.getElementById('rewardsPayBtnText').textContent = 'Launch Rewards Campaign';
+                // Reset button text based on promo state
+                if (promoApplied && promoCodeValidated) {
+                    const amount = parseInt(amountInput.value, 10);
+                    const chargeAmount = Math.round(amount * PROMO_CHARGE_RATE);
+                    document.getElementById('rewardsPayBtnText').textContent = `Pay ${chargeAmount.toLocaleString()} UGX`;
+                } else {
+                    document.getElementById('rewardsPayBtnText').textContent = 'Launch Rewards Campaign';
+                }
             }
         }
+
+        // ── Show/Hide Discount based on amount input ──
+        document.getElementById('rewardsAmount').addEventListener('input', function() {
+            // If promo was applied, update the discount display
+            if (promoApplied && promoCodeValidated) {
+                const amount = parseInt(this.value, 10);
+                if (!isNaN(amount) && amount >= CAMPAIGN_MIN_AMOUNT) {
+                    document.getElementById('originalAmount').textContent = amount.toLocaleString() + ' UGX';
+                    const discountAmount = Math.round(amount * (1 - PROMO_CHARGE_RATE));
+                    const finalAmount = amount - discountAmount;
+                    document.getElementById('discountAmount').textContent = '-' + discountAmount.toLocaleString() + ' UGX';
+                    document.getElementById('finalAmount').textContent = finalAmount.toLocaleString() + ' UGX';
+                    document.getElementById('rewardsPayBtnText').textContent = `Pay ${finalAmount.toLocaleString()} UGX`;
+                }
+            }
+        });
 
         // ── Toast ──
         function showToast(msg, type = '') {
