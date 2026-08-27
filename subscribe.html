@@ -815,12 +815,8 @@
         // ── Guard clause: ensure tokens exist and are valid strings ──
         function validateTokens() {
             const token = localStorage.getItem('ba_token');
-            const refresh = localStorage.getItem('ba_refresh_token');
-
+            // Only require the main token, not refresh token
             if (!token || token === 'undefined' || token === 'null' || token.trim() === '') {
-                return false;
-            }
-            if (!refresh || refresh === 'undefined' || refresh === 'null' || refresh.trim() === '') {
                 return false;
             }
             return true;
@@ -859,14 +855,23 @@
             const now = Math.floor(Date.now() / 1000);
 
             if (!payload || payload.exp <= now + 60) {
-                const newToken = await refreshToken();
-                idToken = newToken;
-                const newPayload = parseJwt(newToken);
-                if (newPayload) {
-                    uid = newPayload.sub;
-                    localStorage.setItem('ba_uid', uid);
+                // Token is expired - try to refresh
+                try {
+                    const newToken = await refreshToken();
+                    idToken = newToken;
+                    const newPayload = parseJwt(newToken);
+                    if (newPayload) {
+                        uid = newPayload.sub;
+                        localStorage.setItem('ba_uid', uid);
+                    }
+                    return newToken;
+                } catch (err) {
+                    // If refresh fails but token might still work, return the old token
+                    console.warn('Token refresh failed, using existing token:', err);
+                    idToken = token;
+                    uid = payload?.sub;
+                    return token;
                 }
-                return newToken;
             }
 
             idToken = token;
@@ -876,7 +881,7 @@
 
         // ── Redirect to login if auth unrecoverable ──
         function forceLogin() {
-            localStorage.clear();
+            // Don't clear localStorage - just redirect
             window.location.href = './login.html?next=subscribe.html';
         }
 
@@ -929,12 +934,10 @@
                         data = await res.json();
                     }
 
-                    if (data.status === 'COMPLETED' && data.rollsIntoPackageUntil) {
-                        const expiry = new Date(data.rollsIntoPackageUntil);
-                        if (expiry > new Date()) {
-                            document.getElementById('alreadyBooked').classList.add('show');
-                            return;
-                        }
+                    if (data.status === 'COMPLETED') {
+                        // Redirect to dashboard if already paid
+                        window.location.href = './dashboard.html';
+                        return;
                     }
                 } catch (err) {
                     // network error – proceed to deposit form
@@ -1069,149 +1072,4 @@
                     
                     // Update display
                     document.getElementById('originalAmount').textContent = amount.toLocaleString() + ' UGX';
-                    document.getElementById('discountAmount').textContent = '-' + (amount - data.chargeAmount).toLocaleString() + ' UGX';
-                    document.getElementById('finalAmount').textContent = data.chargeAmount.toLocaleString() + ' UGX';
-                    
-                    // Update button text
-                    document.getElementById('rewardsPayBtnText').textContent = `Pay ${data.chargeAmount.toLocaleString()} UGX`;
-                }
-            } catch (err) {
-                if (err.message && err.message.includes('Refresh failed')) {
-                    forceLogin();
-                    return;
-                }
-                promoFeedback.textContent = 'Error validating promo code';
-                promoFeedback.className = 'promo-feedback error';
-                promoApplied = false;
-                promoCodeValidated = false;
-                console.error(err);
-            } finally {
-                applyBtn.disabled = false;
-            }
-        }
-
-        // ── Handle Rewards Campaign Pay ──
-        async function handleRewardsPay() {
-            const btn = document.getElementById('rewardsPayBtn');
-            const amountInput = document.getElementById('rewardsAmount');
-            const amount = parseInt(amountInput.value, 10);
-            const promoInput = document.getElementById('promoCode');
-            const code = promoInput.value.trim();
-
-            if (isNaN(amount) || amount < CAMPAIGN_MIN_AMOUNT) {
-                showToast(`Minimum campaign budget is ${CAMPAIGN_MIN_AMOUNT.toLocaleString()} UGX.`, 'error');
-                return;
-            }
-
-            // If promo code was applied, validate it's still valid
-            if (promoApplied && promoCodeValidated && code) {
-                // Validate again to ensure promo is still available
-                const validationRes = await fetch(`${PAYMENT_WORKER}/validate-promo`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ idToken: await getValidToken(), code: code, amount: amount })
-                });
-                const validationData = await validationRes.json();
-                
-                if (validationData.error || !validationData.valid) {
-                    showToast('Promo code is no longer valid.', 'error');
-                    promoApplied = false;
-                    promoCodeValidated = false;
-                    document.getElementById('discountDisplay').classList.remove('show');
-                    document.getElementById('rewardsPayBtnText').textContent = 'Launch Rewards Campaign';
-                    return;
-                }
-            }
-
-            btn.classList.add('loading');
-            btn.disabled = true;
-            document.getElementById('rewardsPayBtnText').textContent = 'Creating campaign...';
-
-            try {
-                let activeToken = await getValidToken();
-
-                // Prepare request body
-                const requestBody = { idToken: activeToken, amount: amount };
-                if (promoApplied && promoCodeValidated && code) {
-                    requestBody.promoCode = code;
-                }
-
-                let res = await fetch(`${PAYMENT_WORKER}/create-campaign-order`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody)
-                });
-
-                let data = await res.json();
-
-                if (res.status === 401 || data.error === 'UNAUTHENTICATED' || data.status === 'UNAUTHENTICATED') {
-                    console.warn('Backend rejected token. Refreshing and retrying payment request...');
-                    activeToken = await refreshToken();
-                    
-                    res = await fetch(`${PAYMENT_WORKER}/create-campaign-order`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ idToken: activeToken, amount: amount, ...(promoApplied && promoCodeValidated && code ? { promoCode: code } : {}) })
-                    });
-                    data = await res.json();
-                }
-
-                if (data.error) {
-                    showToast(data.error, 'error');
-                    return;
-                }
-
-                if (data.orderTrackingId && data.redirectUrl) {
-                    localStorage.setItem('ba_order_tracking_id', data.orderTrackingId);
-                    window.location.href = data.redirectUrl;
-                } else {
-                    showToast('Failed to retrieve checkout URL.', 'error');
-                }
-            } catch (err) {
-                if (err.message && err.message.includes('Refresh failed')) {
-                    forceLogin();
-                    return;
-                }
-                showToast('Something went wrong. Please try again.', 'error');
-                console.error(err);
-            } finally {
-                btn.classList.remove('loading');
-                btn.disabled = false;
-                // Reset button text based on promo state
-                if (promoApplied && promoCodeValidated) {
-                    const amount = parseInt(amountInput.value, 10);
-                    const chargeAmount = Math.round(amount * PROMO_CHARGE_RATE);
-                    document.getElementById('rewardsPayBtnText').textContent = `Pay ${chargeAmount.toLocaleString()} UGX`;
-                } else {
-                    document.getElementById('rewardsPayBtnText').textContent = 'Launch Rewards Campaign';
-                }
-            }
-        }
-
-        // ── Show/Hide Discount based on amount input ──
-        document.getElementById('rewardsAmount').addEventListener('input', function() {
-            // If promo was applied, update the discount display
-            if (promoApplied && promoCodeValidated) {
-                const amount = parseInt(this.value, 10);
-                if (!isNaN(amount) && amount >= CAMPAIGN_MIN_AMOUNT) {
-                    document.getElementById('originalAmount').textContent = amount.toLocaleString() + ' UGX';
-                    const discountAmount = Math.round(amount * (1 - PROMO_CHARGE_RATE));
-                    const finalAmount = amount - discountAmount;
-                    document.getElementById('discountAmount').textContent = '-' + discountAmount.toLocaleString() + ' UGX';
-                    document.getElementById('finalAmount').textContent = finalAmount.toLocaleString() + ' UGX';
-                    document.getElementById('rewardsPayBtnText').textContent = `Pay ${finalAmount.toLocaleString()} UGX`;
-                }
-            }
-        });
-
-        // ── Toast ──
-        function showToast(msg, type = '') {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.className = 'toast show ' + type;
-            clearTimeout(t._timer);
-            t._timer = setTimeout(() => t.classList.remove('show'), 4000);
-        }
-    </script>
-</body>
-    </html>
+                    document.getElementById('discountAmount').textContent = '-' + (amount - data.chargeAmount).
