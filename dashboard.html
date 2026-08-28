@@ -268,7 +268,7 @@
 
   .btn-secondary:hover { border-color: var(--text); }
 
-  /* ── SHELL (hidden until booking confirmed) ── */
+  /* ── SHELL (visible always now — no longer gated behind booking) ── */
   #appShell { display: none; }
 
   /* ── CARD ── */
@@ -580,15 +580,10 @@
   <a href="./signup.html" class="btn-secondary">Create account</a>
 </div>
 
-<!-- NO ACTIVE BOOKING -->
-<div class="gate-state" id="noBooking">
-  <div class="gate-icon">&#128274;</div>
-  <h2>No active booking</h2>
-  <p>You haven't reserved a filming date yet. Book a consultation and reserve your content day to get started.</p>
-  <a href="./subscribe.html" class="btn-primary">Reserve now</a>
-</div>
-
-<!-- APP SHELL (visible only when booking active) -->
+<!-- APP SHELL — now shown for ANY logged-in business user, regardless of
+     filming-deposit booking status. Campaigns and a booking status are two
+     separate products; a customer with only a campaign should still see
+     their dashboard, not be gated out entirely. -->
 <div id="appShell">
 
   <!-- TAB BAR -->
@@ -606,10 +601,10 @@
     <div class="view active" id="view-home">
       <p class="view-eyebrow">Welcome back</p>
       <h1 class="view-title" id="homeGreeting">Let's keep going.</h1>
-      <p class="view-sub">Your booking is confirmed. Here's what's next.</p>
+      <p class="view-sub" id="homeSub">Here's what's happening with your account.</p>
 
-      <!-- BOOKING STATUS CARD -->
-      <div class="card">
+      <!-- BOOKING STATUS CARD — only shown if a filming deposit exists -->
+      <div class="card hidden" id="bookingCard">
         <div class="card-head">Booking status</div>
         <div class="card-body">
           <div class="booking-status">
@@ -636,8 +631,18 @@
         </div>
       </div>
 
-      <!-- RECEIPT CARD (last payment) -->
-      <div class="card">
+      <!-- NO BOOKING CARD — shown instead if no filming deposit exists,
+           but no longer blocks the rest of the dashboard -->
+      <div class="card hidden" id="noBookingCard">
+        <div class="card-head">Booking status</div>
+        <div class="card-body" style="text-align:center; padding:32px 20px;">
+          <p style="color:var(--text-muted); margin-bottom:16px;">You haven't reserved a filming date yet.</p>
+          <a href="./subscribe.html" class="btn-primary">Reserve now</a>
+        </div>
+      </div>
+
+      <!-- RECEIPT CARD (last deposit payment) — only shown if a deposit exists -->
+      <div class="card hidden" id="receiptCard">
         <div class="card-head">Your last payment</div>
         <div class="card-body" id="receiptBody">
           <div class="receipt-row"><span class="label">Amount</span><span class="value" id="receiptAmount">—</span></div>
@@ -730,11 +735,11 @@
       </div>
     </div>
 
-    <!-- ══════════ CAMPAIGNS VIEW (NEW) ══════════ -->
+    <!-- ══════════ CAMPAIGNS VIEW ══════════ -->
     <div class="view" id="view-campaigns">
       <p class="view-eyebrow">Creator Rewards</p>
       <h1 class="view-title">Your Campaigns.</h1>
-      <p class="view-sub">Manage your Creator Rewards campaigns, track submissions, and top up budgets.</p>
+      <p class="view-sub">Manage your Creator Rewards campaigns and top up budgets.</p>
 
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
         <span id="campaignCount" style="font-family:var(--font-mono); font-size:12px; color:var(--text-muted);"></span>
@@ -759,7 +764,11 @@
         <div class="card">
           <div class="card-head">Submissions</div>
           <div class="card-body" id="submissionsBody">
-            <div class="empty-state">No submissions yet.</div>
+            <!-- Per-campaign submissions view requires a dedicated backend
+                 endpoint scoped to campaign ownership, which doesn't exist
+                 yet. Shown as a placeholder until that's built — this is
+                 intentional, not a bug. -->
+            <div class="empty-state">Submission details are coming soon.</div>
           </div>
         </div>
       </div>
@@ -795,7 +804,6 @@
   const PAYMENT_WORKER = 'https://boujee-payment-worker.kakoozaronald71.workers.dev';
   const CONTENT2_WORKER = 'https://boujee-content2-worker.kakoozaronald71.workers.dev';
   const CONTENT_WORKER = 'https://boujee-content-worker.kakoozaronald71.workers.dev'; // kept only for profile photo upload
-  const ADMIN_WORKER = 'https://boujee-admin-worker.kakoozaronald71.workers.dev'; // NEW
   const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
 
   // ── STATE ──
@@ -812,8 +820,6 @@
 
     if (state === 'login') {
       document.getElementById('loginRequired').classList.add('show');
-    } else if (state === 'noBooking') {
-      document.getElementById('noBooking').classList.add('show');
     } else if (state === 'app') {
       document.getElementById('appShell').style.display = 'block';
     }
@@ -858,38 +864,42 @@
     document.getElementById('homeGreeting').textContent = `Welcome back, ${firstName}.`;
     document.getElementById('profileName').value = name || '';
 
-    // Check booking status and get rollover date
-    const bookingValid = await checkBookingStatus();
-    if (!bookingValid) {
-      setAppState('noBooking');
-      return;
-    }
-
-    // Now load receipt to get the actual deposit amount
-    const receiptData = await loadReceipt();
-    if (receiptData && receiptData.found && receiptData.amount) {
-      bookingData.depositAmount = receiptData.amount;
-    } else {
-      bookingData.depositAmount = 0;
-    }
-
+    // The dashboard itself is no longer gated behind having a filming
+    // deposit — that's a separate product from Creator Rewards campaigns.
+    // We show it either way; the booking card and campaigns tab render
+    // independently based on what the account actually has.
     setAppState('app');
 
-    // Populate booking card
-    document.getElementById('bookingBusiness').textContent = bookingData.businessName || name;
-    document.getElementById('bookingDeposit').textContent = `${bookingData.depositAmount.toLocaleString()} UGX`;
-    document.getElementById('bookingStatus').textContent = 'Confirmed';
-    const rolloverDate = new Date(bookingData.rollsIntoPackageUntil);
-    document.getElementById('bookingRollover').textContent = rolloverDate.toLocaleDateString(undefined, {
-      year: 'numeric', month: 'long', day: 'numeric'
-    });
+    // Check booking status (filming deposit) — purely for the Home tab's
+    // booking card. Does NOT block anything else on the page anymore.
+    const bookingValid = await checkBookingStatus();
+    if (bookingValid) {
+      const receiptData = await loadReceipt();
+      bookingData.depositAmount = (receiptData && receiptData.found && receiptData.amount) ? receiptData.amount : 0;
+
+      document.getElementById('bookingCard').classList.remove('hidden');
+      document.getElementById('receiptCard').classList.remove('hidden');
+      document.getElementById('noBookingCard').classList.add('hidden');
+
+      document.getElementById('bookingBusiness').textContent = bookingData.businessName || name;
+      document.getElementById('bookingDeposit').textContent = `${bookingData.depositAmount.toLocaleString()} UGX`;
+      document.getElementById('bookingStatus').textContent = 'Confirmed';
+      const rolloverDate = new Date(bookingData.rollsIntoPackageUntil);
+      document.getElementById('bookingRollover').textContent = rolloverDate.toLocaleDateString(undefined, {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+      document.getElementById('homeSub').textContent = 'Your booking is confirmed. Here\u2019s what\u2019s next.';
+    } else {
+      document.getElementById('noBookingCard').classList.remove('hidden');
+      document.getElementById('bookingCard').classList.add('hidden');
+      document.getElementById('receiptCard').classList.add('hidden');
+    }
 
     // Load other tabs (lazy)
     loadAnnouncements();
     loadTestimonials();
 
     // Campaigns tab will be loaded on demand
-    // But we need to set up event listeners
     setupCampaignEvents();
   });
 
@@ -912,7 +922,7 @@
       const data = await res.json();
 
       if (data.status === 'COMPLETED') {
-        showToast('Payment confirmed — your booking is secured.', 'success');
+        showToast('Payment confirmed.', 'success');
       } else if (data.status === 'PENDING') {
         showToast('Payment is still processing. Check back shortly.', '');
       } else if (data.error) {
@@ -958,7 +968,7 @@
     }
   }
 
-  // ── CHECK BOOKING STATUS ──
+  // ── CHECK BOOKING STATUS (filming deposit only — separate from campaigns) ──
   async function checkBookingStatus() {
     const orderTrackingId = localStorage.getItem('ba_order_tracking_id');
     if (!orderTrackingId) {
@@ -973,7 +983,7 @@
       });
       const data = await res.json();
 
-      if (data.status === 'COMPLETED') {
+      if (data.status === 'COMPLETED' && data.type !== 'campaign') {
         const rolloverDate = data.rollsIntoPackageUntil || new Date(Date.now() + 7*24*60*60*1000).toISOString();
         bookingData = {
           businessName: localStorage.getItem('ba_name') || 'Your Business',
@@ -1027,8 +1037,12 @@
     return data;
   }
 
-  async function callAdmin(route, extra = {}) {
-    const res = await fetch(`${ADMIN_WORKER}${route}`, {
+  // Calls the payment worker's non-admin, self-service Creator Rewards
+  // endpoints (/my-campaigns, /open-campaigns, /my-submissions,
+  // /submit-video) — these scope results to the caller's own uid
+  // server-side, unlike the admin-only /list-campaigns etc.
+  async function callPayment(route, extra = {}) {
+    const res = await fetch(`${PAYMENT_WORKER}${route}`, {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify(authBody(extra)),
@@ -1216,6 +1230,10 @@
   }
 
   // ── CAMPAIGNS ──
+  // Uses the payment worker's self-service /my-campaigns endpoint, which
+  // scopes results to the caller's own uid server-side. Replaces the old
+  // admin-only /list-campaigns call, which rejected non-admin business
+  // owners with a 403.
   let selectedCampaignId = null;
 
   function setupCampaignEvents() {
@@ -1240,19 +1258,18 @@
     container.classList.remove('hidden');
 
     try {
-      const data = await callAdmin('/list-campaigns');
-      // Map field names from Payment Worker to what frontend expects
-      campaignsData = (data.campaigns || [])
-        .filter(c => c.uid === uid)
-        .map(c => ({
-          ...c,
-          businessPayment: c.businessPayment || c.budget || 0,
-          boujeeFee: c.boujeeFee || c.platformFee || 0,
-          poolRemaining: c.poolRemaining || c.remainingBudget || 0,
-          maxPayoutPerVideo: c.maxPayoutPerVideo || c.payoutPerThousandViews || 2000,
-          creatorPool: c.creatorPool || 0
-        }));
-      
+      const data = await callPayment('/my-campaigns');
+      // /my-campaigns already scopes to the caller's uid server-side —
+      // no client-side filtering needed.
+      campaignsData = (data.campaigns || []).map(c => ({
+        ...c,
+        businessPayment: c.businessPayment || c.budget || 0,
+        boujeeFee: c.boujeeFee || c.platformFee || 0,
+        poolRemaining: c.poolRemaining || c.remainingBudget || 0,
+        maxPayoutPerVideo: c.maxPayoutPerVideo || c.payoutPerThousandViews || 2000,
+        creatorPool: c.creatorPool || 0
+      }));
+
       document.getElementById('campaignCount').textContent = `${campaignsData.length} campaigns`;
 
       if (campaignsData.length === 0) {
@@ -1272,7 +1289,7 @@
         const pct = c.creatorPool > 0 ? Math.round((used / c.creatorPool) * 100) : 0;
         html += `
           <div class="campaign-card" data-id="${c.orderTrackingId}">
-            <div class="label">${c.status}</div>
+            <div class="label">${escapeHtml(c.status)}</div>
             <div class="value">${formatMoney(c.businessPayment)}</div>
             <div style="font-size:13px; color:var(--text-muted);">
               Pool: ${formatMoney(c.poolRemaining)} remaining
@@ -1298,7 +1315,7 @@
     }
   }
 
-  async function showCampaignDetail(campaignId) {
+  function showCampaignDetail(campaignId) {
     selectedCampaignId = campaignId;
     document.getElementById('campaignsContainer').classList.add('hidden');
     document.getElementById('campaignCount').style.display = 'none';
@@ -1322,7 +1339,7 @@
         <div><span class="label" style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">Creator Pool</span><div style="font-size:18px; font-weight:700; color:var(--teal);">${formatMoney(campaign.creatorPool || 0)}</div></div>
         <div><span class="label" style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">Pool Remaining</span><div style="font-size:18px; font-weight:700;">${formatMoney(campaign.poolRemaining || 0)}</div></div>
         <div><span class="label" style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">Max Payout Per Video</span><div style="font-size:18px; font-weight:700;">${formatMoney(campaign.maxPayoutPerVideo || 2000)}</div></div>
-        <div><span class="label" style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">Status</span><div style="font-size:18px; font-weight:700; text-transform:capitalize;">${campaign.status}</div></div>
+        <div><span class="label" style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">Status</span><div style="font-size:18px; font-weight:700; text-transform:capitalize;">${escapeHtml(campaign.status)}</div></div>
       </div>
       <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
         <button class="btn-secondary" onclick="topUpCampaign('${campaignId}')">Top up campaign</button>
@@ -1330,48 +1347,14 @@
       </div>
     `;
 
-    // Submissions
+    // Submissions detail requires a campaign-owner-scoped backend endpoint
+    // that doesn't exist yet (the runner-facing /my-submissions endpoint
+    // only returns a runner's own submissions, not a business's). Showing
+    // a placeholder here is intentional until that endpoint is built —
+    // it avoids calling the admin-only /list-submissions, which would
+    // 403 for a non-admin business owner.
     const subsBody = document.getElementById('submissionsBody');
-    try {
-      const data = await callAdmin('/list-submissions', { campaignId });
-      const submissions = data.submissions || [];
-      if (submissions.length === 0) {
-        subsBody.innerHTML = '<div class="empty-state">No submissions yet.</div>';
-        return;
-      }
-      let tableHtml = `<table class="submissions-table"><thead><tr>
-        <th>Runner</th><th>Views</th><th>Payout</th><th>Status</th><th>Action</th>
-      </tr></thead><tbody>`;
-      submissions.forEach(s => {
-        const payout = Math.min((s.verifiedViews / 1000) * 2000, campaign.maxPayoutPerVideo || 2000);
-        const statusClass = s.status === 'verified' ? 'verified' : s.status === 'rejected' ? 'rejected' : 'pending';
-        tableHtml += `<tr>
-          <td>${escapeHtml(s.runnerUid || 'Unknown')}</td>
-          <td>${s.verifiedViews.toLocaleString()}</td>
-          <td>${formatMoney(payout)}</td>
-          <td><span class="badge ${statusClass}">${s.status}</span></td>
-          <td>
-            <button class="btn-secondary" style="padding:4px 12px; font-size:12px;" onclick="forceRecheck('${s.submissionId}')">
-              Recheck
-            </button>
-          </td>
-        </tr>`;
-      });
-      tableHtml += '</tbody></table>';
-      subsBody.innerHTML = tableHtml;
-    } catch (err) {
-      subsBody.innerHTML = `<div class="empty-state">Error loading submissions: ${escapeHtml(err.message)}</div>`;
-    }
-  }
-
-  async function forceRecheck(submissionId) {
-    try {
-      await callAdmin('/force-verify-submission', { submissionId });
-      showToast('Force recheck triggered. Refreshing...', 'success');
-      if (selectedCampaignId) showCampaignDetail(selectedCampaignId);
-    } catch (err) {
-      showToast('Failed to trigger recheck: ' + err.message, 'error');
-    }
+    subsBody.innerHTML = '<div class="empty-state">Submission details are coming soon.</div>';
   }
 
   async function topUpCampaign(campaignId) {
@@ -1382,11 +1365,7 @@
 
   async function closeCampaign(campaignId) {
     if (!confirm('Are you sure you want to close this campaign? This cannot be undone.')) return;
-    try {
-      showToast('Close campaign feature not yet implemented.', 'error');
-    } catch (err) {
-      showToast('Error: ' + err.message, 'error');
-    }
+    showToast('Close campaign feature not yet implemented.', 'error');
   }
 
   // ── CREATE NEW CAMPAIGN ORDER ──
@@ -1446,7 +1425,7 @@
 
   function escapeHtml(str) {
     if (!str) return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   function formatMoney(n) {
