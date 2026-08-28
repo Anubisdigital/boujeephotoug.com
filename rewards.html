@@ -111,7 +111,7 @@
         .badge.verified { background: #d1fae5; color: #065f46; }
         .badge.rejected { background: #fee2e2; color: #991b1b; }
 
-        /* Error/Alert Messages */
+        /* Alert Messages */
         .alert {
             padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;
             font-size: 14px; font-weight: 600;
@@ -185,9 +185,12 @@
                 </div>
             </div>
 
-            <!-- Open Campaigns Section -->
+            <!-- Available Campaigns Section -->
             <div style="margin-top: 24px;">
-                <h3 class="section-title">Open Campaigns</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 class="section-title" style="margin:0;">Open Campaigns</h3>
+                    <span style="font-size: 13px; color: var(--text-muted);">Click "Join" to start submitting videos.</span>
+                </div>
                 <div id="availableCampaigns" class="grid-3"></div>
             </div>
 
@@ -392,8 +395,7 @@
             try {
                 await apiCall(`${PAYMENT_WORKER_URL}/force-verify-submission`, { submissionId });
                 alert('Force recheck triggered successfully.');
-                // Reload details
-                const activeId = document.querySelector('.card[style*="cursor:pointer"]')?.innerText; // quick hack
+                const activeId = document.querySelector('.card[style*="cursor:pointer"]')?.innerText;
                 if (activeId) loadCampaignDetail(activeId);
             } catch (e) {
                 alert('Failed to trigger recheck: ' + e.message);
