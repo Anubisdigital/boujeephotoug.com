@@ -458,6 +458,26 @@
             padding: 5px 10px;
         }
 
+        /* ── LOADING STATE ── */
+        .loading-state {
+            display: none;
+            text-align: center;
+            padding: 60px 24px;
+            border: 1px solid var(--line);
+            background: var(--bg-card);
+        }
+
+        .loading-state.show {
+            display: block;
+        }
+
+        .loading-state p {
+            color: var(--text-muted);
+            font-size: 15px;
+            font-family: var(--font-mono);
+            letter-spacing: 0.5px;
+        }
+
         /* ── ALREADY BOOKED ── */
         .already-booked {
             display: none;
@@ -653,6 +673,12 @@
 
     <main>
 
+        <!-- LOADING STATE — shown immediately on page load, hidden once
+             auth + booking checks finish (or fail/time out) -->
+        <div class="loading-state show" id="loadingState">
+            <p>Loading…</p>
+        </div>
+
         <!-- NOT LOGGED IN STATE -->
         <div class="login-required" id="loginRequired">
             <div style="width:56px;height:56px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:22px;">
@@ -682,7 +708,7 @@
             <!-- PLANS GRID -->
             <div class="plans-grid">
 
-                <!-- ═══════════ PLAN 1: 30-DAY ENGINE (Kakooza Plan) ═══════════ -->
+                <!-- ═══════════ PLAN 1: 30-DAY ENGINE ═══════════ -->
                 <div class="single-plan-card">
                     <span class="plan-tag">Monthly content package</span>
                     <div class="plan-price"><strong>900,000</strong><span>UGX / month</span></div>
@@ -746,7 +772,7 @@
                             <span class="price" id="originalAmount">100,000 UGX</span>
                         </div>
                         <div class="discount-row">
-                            <span>Promo Discount (90%)</span>
+                            <span>Promo Discount</span>
                             <span class="price" id="discountAmount">-90,000 UGX</span>
                         </div>
                         <div class="discount-row total">
@@ -787,12 +813,32 @@
         const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
         const DEPOSIT_AMOUNT = 200000;
         const CAMPAIGN_MIN_AMOUNT = 50000;
-        const PROMO_CHARGE_RATE = 0.10;
 
         let idToken = null;
         let uid = null;
         let promoApplied = false;
         let promoCodeValidated = false;
+        let promoChargeAmount = null;
+
+        // ── FETCH WITH TIMEOUT ──
+        // Every network call on this page goes through this so a slow or
+        // unresponsive worker/Google endpoint can never freeze the page —
+        // the request fails after `ms` and falls into the calling code's
+        // catch block instead of hanging the await chain forever.
+        async function fetchWithTimeout(url, options = {}, ms = 8000) {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), ms);
+            try {
+                return await fetch(url, { ...options, signal: controller.signal });
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    throw new Error(`Request to ${url} timed out after ${ms}ms`);
+                }
+                throw err;
+            } finally {
+                clearTimeout(timeout);
+            }
+        }
 
         // ── JWT helper (base64url decode) ──
         function base64UrlDecode(str) {
@@ -829,7 +875,7 @@
                 throw new Error('Invalid refresh token');
             }
 
-            const res = await fetch(
+            const res = await fetchWithTimeout(
                 `https://securetoken.googleapis.com/v1/token?key=${FIREBASE_API_KEY}`,
                 {
                     method: 'POST',
@@ -900,33 +946,43 @@
             }
         }
 
+        // ── Show one of the four top-level states, hide the rest ──
+        function showState(stateId) {
+            ['loadingState', 'loginRequired', 'alreadyBooked', 'depositForm'].forEach(id => {
+                document.getElementById(id).style.display = (id === stateId) ? 'block' : 'none';
+            });
+        }
+
         // ── Page load ──
         document.addEventListener('DOMContentLoaded', async () => {
             const theme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', theme);
 
             await initAuth();
+            // initAuth() redirects via forceLogin() if there's truly no
+            // token — if we're still here, we have *some* token to work with.
 
             const name = localStorage.getItem('ba_name') || localStorage.getItem('ba_email') || '';
             document.getElementById('navUser').textContent = name.split(' ')[0].toUpperCase();
             document.getElementById('logoutBtn').style.display = 'inline';
 
-            // Check if already booked
+            // Check if already booked — guarded so a slow/dead payment worker
+            // can never leave the page stuck on the loading state forever.
             const orderTrackingId = localStorage.getItem('ba_order_tracking_id');
             if (orderTrackingId) {
                 try {
                     let activeToken = await getValidToken();
-                    let res = await fetch(`${PAYMENT_WORKER}/verify-payment`, {
+                    let res = await fetchWithTimeout(`${PAYMENT_WORKER}/verify-payment`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ idToken: activeToken, orderTrackingId })
                     });
-                    
+
                     let data = await res.json();
 
                     if (res.status === 401 || data.error === 'UNAUTHENTICATED' || data.status === 'UNAUTHENTICATED') {
                         activeToken = await refreshToken();
-                        res = await fetch(`${PAYMENT_WORKER}/verify-payment`, {
+                        res = await fetchWithTimeout(`${PAYMENT_WORKER}/verify-payment`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ idToken: activeToken, orderTrackingId })
@@ -935,16 +991,18 @@
                     }
 
                     if (data.status === 'COMPLETED') {
-                        // Redirect to dashboard if already paid
-                        window.location.href = './dashboard.html';
+                        showState('alreadyBooked');
                         return;
                     }
+                    // Not completed — stale/pending tracking id, fall through to the form.
                 } catch (err) {
-                    // network error – proceed to deposit form
+                    // Network error or timeout — proceed to deposit form rather
+                    // than leaving the page stuck on the loading state.
+                    console.warn('verify-payment check failed or timed out:', err.message);
                 }
             }
 
-            document.getElementById('depositForm').style.display = 'block';
+            showState('depositForm');
         });
 
         // ── Logout ──
@@ -963,7 +1021,7 @@
             try {
                 let activeToken = await getValidToken();
 
-                let res = await fetch(`${PAYMENT_WORKER}/create-order`, {
+                let res = await fetchWithTimeout(`${PAYMENT_WORKER}/create-order`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ idToken: activeToken, amount: DEPOSIT_AMOUNT })
@@ -974,8 +1032,8 @@
                 if (res.status === 401 || data.error === 'UNAUTHENTICATED' || data.status === 'UNAUTHENTICATED') {
                     console.warn('Backend rejected token. Refreshing and retrying payment request...');
                     activeToken = await refreshToken();
-                    
-                    res = await fetch(`${PAYMENT_WORKER}/create-order`, {
+
+                    res = await fetchWithTimeout(`${PAYMENT_WORKER}/create-order`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ idToken: activeToken, amount: DEPOSIT_AMOUNT })
@@ -1036,7 +1094,7 @@
             try {
                 let activeToken = await getValidToken();
 
-                let res = await fetch(`${PAYMENT_WORKER}/validate-promo`, {
+                let res = await fetchWithTimeout(`${PAYMENT_WORKER}/validate-promo`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ idToken: activeToken, code: code, amount: amount })
@@ -1046,7 +1104,7 @@
 
                 if (res.status === 401 || data.error === 'UNAUTHENTICATED' || data.status === 'UNAUTHENTICATED') {
                     activeToken = await refreshToken();
-                    res = await fetch(`${PAYMENT_WORKER}/validate-promo`, {
+                    res = await fetchWithTimeout(`${PAYMENT_WORKER}/validate-promo`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ idToken: activeToken, code: code, amount: amount })
@@ -1059,17 +1117,136 @@
                     promoFeedback.className = 'promo-feedback error';
                     promoApplied = false;
                     promoCodeValidated = false;
+                    promoChargeAmount = null;
                     document.getElementById('discountDisplay').classList.remove('show');
                 } else if (data.valid) {
                     promoFeedback.textContent = `Promo applied! ${data.usesRemaining} uses remaining.`;
                     promoFeedback.className = 'promo-feedback success';
                     promoApplied = true;
                     promoCodeValidated = true;
-                    
+                    promoChargeAmount = data.chargeAmount;
+
                     // Show discount display
                     const discountDisplay = document.getElementById('discountDisplay');
                     discountDisplay.classList.add('show');
-                    
+
                     // Update display
+                    const discount = amount - data.chargeAmount;
                     document.getElementById('originalAmount').textContent = amount.toLocaleString() + ' UGX';
-                    document.getElementById('discountAmount').textContent = '-' + (amount - data.chargeAmount).
+                    document.getElementById('discountAmount').textContent = '-' + discount.toLocaleString() + ' UGX';
+                    document.getElementById('finalAmount').textContent = data.chargeAmount.toLocaleString() + ' UGX';
+                } else {
+                    promoFeedback.textContent = 'Invalid promo code';
+                    promoFeedback.className = 'promo-feedback error';
+                    promoApplied = false;
+                    promoCodeValidated = false;
+                    promoChargeAmount = null;
+                    document.getElementById('discountDisplay').classList.remove('show');
+                }
+            } catch (err) {
+                console.error('Promo validation failed or timed out:', err);
+                promoFeedback.textContent = 'Could not validate promo code. Please try again.';
+                promoFeedback.className = 'promo-feedback error';
+                promoApplied = false;
+                promoCodeValidated = false;
+                promoChargeAmount = null;
+                document.getElementById('discountDisplay').classList.remove('show');
+            } finally {
+                applyBtn.disabled = false;
+            }
+        }
+
+        // Re-validate promo if the user changes the amount after applying it —
+        // the discount was computed against the old amount and is now stale.
+        document.getElementById('rewardsAmount').addEventListener('input', () => {
+            if (promoApplied) {
+                promoApplied = false;
+                promoCodeValidated = false;
+                promoChargeAmount = null;
+                document.getElementById('discountDisplay').classList.remove('show');
+                document.getElementById('promoFeedback').textContent = 'Amount changed — please re-apply your promo code.';
+                document.getElementById('promoFeedback').className = 'promo-feedback';
+            }
+        });
+
+        // ── Handle Creator Rewards Campaign Pay ──
+        async function handleRewardsPay() {
+            const amountInput = document.getElementById('rewardsAmount');
+            const amount = parseInt(amountInput.value, 10);
+
+            if (isNaN(amount) || amount < CAMPAIGN_MIN_AMOUNT) {
+                showToast(`Minimum campaign budget is ${CAMPAIGN_MIN_AMOUNT.toLocaleString()} UGX`, 'error');
+                return;
+            }
+
+            const btn = document.getElementById('rewardsPayBtn');
+            const btnText = document.getElementById('rewardsPayBtnText');
+            btn.classList.add('loading');
+            btn.disabled = true;
+            btnText.textContent = 'Creating campaign...';
+
+            const promoCode = promoCodeValidated ? document.getElementById('promoCode').value.trim() : undefined;
+
+            try {
+                let activeToken = await getValidToken();
+
+                const payload = { idToken: activeToken, amount };
+                if (promoCode) payload.promoCode = promoCode;
+
+                let res = await fetchWithTimeout(`${PAYMENT_WORKER}/create-campaign-order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                let data = await res.json();
+
+                if (res.status === 401 || data.error === 'UNAUTHENTICATED' || data.status === 'UNAUTHENTICATED') {
+                    activeToken = await refreshToken();
+                    const retryPayload = { idToken: activeToken, amount };
+                    if (promoCode) retryPayload.promoCode = promoCode;
+
+                    res = await fetchWithTimeout(`${PAYMENT_WORKER}/create-campaign-order`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(retryPayload)
+                    });
+                    data = await res.json();
+                }
+
+                if (data.error) {
+                    showToast(data.error, 'error');
+                    return;
+                }
+
+                if (data.orderTrackingId && data.redirectUrl) {
+                    localStorage.setItem('ba_order_tracking_id', data.orderTrackingId);
+                    window.location.href = data.redirectUrl;
+                } else {
+                    showToast('Failed to retrieve checkout URL.', 'error');
+                }
+            } catch (err) {
+                if (err.message && err.message.includes('Refresh failed')) {
+                    forceLogin();
+                    return;
+                }
+                showToast('Something went wrong. Please try again.', 'error');
+                console.error(err);
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                btnText.textContent = 'Launch Rewards Campaign';
+            }
+        }
+
+        // ── Toast helper ──
+        function showToast(msg, type = '') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + type;
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), 4000);
+        }
+    </script>
+</body>
+</html>
