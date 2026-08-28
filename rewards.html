@@ -145,7 +145,7 @@
                 </div>
                 <div class="table-wrap">
                     <table><thead><tr>
-                        <th>Runner</th><th>Views</th><th>Payout</th><th>Status</th><th>Action</th>
+                        <th>Runner</th><th>Views</th><th>Payout</th><th>Status</th>
                     </tr></thead><tbody id="submissionsBody"></tbody></table>
                 </div>
             </div>
@@ -213,7 +213,9 @@
     </div>
 
     <script>
+        // ── CONFIG ──
         const FIREBASE_PROJECT_ID = 'boujee-academy';
+        const PAYMENT_WORKER = 'https://boujee-payment-worker.kakoozaronald71.workers.dev';
         const TOKEN = localStorage.getItem('ba_token');
         const UID = localStorage.getItem('ba_uid');
 
@@ -234,8 +236,9 @@
         document.getElementById('userName').textContent = localStorage.getItem('ba_name') || 'User';
         document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.clear(); window.location.href = '/login.html'; });
 
+        // ── API HELPER (prefixes with PAYMENT_WORKER) ──
         async function apiCall(url, body) {
-            const res = await fetch(url, {
+            const res = await fetch(`${PAYMENT_WORKER}${url}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ idToken: TOKEN, ...body })
@@ -272,8 +275,9 @@
         // BUSINESS DASHBOARD
         // ============================================================
         async function loadBusinessDashboard() {
-            const data = await apiCall('/list-campaigns', {});
-            const campaigns = data.campaigns.filter(c => c.uid === UID);
+            // FIXED: Use /my-campaigns (non-admin, server-side scoped)
+            const data = await apiCall('/my-campaigns', {});
+            const campaigns = data.campaigns || []; // No client-side filter needed
             const listEl = document.getElementById('campaignList');
             listEl.innerHTML = '';
             if (campaigns.length === 0) {
@@ -296,37 +300,17 @@
             const detailEl = document.getElementById('campaignDetail');
             detailEl.classList.remove('hidden');
             document.getElementById('campaignStats').innerHTML = '<div class="loading-state" style="padding:20px;">Loading...</div>';
-            const campaignsData = await apiCall('/list-campaigns', {});
+            // FIXED: Use /my-campaigns to get own campaign data
+            const campaignsData = await apiCall('/my-campaigns', {});
             const camp = campaignsData.campaigns.find(c => c.orderTrackingId === id);
             if (!camp) return;
             document.getElementById('campaignStats').innerHTML = `
                 <div class="card"><div class="label">Creator Pool</div><div class="value green">${formatMoney(camp.creatorPool)}</div></div>
                 <div class="card"><div class="label">Pool Remaining</div><div class="value">${formatMoney(camp.poolRemaining)}</div></div>
             `;
-            const subsData = await apiCall('/list-submissions', { campaignId: id });
+            // FIXED: Replace submissions section with placeholder (no admin endpoint available)
             const tbody = document.getElementById('submissionsBody');
-            tbody.innerHTML = '';
-            if (!subsData.submissions || subsData.submissions.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No submissions yet.</td></tr>`;
-                return;
-            }
-            subsData.submissions.forEach(s => {
-                const payout = Math.min((s.verifiedViews / 1000) * 2000, camp.maxPayoutPerVideo);
-                const statusClass = s.status === 'verified' ? 'verified' : s.status === 'rejected' ? 'rejected' : 'pending';
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${s.runnerUid || 'Unknown'}</strong></td>
-                    <td>${s.verifiedViews.toLocaleString()}</td>
-                    <td>${formatMoney(payout)}</td>
-                    <td><span class="badge ${statusClass}">${s.status}</span></td>
-                    <td><button class="btn-outline-red" style="padding:4px 12px; font-size:12px;" onclick="forceRecheck('${s.submissionId}')">Recheck</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        async function forceRecheck(submissionId) {
-            try { await apiCall('/force-verify-submission', { submissionId }); alert('Recheck triggered.'); location.reload(); } catch (e) { alert('Failed: ' + e.message); }
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Submission details are coming soon.</td></tr>`;
         }
 
         // ============================================================
@@ -339,9 +323,9 @@
             document.getElementById('runnerHandle').textContent = fields.tiktokHandle?.stringValue || '@unknown';
             document.getElementById('runnerBalance').textContent = formatMoney(parseInt(fields.earnedBalance?.integerValue || '0'));
 
-            // Get all active campaigns (globally)
-            const campaignsData = await apiCall('/list-campaigns', {});
-            const allActive = campaignsData.campaigns.filter(c => c.status === 'active' && c.poolRemaining > 0);
+            // FIXED: Use /open-campaigns for all active campaigns
+            const campaignsData = await apiCall('/open-campaigns', {});
+            const allActive = campaignsData.campaigns || [];
             
             // Get joined IDs
             const joinedIds = fields.activeCampaignIds?.arrayValue?.values?.map(v => v.stringValue) || [];
@@ -361,7 +345,7 @@
                     card.className = 'card';
                     card.innerHTML = `
                         <div class="label">${c.businessName || 'Campaign'}</div>
-                        <div class="value">${formatMoney(c.businessPayment)}</div>
+                        <div class="value">${formatMoney(c.budget || c.businessPayment)}</div>
                         <div style="font-size:13px; color:var(--text-muted); margin: 8px 0 16px;">
                             Pool: ${formatMoney(c.poolRemaining)} left<br>
                             Max per video: ${formatMoney(c.maxPayoutPerVideo)}
@@ -383,13 +367,13 @@
                 joined.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c.orderTrackingId;
-                    opt.textContent = `Campaign ${c.orderTrackingId.slice(0,6)} (${formatMoney(c.businessPayment)})`;
+                    opt.textContent = `Campaign ${c.orderTrackingId.slice(0,6)} (${formatMoney(c.budget || c.businessPayment)})`;
                     select.appendChild(opt);
                 });
             }
 
-            // RENDER MY SUBMISSIONS
-            const subsData = await apiCall('/list-submissions', { runnerUid: UID });
+            // FIXED: Use /my-submissions (no runnerUid needed, inferred from token)
+            const subsData = await apiCall('/my-submissions', {});
             const tbody = document.getElementById('mySubmissionsBody');
             tbody.innerHTML = '';
             if (!subsData.submissions || subsData.submissions.length === 0) {
@@ -447,7 +431,8 @@
             const videoUrl = document.getElementById('videoUrl').value;
             if (!campaignId || !videoUrl) return alert('Please select a campaign and enter a video URL.');
             try {
-                const res = await fetch('/submit-video', {
+                // FIXED: Use PAYMENT_WORKER /submit-video (full URL)
+                const res = await fetch(`${PAYMENT_WORKER}/submit-video`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ idToken: TOKEN, campaignId, videoUrl })
