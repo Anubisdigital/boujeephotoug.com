@@ -11,7 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* (All original styles remain exactly the same) */
         *,
         *::before,
         *::after {
@@ -984,7 +983,7 @@
             text-decoration: none;
         }
 
-        /* Responsive */
+        /* Responsive — tightened for genuinely mobile-first spacing */
         @media (max-width: 900px) {
             nav {
                 padding: 0 20px;
@@ -997,10 +996,10 @@
                 display: flex;
             }
             section {
-                padding: 64px 20px;
+                padding: 56px 20px;
             }
             .hero-inner {
-                padding: 60px 20px;
+                padding: 48px 20px;
                 text-align: center;
             }
             .hero-sub {
@@ -1008,6 +1007,10 @@
             }
             .hero-actions {
                 justify-content: center;
+            }
+            .hero-actions a {
+                width: 100%;
+                text-align: center;
             }
             .hero-contact {
                 justify-content: center;
@@ -1038,6 +1041,9 @@
         }
 
         @media (max-width: 600px) {
+            section {
+                padding: 44px 16px;
+            }
             .hero-stats {
                 grid-template-columns: 1fr;
                 gap: 20px;
@@ -1056,13 +1062,19 @@
                 text-align: center;
             }
             .option-card {
-                padding: 32px 24px;
+                padding: 28px 20px;
             }
             .package-card {
-                padding: 32px 24px;
+                padding: 28px 20px;
             }
             .founder-stats {
                 gap: 24px;
+            }
+            .btn-primary,
+            .btn-ghost,
+            .btn-outline-red {
+                width: 100%;
+                text-align: center;
             }
         }
 
@@ -1174,7 +1186,7 @@
         <div class="guarantee-banner-inner">
             <div class="guarantee-icon"><i class="fas fa-shield-alt"></i></div>
             <h2 class="guarantee-headline">30,000+ Organic Views Guaranteed</h2>
-            <p class="guarantee-desc">We work toward <strong>at least 30,000 combined organic views</strong> within 30 days of posting your 30 videos. If we don’t hit that target, we’ll keep creating and promoting additional content at no extra charge until we do — or refund your deposit.</p>
+            <p class="guarantee-desc">We work toward <strong>at least 30,000 combined organic views</strong> within 30 days of posting your 30 videos. If we don't hit that target, we'll keep creating and promoting additional content at no extra charge until we do — or refund your deposit.</p>
             <p class="guarantee-fine">* Organic views only. No paid views or bots. Full terms provided at booking.</p>
         </div>
     </div>
@@ -1277,9 +1289,7 @@
         </div>
     </section>
 
-    <!-- ============================================================ -->
-    <!-- NEW SECTION: CREATOR REWARDS -->
-    <!-- ============================================================ -->
+    <!-- CREATOR REWARDS -->
     <section class="how-section" id="creator-rewards" style="background: var(--bg);">
         <div class="container">
             <p class="section-eyebrow">For low-budget & scalable campaigns</p>
@@ -1288,7 +1298,7 @@
                 If you're not ready for a full 30-video package, or you want to test content styles with multiple creators, the Creator Rewards system lets you launch a campaign starting at just <strong>50,000 UGX</strong>.
                 You only pay for verified views, and the system automatically stops when your budget is used.
             </p>
-            
+
             <div class="steps-grid" style="margin-top: 40px; border-color: var(--red);">
                 <div class="step" style="border-color: var(--red);">
                     <span class="step-num" style="color: var(--red);">01</span>
@@ -1316,8 +1326,8 @@
                     <li><strong>Boujee Platform Fee:</strong> 25% of your campaign budget</li>
                     <li><strong>Creator Pool:</strong> 75% of your budget goes directly to paying creators</li>
                     <li><strong>Creator Rate:</strong> 2,000 UGX per 1,000 verified views</li>
-                    <li><strong>Max Payout Per Video:</strong> Automatically scales with your budget (e.g., 100k budget = 10k cap, 1M budget = 30k cap)</li>
-                    <li><strong>Pool Expiry:</strong> Campaign automatically pauses when the 75% pool is fully paid out</li>
+                    <li><strong>Max Payout Per Video:</strong> Capped at 10,000 UGX per video, regardless of campaign budget</li>
+                    <li><strong>Pool Expiry:</strong> Campaign automatically pauses when the 75% pool is fully paid out, or after 2 months by default</li>
                 </ul>
                 <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px;">
                     <a href="./rewards.html" class="btn-primary" style="display:inline-block;">Start a Rewards Campaign</a>
@@ -1333,7 +1343,6 @@
             <p class="section-eyebrow">Choose your next step</p>
             <h2 class="section-title">Start with a call,<br>then build from there.</h2>
             <div class="options-grid">
-                <!-- Free call -->
                 <div class="option-card">
                     <span class="option-tag">Step 1 – Free</span>
                     <div class="option-price">UGX 0</div>
@@ -1346,7 +1355,6 @@
                     </ul>
                     <a href="tel:0702086935" class="btn-ghost btn-option">Book Free Call</a>
                 </div>
-                <!-- Reserve content day -->
                 <div class="option-card" style="border:1px solid var(--red); background:var(--bg-mid);">
                     <span class="option-tag">Step 2 – Lock in</span>
                     <div class="option-price">UGX 200,000</div>
@@ -1455,7 +1463,6 @@
     </footer>
 
     <script>
-        // Theme toggle
         const themeToggle = document.getElementById('themeToggle');
         const html = document.documentElement;
 
@@ -1465,7 +1472,6 @@
             themeToggle.innerHTML = isDark ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
         });
 
-        // Drawer
         function openDrawer() {
             document.getElementById('drawer').classList.add('open');
             document.getElementById('drawerOverlay').classList.add('open');
@@ -1484,18 +1490,15 @@
             }
         });
 
-        // FAQ toggle
         function toggleFaq(button) {
             const item = button.parentElement;
             const isOpen = item.classList.contains('open');
-            // Close all
             document.querySelectorAll('.faq-item').forEach(el => el.classList.remove('open'));
             if (!isOpen) {
                 item.classList.add('open');
             }
         }
 
-        // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(a => {
             a.addEventListener('click', e => {
                 const target = document.querySelector(a.getAttribute('href'));
@@ -1506,8 +1509,8 @@
             });
         });
 
-        // Initially open first FAQ for demo
         document.querySelector('.faq-item')?.classList.add('open');
     </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"db0279dfbe7e494f92b2a5e5a50ae9b1","r":1}' crossorigin="anonymous"></script>
 </body>
 </html>
