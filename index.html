@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BoujeePhoto Creator Rewards — Verified views for Ugandan businesses & creators</title>
-    <meta name="description" content="BoujeePhoto Creator Rewards connects Ugandan businesses with creators: launch a campaign, track verified views and visibility, and reward approved creator performance. Done-for-you content is also available.">
+    <title>BoujeePhoto — Earn as a Runner or Launch a Campaign in Uganda</title>
+    <meta name="description" content="BoujeePhoto connects Ugandan businesses with content creators (Runners). Businesses launch a campaign and pay only for verified views. Runners post videos and earn 2,000 UGX per 1,000 verified views.">
     <link rel="icon" type="image/png" href="b.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,10 +29,9 @@
             --text-muted: #888888;
             --text-light: #cccccc;
             --red: #e10600;
-            --green: #22c55e;
             --font-main: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
             --font-mono: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
-            --overlay: rgba(0, 0, 0, 0.75);
+            --overlay: rgba(0, 0, 0, 0.7);
             --nav-blur: rgba(9, 9, 9, 0.85);
             --shadow: 0 8px 32px rgba(0,0,0,0.6);
         }
@@ -46,7 +45,6 @@
             --text-muted: #666666;
             --text-light: #333333;
             --red: #e10600;
-            --green: #16a34a;
             --overlay: rgba(255, 255, 255, 0.75);
             --nav-blur: rgba(245, 245, 245, 0.85);
             --shadow: 0 8px 32px rgba(0,0,0,0.1);
@@ -54,6 +52,17 @@
 
         html {
             scroll-behavior: smooth;
+        }
+
+        a:focus-visible,
+        button:focus-visible,
+        [tabindex]:focus-visible {
+            outline: 2px solid var(--red);
+            outline-offset: 3px;
+        }
+
+        img {
+            max-width: 100%;
         }
 
         body {
@@ -104,6 +113,9 @@
         .nav-logo-text span {
             color: var(--red);
         }
+        .nav-byline {
+            display: none;
+        }
 
         .nav-links {
             display: flex;
@@ -126,7 +138,12 @@
         .nav-right {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
+        }
+        .nav-ctas {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         .btn-nav-cta {
             background: var(--red);
@@ -134,35 +151,27 @@
             text-decoration: none;
             font-size: 14px;
             font-weight: 700;
-            padding: 10px 20px;
+            padding: 10px 18px;
             transition: opacity 0.2s;
             border-radius: 0;
+            white-space: nowrap;
         }
         .btn-nav-cta:hover {
             opacity: 0.85;
         }
-
-        .btn-nav-creator {
-            background: linear-gradient(135deg, #e10600, #ff3c00);
-            color: #fff;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 800;
-            padding: 12px 24px;
-            transition: all 0.2s;
-            border-radius: 4px;
-            box-shadow: 0 4px 15px rgba(225, 6, 0, 0.4);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .btn-nav-cta.outline {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--line);
         }
-        .btn-nav-creator:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(225, 6, 0, 0.5);
+        .btn-nav-cta.outline:hover {
+            opacity: 1;
+            border-color: var(--text);
         }
-        .btn-nav-creator i {
-            font-size: 12px;
+        @media (max-width: 1100px) {
+            .nav-ctas .btn-nav-cta.outline {
+                display: none;
+            }
         }
 
         .theme-toggle {
@@ -318,14 +327,6 @@
         .drawer-footer .btn-cta:hover {
             opacity: 0.85;
         }
-        .drawer-footer .btn-creator {
-            background: linear-gradient(135deg, #e10600, #ff3c00);
-            color: #fff;
-            border: none;
-        }
-        .drawer-footer .btn-creator:hover {
-            opacity: 0.9;
-        }
         .drawer-footer .btn-ghost {
             color: var(--text);
             border: 1px solid var(--line);
@@ -408,24 +409,6 @@
             background: var(--red);
             color: #fff;
         }
-        .btn-creator-highlight {
-            background: linear-gradient(135deg, #e10600, #ff3c00);
-            color: #fff;
-            text-decoration: none;
-            font-size: 16px;
-            font-weight: 800;
-            padding: 18px 36px;
-            display: inline-block;
-            transition: all 0.2s;
-            letter-spacing: 0.3px;
-            border-radius: 4px;
-            box-shadow: 0 4px 15px rgba(225, 6, 0, 0.4);
-        }
-        .btn-creator-highlight:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(225, 6, 0, 0.5);
-        }
 
         /* Hero */
         .hero {
@@ -500,6 +483,69 @@
             gap: 16px;
             flex-wrap: wrap;
         }
+
+        /* Dual-path hero cards */
+        .hero-paths {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 36px;
+        }
+        .path-card {
+            background: rgba(15, 15, 15, 0.72);
+            border: 1px solid var(--line);
+            padding: 28px 24px;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            transition: border-color 0.2s, transform 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        [data-theme="light"] .path-card {
+            background: rgba(255, 255, 255, 0.82);
+        }
+        .path-card:hover {
+            border-color: var(--red);
+            transform: translateY(-2px);
+        }
+        .path-card .path-icon {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--line);
+            color: var(--red);
+            font-size: 18px;
+            margin-bottom: 18px;
+            flex-shrink: 0;
+        }
+        .path-card h2 {
+            font-size: 21px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        .path-card p {
+            font-size: 14px;
+            color: var(--text-light);
+            line-height: 1.65;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+        .path-card .path-fact {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 18px;
+        }
+        .path-card .path-fact strong {
+            color: var(--text);
+        }
+        .path-card.runner-card .path-icon {
+            border-color: var(--red);
+        }
         .hero-contact {
             margin-top: 24px;
             display: flex;
@@ -562,463 +608,355 @@
             margin-top: 4px;
         }
 
-        /* Creator Rewards Hero */
-        .rewards-hero {
-            min-height: auto;
-            padding: 0;
-            background:
-                linear-gradient(rgba(9, 9, 9, 0.85), rgba(9, 9, 9, 0.85)),
-                url('car.jpg') center/cover no-repeat;
+        /* Guarantee Banner */
+        .guarantee-banner {
+            background: var(--bg-mid);
+            border-bottom: 1px solid var(--line);
+            padding: 40px 20px;
+            text-align: center;
         }
-        [data-theme="light"] .rewards-hero {
-            background:
-                linear-gradient(rgba(245, 245, 245, 0.92), rgba(245, 245, 245, 0.92)),
-                url('car.jpg') center/cover no-repeat;
-        }
-        .rewards-hero .hero-inner {
-            grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
-            align-items: center;
-            gap: 72px;
-            padding-top: 96px;
-            padding-bottom: 96px;
-        }
-        .rewards-hero .hero-title { max-width: 760px; }
-        .hero-kicker-row {
+        .guarantee-banner-inner {
+            max-width: 800px;
+            margin: 0 auto;
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 24px;
-        }
-        .hero-pill {
-            display: inline-flex;
+            flex-direction: column;
             align-items: center;
-            gap: 8px;
-            padding: 7px 10px;
-            border: 1px solid var(--line);
-            background: rgba(255,255,255,.03);
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.3px;
-            color: var(--text-light);
+            gap: 12px;
+        }
+        .guarantee-icon {
+            font-size: 28px;
+            color: var(--red);
+        }
+        .guarantee-headline {
+            font-size: clamp(20px, 3.5vw, 32px);
             font-weight: 700;
-        }
-        .hero-pill i { color: var(--red); }
-        .hero-proof {
-            margin-top: 34px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            border: 1px solid var(--line);
-            background: rgba(0,0,0,.18);
-        }
-        .hero-proof .proof-item {
-            padding: 18px 16px;
-            min-width: 0;
-        }
-        .hero-proof .proof-item + .proof-item { border-left: 1px solid var(--line); }
-        .proof-value {
-            display: block;
-            font-size: 22px;
-            font-weight: 800;
+            letter-spacing: -0.5px;
             color: var(--text);
-            letter-spacing: -.7px;
+            line-height: 1.2;
         }
-        .proof-label {
-            display: block;
-            margin-top: 3px;
-            font-size: 11px;
-            color: var(--text-muted);
-            line-height: 1.35;
+        .guarantee-desc {
+            font-size: 15px;
+            color: var(--text-light);
+            max-width: 560px;
+            margin: 0 auto;
         }
-        .dashboard-shell {
-            border: 1px solid #303030;
-            background: rgba(10,10,10,.92);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-        }
-        [data-theme="light"] .dashboard-shell { background: rgba(255,255,255,.95); }
-        .dashboard-topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 16px 18px;
-            border-bottom: 1px solid var(--line);
-        }
-        .dashboard-topbar strong { font-size: 13px; }
-        .live-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: #86e89d;
-        }
-        .live-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #37c85d;
-            box-shadow: 0 0 0 4px rgba(55,200,93,.12);
-        }
-        .dash-pad { padding: 18px; }
-        .dash-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-        .dash-primary {
-            font-size: 42px;
-            line-height: 1;
-            font-weight: 800;
-            letter-spacing: -1.5px;
-            color: var(--text);
-        }
-        .dash-primary small {
+        .guarantee-fine {
             font-size: 12px;
-            font-weight: 600;
             color: var(--text-muted);
-            letter-spacing: 0;
+            margin-top: 4px;
         }
-        .dash-trend {
-            margin-top: 8px;
-            font-size: 12px;
-            color: #86e89d;
-        }
-        .sparkbars {
-            height: 78px;
-            margin: 20px 0 4px;
-            display: flex;
-            align-items: flex-end;
-            gap: 7px;
-            border-bottom: 1px solid var(--line);
-        }
-        .sparkbars span {
-            flex: 1;
-            min-width: 4px;
-            background: linear-gradient(to top, rgba(225,6,0,.45), var(--red));
-            opacity: .92;
-        }
-        .dash-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            border-top: 1px solid var(--line);
-        }
-        .dash-mini { padding: 16px 18px; }
-        .dash-mini:nth-child(odd) { border-right: 1px solid var(--line); }
-        .dash-mini:nth-child(n+3) { border-top: 1px solid var(--line); }
-        .dash-mini strong {
-            display: block;
-            font-size: 18px;
-            color: var(--text);
-        }
-        .dash-mini span {
-            display: block;
-            font-size: 10px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: .9px;
-            margin-top: 2px;
-        }
-        .dashboard-note {
-            padding: 11px 18px 15px;
-            font-size: 10px;
-            color: var(--text-muted);
-            border-top: 1px solid var(--line);
-        }
-        .audience-switch-section {
+
+        /* Core Issue */
+        .issue-section {
             background: var(--bg-mid);
             border-top: 1px solid var(--line);
             border-bottom: 1px solid var(--line);
         }
-        .audience-grid {
-            display: grid;
-            grid-template-columns: 1.15fr .85fr;
-            gap: 1px;
-            margin-top: 48px;
-            background: var(--line);
-            border: 1px solid var(--line);
-        }
-        .audience-card {
-            padding: 40px;
-            background: var(--bg);
-            position: relative;
-            overflow: hidden;
-        }
-        .audience-card.primary { background: var(--bg-card); }
-        .audience-card.primary::after {
-            content: '';
-            position: absolute;
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            right: -85px;
-            top: -85px;
-            background: rgba(225,6,0,.12);
-        }
-        .audience-icon {
-            width: 44px;
-            height: 44px;
-            display: grid;
-            place-items: center;
-            border: 1px solid var(--line);
-            color: var(--red);
-            margin-bottom: 24px;
-        }
-        .audience-card h3 { font-size: 26px; margin-bottom: 12px; }
-        .audience-card p { color: var(--text-light); font-size: 14px; max-width: 520px; }
-        .audience-list {
-            list-style: none;
-            display: grid;
-            gap: 11px;
-            margin: 24px 0 30px;
-        }
-        .audience-list li {
-            color: var(--text-light);
-            font-size: 13px;
-            display: flex;
-            gap: 10px;
-        }
-        .audience-list li::before { content: '✓'; color: var(--red); font-weight: 800; }
-        .metrics-section { background: var(--bg); }
-        .metrics-head {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 32px;
-        }
-        .metrics-head .section-sub { max-width: 620px; }
-        .metric-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            margin-top: 44px;
-            border: 1px solid var(--line);
-        }
-        .metric-card {
-            padding: 28px 24px;
-            min-height: 170px;
-            background: var(--bg-card);
-            border-right: 1px solid var(--line);
-        }
-        .metric-card:last-child { border-right: none; }
-        .metric-card i { color: var(--red); font-size: 18px; margin-bottom: 30px; }
-        .metric-card strong { display:block; font-size: 26px; letter-spacing:-.7px; }
-        .metric-card span { display:block; font-size: 12px; color:var(--text-muted); margin-top:6px; }
-        .metric-card .metric-context { margin-top: 16px; font-size: 11px; color: var(--text-light); line-height:1.5; }
-        .rewards-how { background: var(--bg-mid); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-        .reward-step-note {
-            margin-top: 28px;
-            padding: 16px 18px;
-            border-left: 3px solid var(--red);
-            background: var(--bg-card);
-            color: var(--text-light);
-            font-size: 13px;
-        }
-        .money-band {
+        .issue-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 32px;
-            align-items: stretch;
+            gap: 40px;
             margin-top: 48px;
         }
-        .money-card {
+        .issue-card {
+            padding: 32px;
             border: 1px solid var(--line);
             background: var(--bg-card);
-            padding: 32px;
         }
-        .money-card.highlight { border-color: var(--red); }
-        .money-card h3 { font-size: 20px; margin-bottom: 8px; }
-        .money-card p { font-size: 13px; color: var(--text-muted); }
-        .money-number {
-            font-size: clamp(34px, 5vw, 56px);
-            line-height: 1;
-            font-weight: 800;
-            letter-spacing: -1.8px;
-            margin: 24px 0 8px;
+        .issue-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
             color: var(--text);
         }
-        .money-number em { color: var(--red); font-style: normal; }
-        .money-caption { font-size: 12px; color: var(--text-light); }
-        .creator-preview-section { background: var(--bg); }
-        .creator-preview-grid {
-            display: grid;
-            grid-template-columns: .82fr 1.18fr;
-            gap: 56px;
-            align-items: center;
-        }
-        .creator-copy .section-sub { max-width: 560px; }
-        .creator-earn-list {
+        .issue-card ul {
             list-style: none;
-            display: grid;
-            gap: 12px;
-            margin: 28px 0 34px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        .creator-earn-list li {
+        .issue-card ul li {
             font-size: 14px;
             color: var(--text-light);
+            padding-left: 24px;
+            position: relative;
+        }
+        .issue-card ul li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 6px;
+            width: 10px;
+            height: 10px;
+            background: var(--line);
+        }
+        .issue-card.highlight {
+            border-color: var(--red);
+        }
+        .issue-card.highlight ul li::before {
+            background: var(--red);
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+            width: 14px;
+            height: 14px;
+            top: 4px;
+        }
+
+        /* Founder */
+        .founder-section {
+            background: var(--bg);
+            text-align: center;
+            padding: 60px 40px 80px;
+        }
+        .founder-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto 24px;
+        }
+        .founder-name {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+        .founder-desc {
+            font-size: 15px;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto 20px;
+            line-height: 1.7;
+        }
+        .founder-stats {
             display: flex;
-            align-items: flex-start;
-            gap: 12px;
+            justify-content: center;
+            gap: 48px;
+            flex-wrap: wrap;
+            margin-top: 16px;
         }
-        .creator-earn-list i { color: var(--red); margin-top: 3px; }
-        .earnings-banner {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            padding: 18px;
-            background: rgba(225,6,0,.08);
-            border: 1px solid rgba(225,6,0,.35);
-            margin: 18px;
+        .founder-stats div {
+            text-align: center;
         }
-        .earnings-banner strong { font-size: 28px; letter-spacing: -.8px; }
-        .earnings-banner span { display:block; font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; }
-        .payout-status { font-size: 11px; color:#86e89d; font-weight:700; white-space:nowrap; }
-        .campaign-row {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 12px;
-            padding: 14px 18px;
-            border-top: 1px solid var(--line);
-            align-items: center;
+        .founder-stats .num {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--red);
+            display: block;
+            letter-spacing: -1px;
         }
-        .campaign-row strong { font-size: 12px; display:block; }
-        .campaign-row small { color:var(--text-muted); font-size:10px; }
-        .campaign-row .amount { font-size: 13px; font-weight:800; color:var(--text); }
-        .secondary-service-banner {
+        .founder-stats .label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* How it works */
+        .how-section {
             background: var(--bg-mid);
             border-top: 1px solid var(--line);
             border-bottom: 1px solid var(--line);
         }
-        .service-rank {
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            margin-top: 64px;
+            border: 1px solid var(--line);
+        }
+        .step {
+            padding: 40px 32px;
+            border-right: 1px solid var(--line);
+            position: relative;
+        }
+        .step:last-child {
+            border-right: none;
+        }
+        .step-num {
+            font-family: var(--font-mono);
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--line);
+            line-height: 1;
+            margin-bottom: 24px;
+            display: block;
+        }
+        .step h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+        .step p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.65;
+        }
+        .step-indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--red);
+            position: absolute;
+            top: 40px;
+            right: 32px;
+        }
+
+        /* 30-Day Content Engine */
+        .package-section {
+            background: var(--bg);
+        }
+        .package-card {
+            background: var(--bg-mid);
+            border: 1px solid var(--red);
+            padding: 48px 40px;
+            max-width: 800px;
+            margin: 48px auto 0;
+        }
+        .package-card .pricing-tag {
+            font-family: var(--font-mono);
             font-size: 10px;
             letter-spacing: 2px;
             text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-            font-weight: 800;
+            color: var(--red);
+            margin-bottom: 16px;
+            display: block;
         }
-        .dfy-grid {
+        .package-card .price {
+            font-size: 56px;
+            font-weight: 700;
+            letter-spacing: -2px;
+            color: var(--text);
+            display: inline-block;
+        }
+        .package-card .price span {
+            font-size: 18px;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+        .package-card .price-note {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .package-features {
+            list-style: none;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 48px;
-            align-items: start;
-            margin-top: 44px;
+            gap: 12px 24px;
+            margin: 24px 0 32px;
         }
-        .dfy-summary {
-            border: 1px solid var(--line);
-            background: var(--bg-card);
-            padding: 32px;
+        .package-features li {
+            font-size: 14px;
+            color: var(--text-light);
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
         }
-        .dfy-price { font-size: 46px; line-height: 1; font-weight: 800; letter-spacing:-1.5px; }
-        .dfy-price span { font-size:14px; color:var(--text-muted); letter-spacing:0; }
-        .guarantee-inline {
-            border-left: 3px solid var(--red);
-            padding: 16px 18px;
-            margin-top: 24px;
-            background: rgba(225,6,0,.06);
+        .package-features li::before {
+            content: '✓';
+            color: var(--red);
+            font-weight: 700;
+            flex-shrink: 0;
         }
-        .guarantee-inline strong { display:block; margin-bottom:5px; }
-        .guarantee-inline p { font-size:12px; color:var(--text-muted); }
-        .choice-strip {
+        .package-features li.muted {
+            color: var(--text-muted);
+        }
+        .package-features li.muted::before {
+            color: var(--line);
+        }
+
+        /* Consultation options */
+        .options-section {
+            background: var(--bg-mid);
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+        }
+        .options-grid {
             display: grid;
-            grid-template-columns: 1.2fr .8fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 1px;
             background: var(--line);
             border: 1px solid var(--line);
-            margin-top: 46px;
+            margin-top: 48px;
         }
-        .choice-strip > div { background:var(--bg); padding:28px; }
-        .choice-strip h3 { font-size:17px; margin-bottom:6px; }
-        .choice-strip p { font-size:12px; color:var(--text-muted); }
-        .choice-strip .recommended { position:relative; }
-        .choice-strip .recommended::before {
-            content:'MAIN SERVICE';
-            display:inline-block;
-            color:var(--red);
-            font-size:9px;
-            font-weight:800;
-            letter-spacing:1.3px;
-            margin-bottom:10px;
+        .option-card {
+            background: var(--bg);
+            padding: 40px 32px;
+            display: flex;
+            flex-direction: column;
         }
-        .legacy-anchor {
-            display: block;
-            position: relative;
-            top: -72px;
-            height: 0;
-            visibility: hidden;
-        }
-        .tiny-disclaimer {
+        .option-card .option-tag {
+            font-family: var(--font-mono);
             font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--red);
+            margin-bottom: 12px;
+            display: block;
+        }
+        .option-card .option-price {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .option-card .option-price span {
+            font-size: 14px;
             color: var(--text-muted);
-            margin-top: 12px;
-            line-height: 1.5;
+            margin-left: 4px;
         }
-
-        /* CTA Banner */
-        .cta-banner {
-            background: linear-gradient(135deg, #e10600 0%, #ff3c00 100%);
-            padding: 60px 40px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        .cta-banner::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-        }
-        .cta-banner::after {
-            content: '';
-            position: absolute;
-            bottom: -50%;
-            left: -20%;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.05);
-        }
-        .cta-banner h2 {
-            font-size: clamp(28px, 5vw, 48px);
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 16px;
-            letter-spacing: -1px;
-            position: relative;
-            z-index: 1;
-        }
-        .cta-banner p {
-            font-size: 16px;
-            color: rgba(255,255,255,0.9);
-            max-width: 600px;
-            margin: 0 auto 32px;
+        .option-card .option-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin: 12px 0 20px;
             line-height: 1.6;
-            position: relative;
-            z-index: 1;
         }
-        .cta-banner .btn-white {
-            background: #fff;
-            color: #e10600;
+        .option-card ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex: 1;
+        }
+        .option-card ul li {
+            font-size: 13px;
+            color: var(--text-light);
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+        .option-card ul li::before {
+            content: '•';
+            color: var(--red);
+            flex-shrink: 0;
+        }
+        .option-card .btn-option {
+            display: block;
+            text-align: center;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 700;
             text-decoration: none;
-            font-size: 16px;
-            font-weight: 800;
-            padding: 16px 40px;
-            display: inline-block;
-            transition: all 0.2s;
-            position: relative;
-            z-index: 1;
+            transition: opacity 0.2s;
         }
-        .cta-banner .btn-white:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        .option-card .btn-option:hover {
+            opacity: 0.85;
+        }
+        .option-card .btn-ghost {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--line);
+        }
+        .option-card .btn-ghost:hover {
+            border-color: var(--text);
+        }
+        .option-card .btn-primary {
+            padding: 14px;
+        }
+        .option-card .btn-outline-red {
+            padding: 14px;
         }
 
         /* FAQ */
@@ -1139,14 +1077,13 @@
             text-decoration: none;
         }
 
-        /* Responsive */
+        /* Responsive — tightened for genuinely mobile-first spacing */
         @media (max-width: 900px) {
             nav {
                 padding: 0 20px;
             }
             .nav-links,
-            .btn-nav-cta,
-            .btn-nav-creator {
+            .btn-nav-cta {
                 display: none;
             }
             .menu-toggle {
@@ -1168,6 +1105,16 @@
             .hero-actions a {
                 width: 100%;
                 text-align: center;
+            }
+            .hero-paths {
+                grid-template-columns: 1fr;
+            }
+            .path-card {
+                text-align: left;
+            }
+            .path-card .path-icon {
+                margin-left: 0;
+                margin-right: auto;
             }
             .hero-contact {
                 justify-content: center;
@@ -1195,32 +1142,6 @@
             .issue-grid {
                 grid-template-columns: 1fr;
             }
-            .rewards-hero .hero-inner,
-            .creator-preview-grid,
-            .dfy-grid { grid-template-columns: 1fr; }
-            .rewards-hero .hero-inner { gap: 46px; }
-            .audience-grid { grid-template-columns: 1fr; }
-            .metric-grid { grid-template-columns: repeat(2, 1fr); }
-            .metric-card:nth-child(2) { border-right: none; }
-            .metric-card:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
-            .money-band { grid-template-columns: 1fr; }
-        }
-
-        @media (max-width: 700px) {
-            .rewards-hero .hero-inner { padding-top: 54px; padding-bottom: 54px; }
-            .hero-proof { grid-template-columns: 1fr; }
-            .hero-proof .proof-item + .proof-item { border-left: none; border-top:1px solid var(--line); }
-            .metrics-head { align-items:flex-start; flex-direction:column; }
-            .metric-grid { grid-template-columns: 1fr; }
-            .metric-card { border-right:none !important; border-bottom:1px solid var(--line); }
-            .metric-card:last-child { border-bottom:none; }
-            .creator-preview-grid { gap:36px; }
-            .audience-card, .money-card, .dfy-summary { padding: 26px 20px; }
-            .choice-strip { grid-template-columns:1fr; }
-            .dash-primary { font-size: 36px; }
-            .earnings-banner { align-items:flex-start; flex-direction:column; }
-            .cta-banner { padding: 40px 20px; }
-            .cta-banner .btn-white { width: 100%; }
         }
 
         @media (max-width: 600px) {
@@ -1261,6 +1182,24 @@
             }
         }
 
+        @media (max-width: 420px) {
+            .path-card {
+                padding: 22px 18px;
+            }
+            .path-card h2 {
+                font-size: 19px;
+            }
+            .hero-title {
+                letter-spacing: -1px;
+            }
+            .nav-logo-text {
+                font-size: 16px;
+            }
+            .stat-number {
+                font-size: 28px;
+            }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             * {
                 animation-duration: 0.01ms !important;
@@ -1268,17 +1207,6 @@
             }
         }
     </style>
-    <script>
-  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}var m=e;for(void 0!==a?m=e[a]=[]:a="posthog",m.people=m.people||[],m.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},m.people.toString=function(){return m.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group identifyGroup".split(" "),n=0;n<o.length;n++)g(m,o[n]);e._i.push([i,s,a])},e.__SV=1)}
-  (document,window.posthog||[]);
-
-  posthog.init('phc_md6tX5X6RM7oabRyESkpnkddGspnkddG', {
-    api_host: 'https://e.boujeephotoug.com',
-    ui_host: 'https://us.posthog.com',
-    person_profiles: 'identified_only'
-  })
-</script>
-
 </head>
 <body>
 
@@ -1289,20 +1217,22 @@
         </a>
 
         <ul class="nav-links">
-            <li><a href="#creator-rewards">Creator Rewards</a></li>
-            <li><a href="#for-businesses">For Businesses</a></li>
-            <li><a href="#for-creators">For Creators</a></li>
-            <li><a href="#how-it-works">How it works</a></li>
-            <li><a href="#dfy-content">DFY Content</a></li>
+            <li><a href="#runners">For Runners</a></li>
+            <li><a href="#campaigns">For Businesses</a></li>
+            <li><a href="#package">30-Day Engine</a></li>
             <li><a href="#faq">FAQ</a></li>
         </ul>
 
         <div class="nav-right">
-            <a href="./rewards.html" class="btn-nav-creator"><i class="fas fa-user-plus"></i> Become a Creator</a>
-            <a href="./rewards.html" class="btn-nav-cta">Start Campaign</a>
+            <div class="nav-ctas">
+                <a href="./rewards.html" class="btn-nav-cta outline">Become a Runner</a>
+                <a href="./dashboard.html" class="btn-nav-cta">Launch a Campaign</a>
+            </div>
             <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle light/dark mode"><i class="fas fa-sun"></i></button>
             <button class="menu-toggle" onclick="openDrawer()" aria-label="Open menu">
-                <span></span><span></span><span></span>
+                <span></span>
+                <span></span>
+                <span></span>
             </button>
         </div>
     </nav>
@@ -1314,393 +1244,388 @@
             <button class="drawer-close" onclick="closeDrawer()">&#x2715;</button>
         </div>
         <nav class="drawer-nav">
-            <a href="#creator-rewards" onclick="closeDrawer()">Creator Rewards</a>
-            <a href="#for-businesses" onclick="closeDrawer()">For Businesses</a>
-            <a href="#for-creators" onclick="closeDrawer()">For Creators</a>
-            <a href="#how-it-works" onclick="closeDrawer()">How it works</a>
-            <a href="#dfy-content" onclick="closeDrawer()">DFY Content</a>
+            <a href="#runners" onclick="closeDrawer()">For Runners</a>
+            <a href="#campaigns" onclick="closeDrawer()">For Businesses</a>
+            <a href="#package" onclick="closeDrawer()">30-Day Engine</a>
             <a href="#faq" onclick="closeDrawer()">FAQ</a>
         </nav>
         <div class="drawer-footer">
-            <a href="./rewards.html" class="btn-creator"><i class="fas fa-user-plus"></i> Become a Creator</a>
-            <a href="./rewards.html" class="btn-cta">Start Campaign</a>
-            <a href="#for-creators" class="btn-ghost">I'm a Creator</a>
+            <a href="./dashboard.html" class="btn-cta">Launch a Campaign</a>
+            <a href="./rewards.html" class="btn-ghost" onclick="closeDrawer()">Become a Runner</a>
         </div>
     </div>
 
-    <!-- CREATOR REWARDS HERO -->
-    <section class="hero rewards-hero" id="creator-rewards">
+    <!-- HERO -->
+    <section class="hero">
         <div class="hero-bg"></div>
         <div class="hero-grid-lines"></div>
         <div class="hero-inner">
             <div>
-                <div class="hero-kicker-row">
-                    <span class="hero-pill"><i class="fas fa-chart-line"></i> Built for measurable visibility</span>
-                    <span class="hero-pill"><i class="fas fa-coins"></i> Built for creator earnings</span>
-                </div>
-                <p class="hero-eyebrow">Boujee Creator Rewards</p>
-                <h1 class="hero-title">Turn short-form content into <em>verified attention.</em></h1>
-                <p class="hero-sub">Businesses launch a campaign, creators make videos, and rewards are tied to verified views. See the views, videos, creators and campaign progress instead of paying blindly for content.</p>
-                <div class="hero-actions">
-                    <a href="./rewards.html" class="btn-primary">Start a Campaign</a>
-                    <a href="./rewards.html" class="btn-creator-highlight"><i class="fas fa-user-plus"></i> Become a Creator</a>
-                </div>
-                <p class="tiny-disclaimer">Campaigns can start from 50,000 UGX. Reward availability, verification and payout limits follow the campaign terms.</p>
+                <p class="hero-eyebrow">Kampala, Uganda</p>
+                <h1 class="hero-title">Post videos, earn<br><em>money — or grow</em><br>your business.</h1>
+                <p class="hero-sub">BoujeePhoto is a two-sided platform: Runners post short-form videos and get paid for verified views, and businesses launch a campaign and only pay for views that actually happen.</p>
 
-                <div class="hero-proof">
-                    <div class="proof-item">
-                        <span class="proof-value">50K</span>
-                        <span class="proof-label">UGX minimum campaign budget</span>
+                <div class="hero-paths">
+                    <div class="path-card runner-card">
+                        <div class="path-icon"><i class="fas fa-video"></i></div>
+                        <h2>I'm a Runner</h2>
+                        <p>Post short-form videos for active campaigns and get paid per verified view. No experience required — just a phone and consistency.</p>
+                        <div class="path-fact"><strong>2,000 UGX</strong> per 1,000 verified views</div>
+                        <a href="./rewards.html" class="btn-primary" style="text-align:center;">Become a Runner</a>
                     </div>
-                    <div class="proof-item">
-                        <span class="proof-value">2K</span>
-                        <span class="proof-label">UGX per 1,000 verified views</span>
-                    </div>
-                    <div class="proof-item">
-                        <span class="proof-value">75%</span>
-                        <span class="proof-label">of campaign budget assigned to creator rewards</span>
+                    <div class="path-card business-card">
+                        <div class="path-icon"><i class="fas fa-bullhorn"></i></div>
+                        <h2>I run a business</h2>
+                        <p>Launch a campaign, set your budget, and let Runners create content that promotes you. You only pay for verified views — nothing else.</p>
+                        <div class="path-fact">From <strong>50,000 UGX</strong> per campaign</div>
+                        <a href="./dashboard.html" class="btn-outline-red" style="text-align:center;">Launch a Campaign</a>
                     </div>
                 </div>
-            </div>
 
-            <!-- Business Dashboard Preview -->
-            <div class="dashboard-shell" aria-label="Example business campaign dashboard">
-                <div class="dashboard-topbar">
-                    <strong>Business Campaign Dashboard</strong>
-                    <span class="live-chip"><span class="live-dot"></span> Campaign active</span>
+                <p style="font-size:13px;color:var(--text-muted);margin-top:4px;margin-bottom:24px;font-family:var(--font-mono);">Also want a full done-for-you content package? <a href="#package" style="color:var(--text-muted);text-decoration:underline;">See the 30-Day Engine ↓</a></p>
+
+                <div class="hero-contact">
+                    <a href="tel:0702086935"><i class="fas fa-phone social-icon"></i> 0702 086 935</a>
+                    <span class="hero-contact-separator">|</span>
+                    <a href="tel:0788476739"><i class="fas fa-phone social-icon"></i> 0788 476 739</a>
+                    <span class="hero-contact-separator">|</span>
+                    <a href="https://www.tiktok.com/@boujeephoto?_r=1&_t=ZS-970awXinne9" target="_blank" rel="noopener" aria-label="TikTok"><i class="fab fa-tiktok social-icon"></i></a>
+                    <a href="https://youtube.com/@boujeephoto?si=omfFpOQOjqVOqGP_" target="_blank" rel="noopener" aria-label="YouTube"><i class="fab fa-youtube social-icon"></i></a>
+                    <a href="https://www.instagram.com/boujee.photo?igsh=bWtidnMyMXo5dmEy&utm_source=qr" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram social-icon"></i></a>
+                    <a href="https://www.facebook.com/362204604445328" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook social-icon"></i></a>
                 </div>
-                <div class="dash-pad">
-                    <div class="dash-label">Verified campaign views</div>
-                    <div class="dash-primary">41,300 <small>views</small></div>
-                    <div class="dash-trend"><i class="fas fa-arrow-trend-up"></i> Visibility building across creator posts</div>
-                    <div class="sparkbars" aria-hidden="true">
-                        <span style="height:20%"></span><span style="height:31%"></span><span style="height:28%"></span><span style="height:44%"></span><span style="height:52%"></span><span style="height:48%"></span><span style="height:67%"></span><span style="height:73%"></span><span style="height:65%"></span><span style="height:86%"></span><span style="height:78%"></span><span style="height:96%"></span>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">2,000</span>
+                        <p class="stat-label">UGX per 1,000 verified views</p>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">50K</span>
+                        <p class="stat-label">UGX minimum campaign</p>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">75%</span>
+                        <p class="stat-label">Of every budget pays Runners</p>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">30K+</span>
+                        <p class="stat-label">Views guaranteed on full package</p>
                     </div>
                 </div>
-                <div class="dash-grid">
-                    <div class="dash-mini"><strong>14</strong><span>Videos submitted</span></div>
-                    <div class="dash-mini"><strong>8</strong><span>Active creators</span></div>
-                    <div class="dash-mini"><strong>UGX 82.6K</strong><span>Creator rewards earned</span></div>
-                    <div class="dash-mini"><strong>56%</strong><span>Creator pool remaining</span></div>
-                </div>
-                <div class="dashboard-note">Illustrative dashboard preview. Live campaign figures depend on actual submissions and verified performance.</div>
             </div>
         </div>
     </section>
 
-    <!-- TWO AUDIENCES -->
-    <section class="audience-switch-section" id="for-businesses">
+    <!-- RUNNERS (main) -->
+    <section class="how-section" id="runners" style="border-top: none;">
         <div class="container">
-            <p class="section-eyebrow">One system · two sides</p>
-            <h2 class="section-title">Businesses get visibility.<br>Creators get rewarded.</h2>
-            <p class="section-sub">Creator Rewards is now the main BoujeePhoto service: a performance-led way to create more content, involve more creators and make campaign progress visible.</p>
+            <p class="section-eyebrow">For creators</p>
+            <h2 class="section-title">Become a Runner.<br>Get paid to post.</h2>
+            <p class="section-sub">
+                Runners are the creators who power BoujeePhoto campaigns. Pick an active campaign, film a short-form video about the business, post it, and get paid for every verified view — no minimum follower count, no interview.
+            </p>
 
-            <div class="audience-grid">
-                <div class="audience-card primary">
-                    <div class="audience-icon"><i class="fas fa-store"></i></div>
-                    <h3>For businesses</h3>
-                    <p>Launch a campaign with a clear budget and watch the content engine build around your brand.</p>
-                    <ul class="audience-list">
-                        <li>Track verified views instead of guessing at reach</li>
-                        <li>See how many creators and videos are working for the campaign</li>
-                        <li>Keep campaign spending controlled by a fixed reward pool</li>
-                        <li>Test different creator styles without commissioning a full monthly package</li>
+            <div class="steps-grid" style="margin-top: 40px;">
+                <div class="step">
+                    <span class="step-num">01</span>
+                    <div class="step-indicator"></div>
+                    <h3>Pick a campaign</h3>
+                    <p>Browse active business campaigns and choose one that fits your content style.</p>
+                </div>
+                <div class="step">
+                    <span class="step-num">02</span>
+                    <div class="step-indicator"></div>
+                    <h3>Post your video</h3>
+                    <p>Film and post a short-form video about the business, then submit the link so we can track it.</p>
+                </div>
+                <div class="step">
+                    <span class="step-num">03</span>
+                    <div class="step-indicator"></div>
+                    <h3>Get paid per view</h3>
+                    <p>Earn <strong>2,000 UGX per 1,000 verified views</strong> on your video, up to 10,000 UGX per video.</p>
+                </div>
+            </div>
+
+            <div class="package-card" style="margin-top: 48px; max-width: 800px;">
+                <span class="pricing-tag">What Runners earn</span>
+                <ul class="package-features">
+                    <li><strong>Rate:</strong> 2,000 UGX per 1,000 verified views</li>
+                    <li><strong>Per-video cap:</strong> up to 10,000 UGX, however many views it gets</li>
+                    <li><strong>Views that count:</strong> verified, organic views only — no bots</li>
+                    <li><strong>Pool size:</strong> 75% of every business's campaign budget is set aside to pay Runners</li>
+                    <li class="muted">No fee to join — post as many campaigns as you like</li>
+                </ul>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px;">
+                    <a href="./rewards.html" class="btn-primary" style="display:inline-block;">Become a Runner</a>
+                    <a href="#faq" class="btn-ghost" style="display:inline-block;">How verification works</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CAMPAIGNS (main) -->
+    <section class="how-section" id="campaigns" style="background: var(--bg);">
+        <div class="container">
+            <p class="section-eyebrow">For businesses</p>
+            <h2 class="section-title">Launch a campaign.<br>Pay only for views.</h2>
+            <p class="section-sub">
+                Set a budget, and Runners create and post short-form videos promoting your business. You only pay for verified views, and the campaign stops automatically once your budget is used — starting at just <strong>50,000 UGX</strong>.
+            </p>
+
+            <div class="steps-grid" style="margin-top: 40px; border-color: var(--red);">
+                <div class="step" style="border-color: var(--red);">
+                    <span class="step-num" style="color: var(--red);">01</span>
+                    <div class="step-indicator" style="background: var(--red);"></div>
+                    <h3>Set your campaign budget</h3>
+                    <p>Pay a minimum of 50,000 UGX. Your budget goes into a dedicated reward pool.</p>
+                </div>
+                <div class="step" style="border-color: var(--red);">
+                    <span class="step-num" style="color: var(--red);">02</span>
+                    <div class="step-indicator" style="background: var(--red);"></div>
+                    <h3>Runners post videos</h3>
+                    <p>Runners submit short-form videos to your campaign. We track verified views automatically.</p>
+                </div>
+                <div class="step" style="border-color: var(--red);">
+                    <span class="step-num" style="color: var(--red);">03</span>
+                    <div class="step-indicator" style="background: var(--red);"></div>
+                    <h3>Pay per 1,000 views</h3>
+                    <p>Runners earn <strong>2,000 UGX</strong> per 1,000 verified views, capped per video. The campaign stops paying when your pool is empty.</p>
+                </div>
+            </div>
+
+            <div class="package-card" style="margin-top: 48px; max-width: 800px; border-color: var(--red); background: var(--bg-mid);">
+                <span class="pricing-tag">How the math works</span>
+                <ul class="package-features">
+                    <li><strong>Boujee Platform Fee:</strong> 25% of your campaign budget</li>
+                    <li><strong>Runner Pool:</strong> 75% of your budget goes directly to paying Runners</li>
+                    <li><strong>Runner Rate:</strong> 2,000 UGX per 1,000 verified views</li>
+                    <li><strong>Max Payout Per Video:</strong> Capped at 10,000 UGX per video, regardless of campaign budget</li>
+                    <li><strong>Pool Expiry:</strong> Campaign automatically pauses when the 75% pool is fully paid out, or after 2 months by default</li>
+                </ul>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px;">
+                    <a href="./dashboard.html" class="btn-primary" style="display:inline-block;">Launch a Campaign</a>
+                    <a href="#faq" class="btn-ghost" style="display:inline-block;">Learn more about the system</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- THE CORE ISSUE -->
+    <section class="issue-section" id="core-issue">
+        <div class="container">
+            <p class="section-eyebrow">Prefer it done for you?</p>
+            <h2 class="section-title">Your business doesn't<br>have a video problem.</h2>
+            <p class="section-sub">It has a consistency problem. You know you need short‑form content to stay visible, but you don't have the time, the team, or the expertise to produce it week after week.</p>
+            <div class="issue-grid">
+                <div class="issue-card">
+                    <h3>Type A — Stuck</h3>
+                    <ul>
+                        <li>Videos are sporadic, with no strategy</li>
+                        <li>No professional editing or branding</li>
+                        <li>You end up doing it yourself — poorly</li>
+                        <li>Audience engagement is flat</li>
                     </ul>
-                    <a href="./rewards.html" class="btn-primary">Start with 50,000 UGX</a>
                 </div>
-                <div class="audience-card" id="for-creators">
-                    <div class="audience-icon"><i class="fas fa-video"></i></div>
-                    <h3>For creators</h3>
-                    <p>Choose an available campaign, submit eligible short-form content and earn when your verified views qualify for rewards.</p>
-                    <ul class="audience-list">
-                        <li>See the reward rate before creating</li>
-                        <li>Track approved videos and verified views</li>
-                        <li>See what you have earned from campaign performance</li>
-                        <li>Build a visible record of completed creator work</li>
+                <div class="issue-card highlight">
+                    <h3>Type B — Served</h3>
+                    <ul>
+                        <li>30 ready‑to‑post videos delivered monthly</li>
+                        <li>Professional production from start to finish</li>
+                        <li>One organised filming day, zero stress</li>
+                        <li>We handle everything — you just show up</li>
                     </ul>
-                    <a href="./rewards.html" class="btn-creator-highlight"><i class="fas fa-user-plus"></i> Become a Creator</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- BUSINESS METRICS -->
-    <span id="core-issue" class="legacy-anchor" aria-hidden="true"></span>
-    <section class="metrics-section">
+    <!-- HOW IT WORKS -->
+    <section class="how-section" id="how-it-works">
         <div class="container">
-            <div class="metrics-head">
-                <div>
-                    <p class="section-eyebrow">What the business sees</p>
-                    <h2 class="section-title">Make campaign progress<br>feel visible.</h2>
-                </div>
-                <p class="section-sub">The dashboard should answer the business owner's first questions immediately: Are people seeing us? How much content is live? Who is creating? How much of the reward pool is left?</p>
-            </div>
-            <div class="metric-grid">
-                <div class="metric-card">
-                    <i class="fas fa-eye"></i>
-                    <strong>Views</strong>
-                    <span>Verified attention</span>
-                    <p class="metric-context">A clear total for eligible campaign views across approved creator posts.</p>
-                </div>
-                <div class="metric-card">
-                    <i class="fas fa-bullseye"></i>
-                    <strong>Visibility</strong>
-                    <span>Campaign momentum</span>
-                    <p class="metric-context">Show progress over time so the business can feel whether the campaign is gaining attention.</p>
-                </div>
-                <div class="metric-card">
-                    <i class="fas fa-clapperboard"></i>
-                    <strong>Videos</strong>
-                    <span>Content generated</span>
-                    <p class="metric-context">How many videos have been submitted, approved and are contributing to the campaign.</p>
-                </div>
-                <div class="metric-card">
-                    <i class="fas fa-users"></i>
-                    <strong>Creators</strong>
-                    <span>People pushing the brand</span>
-                    <p class="metric-context">The number of active creators contributing content to the business campaign.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- REWARDS HOW IT WORKS -->
-    <section class="rewards-how" id="how-it-works">
-        <div class="container">
-            <p class="section-eyebrow">How Creator Rewards works</p>
-            <h2 class="section-title">Budget. Create. Verify.<br>Reward.</h2>
-            <p class="section-sub">The business controls the budget; creators compete through content performance; BoujeePhoto handles the campaign structure and verification rules.</p>
+            <p class="section-eyebrow">How it works</p>
+            <h2 class="section-title">From discovery call<br>to content on the feed.</h2>
             <div class="steps-grid">
                 <div class="step">
-                    <span class="step-num">01</span><div class="step-indicator"></div>
-                    <h3>Business launches a campaign</h3>
-                    <p>Choose the budget and campaign brief. The minimum campaign starts at 50,000 UGX.</p>
+                    <span class="step-num">01</span>
+                    <div class="step-indicator"></div>
+                    <h3>Free 15‑min call</h3>
+                    <p>Understand your business, goals, and audience. No pressure – just a conversation to see if we're a fit.</p>
                 </div>
                 <div class="step">
-                    <span class="step-num">02</span><div class="step-indicator"></div>
-                    <h3>Creators submit videos</h3>
-                    <p>Eligible creators create short-form videos for the campaign and submit them for review.</p>
+                    <span class="step-num">02</span>
+                    <div class="step-indicator"></div>
+                    <h3>Reserve your content day</h3>
+                    <p>Pay 200,000 UGX to secure your filming date and unlock planning. This amount rolls fully into the 900,000 UGX package if you proceed within 7 days.</p>
                 </div>
                 <div class="step">
-                    <span class="step-num">03</span><div class="step-indicator"></div>
-                    <h3>Verified views earn rewards</h3>
-                    <p>Creators earn 2,000 UGX per 1,000 verified views, subject to the campaign and per-video payout limits.</p>
-                </div>
-            </div>
-            <div class="reward-step-note"><strong>Budget control:</strong> 25% is the BoujeePhoto platform fee and 75% becomes the creator reward pool. The campaign pauses when the creator pool is exhausted or reaches its configured expiry.</div>
-
-            <div class="money-band">
-                <div class="money-card highlight">
-                    <p class="section-eyebrow" style="margin-bottom:8px;">Business example</p>
-                    <h3>Start small, then scale what works.</h3>
-                    <div class="money-number">UGX <em>100K</em></div>
-                    <div class="money-caption">Example campaign budget → 75,000 UGX creator pool + 25,000 UGX platform fee.</div>
-                </div>
-                <div class="money-card">
-                    <p class="section-eyebrow" style="margin-bottom:8px;">Creator rate</p>
-                    <h3>Performance is easy to understand.</h3>
-                    <div class="money-number"><em>2,000</em> UGX</div>
-                    <div class="money-caption">per 1,000 verified views, up to the campaign's per-video payout cap.</div>
+                    <span class="step-num">03</span>
+                    <div class="step-indicator"></div>
+                    <h3>30‑day content engine</h3>
+                    <p>We shoot, edit, and post 30 short‑form videos for your business. One flat monthly fee, one agreed platform.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- CREATOR DASHBOARD PREVIEW -->
-    <section class="creator-preview-section" id="creator-dashboard">
-        <div class="container creator-preview-grid">
-            <div class="creator-copy">
-                <p class="section-eyebrow">For creators</p>
-                <h2 class="section-title">Make the money feel real<br>before they even start.</h2>
-                <p class="section-sub">A creator should instantly see the information that motivates action: available campaigns, verified views, approved submissions, earnings and payout status.</p>
-                <ul class="creator-earn-list">
-                    <li><i class="fas fa-circle-check"></i><span>Clear reward rate on every campaign.</span></li>
-                    <li><i class="fas fa-chart-simple"></i><span>Verified views tracked against submitted videos.</span></li>
-                    <li><i class="fas fa-wallet"></i><span>Earnings shown as a running balance.</span></li>
-                    <li><i class="fas fa-clock"></i><span>Submission and payout status visible in one place.</span></li>
-                </ul>
-                <a href="./rewards.html" class="btn-creator-highlight"><i class="fas fa-user-plus"></i> Become a Creator</a>
-            </div>
-
-            <div class="dashboard-shell" aria-label="Example creator earnings dashboard">
-                <div class="dashboard-topbar">
-                    <strong>Creator Dashboard</strong>
-                    <span style="font-size:10px;color:var(--text-muted);">Earnings overview</span>
-                </div>
-                <div class="earnings-banner">
-                    <div>
-                        <span>Available earnings</span>
-                        <strong>UGX 34,000</strong>
-                    </div>
-                    <div class="payout-status"><i class="fas fa-circle-check"></i> VERIFIED</div>
-                </div>
-                <div class="dash-grid">
-                    <div class="dash-mini"><strong>17,000</strong><span>Verified views</span></div>
-                    <div class="dash-mini"><strong>4</strong><span>Approved videos</span></div>
-                    <div class="dash-mini"><strong>1</strong><span>Pending review</span></div>
-                    <div class="dash-mini"><strong>UGX 10K</strong><span>Max / video</span></div>
-                </div>
-                <div class="campaign-row">
-                    <div><strong>Home & Living Campaign</strong><small>6,000 verified views · approved</small></div>
-                    <div class="amount">+12,000</div>
-                </div>
-                <div class="campaign-row">
-                    <div><strong>Local Business Campaign</strong><small>5,000 verified views · approved</small></div>
-                    <div class="amount">+10,000</div>
-                </div>
-                <div class="campaign-row">
-                    <div><strong>Retail Campaign</strong><small>6,000 verified views · approved</small></div>
-                    <div class="amount">+12,000</div>
-                </div>
-                <div class="dashboard-note">Illustrative creator dashboard preview. Actual earnings depend on campaign eligibility, verification and payout rules.</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA BANNER -->
-    <section class="cta-banner">
-        <h2>Ready to grow your brand or start earning?</h2>
-        <p>Whether you're a business looking for verified visibility or a creator ready to earn from your content, Creator Rewards makes it easy to get started.</p>
-        <a href="./rewards.html" class="btn-white">Start Your Campaign Today</a>
-    </section>
-
-    <!-- SECOND SERVICE: DFY -->
-    <span id="package" class="legacy-anchor" aria-hidden="true"></span>
-    <span id="options" class="legacy-anchor" aria-hidden="true"></span>
-    <section class="secondary-service-banner" id="dfy-content">
-        <div class="container">
-            <p class="service-rank">Second service · Done-for-you content</p>
-            <p class="section-eyebrow">Need BoujeePhoto to handle everything?</p>
-            <h2 class="section-title">The 30-Day Content Engine</h2>
-            <p class="section-sub">Creator Rewards is the flexible, performance-led option. If your business instead wants one team to plan, shoot, edit and post the whole month, the Done-for-You package remains available.</p>
-
-            <div class="choice-strip">
-                <div class="recommended">
-                    <h3>Creator Rewards</h3>
-                    <p>Best when you want multiple creators, measurable views, a controlled budget and room to test different content styles.</p>
-                </div>
-                <div>
-                    <div class="service-rank" style="margin-bottom:10px;">Second service</div>
-                    <h3>Done-for-You Content</h3>
-                    <p>Best when you want BoujeePhoto to directly produce a full month of branded short-form content for you.</p>
-                </div>
-            </div>
-
-            <div class="dfy-grid">
-                <div>
-                    <div class="steps-grid" style="grid-template-columns:1fr; margin-top:0;">
-                        <div class="step" style="border-right:none; border-bottom:1px solid var(--line);">
-                            <span class="step-num">01</span><div class="step-indicator"></div>
-                            <h3>Free 15-minute discovery call</h3>
-                            <p>We understand the business, audience and content goals before you commit.</p>
-                        </div>
-                        <div class="step" style="border-right:none; border-bottom:1px solid var(--line);">
-                            <span class="step-num">02</span><div class="step-indicator"></div>
-                            <h3>Reserve your filming date</h3>
-                            <p>Pay 200,000 UGX to secure the day and start planning. It rolls into the package if you proceed within 7 days.</p>
-                        </div>
-                        <div class="step" style="border-right:none;">
-                            <span class="step-num">03</span><div class="step-indicator"></div>
-                            <h3>We create the month</h3>
-                            <p>BoujeePhoto shoots, edits and posts 30 vertical videos for the selected platform.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="dfy-summary">
-                    <span class="pricing-tag">Done-for-you monthly package</span>
-                    <div class="dfy-price">UGX 900K <span>/ month</span></div>
-                    <ul class="package-features" style="grid-template-columns:1fr; margin-top:28px;">
-                        <li>30 vertical videos, up to 60 seconds each</li>
-                        <li>Ideas, hooks and on-camera guidance</li>
-                        <li>One organised filming day, up to five hours</li>
-                        <li>Shooting, editing, captions, music and branding</li>
-                        <li>Posting to one selected social platform</li>
-                        <li>Transport within Kampala on filming day</li>
-                    </ul>
-                    <div class="guarantee-inline">
-                        <strong>30,000+ combined organic views guarantee</strong>
-                        <p>If the agreed 30-video package does not reach the stated target within the applicable terms, BoujeePhoto continues with additional content at no extra charge or handles the deposit as provided in the booking terms.</p>
-                    </div>
-                    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:28px;">
-                        <a href="tel:0702086935" class="btn-ghost">Book Free Call</a>
-                        <a href="./subscribe.html" class="btn-primary">Reserve for 200K</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FOUNDER -->
-    <div class="founder-section">
-        <img src="labeja.jpg" alt="Kakooza Ronald" class="founder-image">
-        <p class="section-eyebrow" style="margin-bottom:8px;">Behind BoujeePhoto</p>
-        <h2 class="founder-name">Kakooza Ronald</h2>
-        <p class="founder-desc">Content creator and visual storyteller building practical systems that help Ugandan businesses get seen and give creators a clearer way to earn from content performance.</p>
-        <div class="founder-stats">
-            <div><span class="num">69K</span><span class="label">TikTok followers</span></div>
-            <div><span class="num">1.8K+</span><span class="label">YouTube subscribers</span></div>
+    <!-- GUARANTEE BANNER -->
+    <div class="guarantee-banner">
+        <div class="guarantee-banner-inner">
+            <div class="guarantee-icon"><i class="fas fa-shield-alt"></i></div>
+            <h2 class="guarantee-headline">30,000+ Organic Views Guaranteed</h2>
+            <p class="guarantee-desc">On the 30-Day Content Engine, we work toward <strong>at least 30,000 combined organic views</strong> within 30 days of posting your 30 videos. If we don't hit that target, we'll keep creating and promoting additional content at no extra charge until we do — or refund your deposit.</p>
+            <p class="guarantee-fine">* Organic views only. No paid views or bots. Full terms provided at booking.</p>
         </div>
     </div>
+
+    <!-- THE 30-DAY CONTENT ENGINE -->
+    <section class="package-section" id="package">
+        <div class="container">
+            <p class="section-eyebrow">One monthly business‑content package</p>
+            <h2 class="section-title">The 30‑Day Content Engine</h2>
+            <div class="package-card">
+                <span class="pricing-tag">All‑in‑one monthly package</span>
+                <div class="price">UGX 900K <span>/ month</span></div>
+                <div class="price-note">Start with a 200,000 UGX deposit to reserve your filming date — it rolls fully into your first month if you proceed within 7 days.</div>
+                <ul class="package-features">
+                    <li>30 vertical videos, up to 60 seconds each</li>
+                    <li>Ideas, hooks and on‑camera guidance</li>
+                    <li>One organised filming day, up to five hours</li>
+                    <li>Shooting, editing, captions, music and branding</li>
+                    <li>Posting to one selected social platform</li>
+                    <li>Transport within Kampala on the filming day</li>
+                    <li class="muted">Free discovery call included</li>
+                </ul>
+                <a href="./subscribe.html" class="btn-primary" style="display:inline-block;">Reserve your content day</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOUNDER SECTION -->
+    <div class="founder-section">
+        <img src="labeja.jpg" alt="Kakooza Ronald" class="founder-image">
+        <p class="section-eyebrow" style="margin-bottom:8px;">The Founder</p>
+        <h2 class="founder-name">Kakooza Ronald</h2>
+        <p class="founder-desc">Content creator and visual storyteller who built an audience from zero using just a phone — now teaching Ugandans to do the same, live inside the nation.</p>
+        <div class="founder-stats">
+            <div>
+                <span class="num">69K</span>
+                <span class="label">TikTok followers</span>
+            </div>
+            <div>
+                <span class="num">1.8K+</span>
+                <span class="label">YouTube subscribers</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONSULTATION OPTIONS -->
+    <section class="options-section" id="options">
+        <div class="container">
+            <p class="section-eyebrow">Going with the 30-Day Engine?</p>
+            <h2 class="section-title">Start with a call,<br>then build from there.</h2>
+            <div class="options-grid">
+                <div class="option-card">
+                    <span class="option-tag">Step 1 – Free</span>
+                    <div class="option-price">UGX 0</div>
+                    <div class="option-desc">A short WhatsApp or phone call to understand your business and confirm whether the service fits.</div>
+                    <ul>
+                        <li>Maximum 15 minutes</li>
+                        <li>Basic needs assessment</li>
+                        <li>No content plan produced yet</li>
+                        <li>No filming date held</li>
+                    </ul>
+                    <a href="tel:0702086935" class="btn-ghost btn-option">Book Free Call</a>
+                </div>
+                <div class="option-card" style="border:1px solid var(--red); background:var(--bg-mid);">
+                    <span class="option-tag">Step 2 – Lock in</span>
+                    <div class="option-price">UGX 200,000</div>
+                    <div class="option-desc">Secure the filming date and begin the planning process. This amount forms part of the UGX 900K package.</div>
+                    <ul>
+                        <li>Filming date reserved</li>
+                        <li>Business questionnaire unlocked</li>
+                        <li>Content planning begins</li>
+                        <li>Paid securely through Pesapal</li>
+                    </ul>
+                    <a href="./subscribe.html" class="btn-primary btn-option">Pay 200K Deposit</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- FAQ -->
     <section class="faq-section" id="faq">
         <div class="container">
             <p class="section-eyebrow">Frequently asked questions</p>
-            <h2 class="section-title">Creator Rewards first.<br>DFY when you need it.</h2>
+            <h2 class="section-title">What you need to know<br>before you book.</h2>
             <div class="faq-grid">
                 <div class="faq-item">
                     <button class="faq-question" onclick="toggleFaq(this)">
-                        What is Boujee Creator Rewards?
+                        How do I become a Runner and start earning?
                         <span class="icon">+</span>
                     </button>
-                    <div class="faq-answer">It is a campaign system where businesses set a budget, creators submit eligible short-form videos, and creator rewards are calculated from verified views under the campaign rules.</div>
+                    <div class="faq-answer">
+                        Call or WhatsApp us to get added to active campaigns. Once you're in, you pick a campaign, post a short-form video about the business, and submit the link so we can track its views. There's no fee to join and no minimum follower count.
+                    </div>
                 </div>
                 <div class="faq-item">
                     <button class="faq-question" onclick="toggleFaq(this)">
-                        How is the campaign budget divided?
+                        How does BoujeePhoto verify views before paying Runners?
                         <span class="icon">+</span>
                     </button>
-                    <div class="faq-answer">The current structure shown on this site allocates 25% as the BoujeePhoto platform fee and 75% to the creator reward pool.</div>
+                    <div class="faq-answer">
+                        We check each submitted video's public view count directly on the platform it was posted to before it counts toward a payout. Only genuine, organic views are counted — no bots or paid views.
+                    </div>
                 </div>
                 <div class="faq-item">
                     <button class="faq-question" onclick="toggleFaq(this)">
-                        How much do creators earn?
+                        As a business, how fast will my campaign budget be used?
                         <span class="icon">+</span>
                     </button>
-                    <div class="faq-answer">The listed rate is 2,000 UGX per 1,000 verified views, subject to the campaign rules and a maximum payout of 10,000 UGX per video unless a campaign states otherwise.</div>
+                    <div class="faq-answer">
+                        It depends on how many Runners post and how well the videos perform. Your budget is protected either way: the campaign pays out only as verified views come in, and it pauses automatically once the pool is spent or after 2 months, whichever comes first.
+                    </div>
                 </div>
                 <div class="faq-item">
                     <button class="faq-question" onclick="toggleFaq(this)">
-                        What can a business track?
+                        What does the 200,000 UGX deposit cover, and do I lose it if I proceed with the full package?
                         <span class="icon">+</span>
                     </button>
-                    <div class="faq-answer">The campaign experience is designed to surface the numbers that matter most: verified views, content submissions, active creators, reward-pool usage and campaign status.</div>
+                    <div class="faq-answer">
+                        The deposit reserves the filming date and starts planning; if you book the full package within 7 days of paying, the deposit is fully credited toward the 900,000 UGX monthly fee — no second payment for that amount.
+                    </div>
                 </div>
                 <div class="faq-item">
                     <button class="faq-question" onclick="toggleFaq(this)">
-                        Is Done-for-You Content still available?
+                        Do you guarantee views or engagement on the 30-Day Engine?
                         <span class="icon">+</span>
                     </button>
-                    <div class="faq-answer">Yes. It is now the second service. The 900,000 UGX monthly package includes 30 vertical videos, planning, filming, editing and posting to one selected social platform.</div>
+                    <div class="faq-answer">
+                        Yes. We guarantee <strong>at least 30,000 combined organic views</strong> across the 30 videos within 30 days of posting. If we don't reach that target, we'll continue to create and promote additional content at no extra charge until we do — or refund your deposit. Organic reach only; no paid views or bots.
+                    </div>
                 </div>
                 <div class="faq-item">
                     <button class="faq-question" onclick="toggleFaq(this)">
-                        What does the 200,000 UGX DFY deposit cover?
+                        What platforms do you post to?
                         <span class="icon">+</span>
                     </button>
-                    <div class="faq-answer">It reserves the filming date and begins planning. If you proceed with the full package within 7 days, it is credited toward the 900,000 UGX monthly fee.</div>
+                    <div class="faq-answer">
+                        We post to one social platform of your choice (TikTok, Instagram Reels, YouTube Shorts, or Facebook). We can discuss a multi‑platform strategy during your consultation.
+                    </div>
                 </div>
                 <div class="faq-item">
                     <button class="faq-question" onclick="toggleFaq(this)">
-                        What if the DFY business is outside Kampala?
+                        What if my business is outside Kampala?
                         <span class="icon">+</span>
                     </button>
-                    <div class="faq-answer">Transport outside Kampala can be quoted separately during the discovery call.</div>
+                    <div class="faq-answer">
+                        We quote transport separately. The consultation fee covers the on‑site meeting within Kampala. For locations outside, we'll provide a custom quote.
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- FOOTER -->
     <footer>
         <div class="footer-inner">
             <div class="footer-top">
@@ -1709,32 +1634,32 @@
                         <img src="b.png" alt="BoujeePhoto" class="logo-img" style="width:36px;height:36px;object-fit:contain;">
                         <span class="nav-logo-text">Boujee<span>Photo</span></span>
                     </a>
-                    <p>Creator Rewards for measurable visibility and creator earnings — plus done-for-you short-form content for businesses that want BoujeePhoto to handle the full process.</p>
+                    <p>Uganda's platform connecting Runners who post content with businesses who need it. Earn per view, or launch a campaign and pay per view.</p>
                 </div>
                 <div class="footer-col">
-                    <h4>Creator Rewards</h4>
+                    <h4>Navigation</h4>
                     <ul>
-                        <li><a href="#for-businesses">For Businesses</a></li>
-                        <li><a href="#for-creators">For Creators</a></li>
-                        <li><a href="#how-it-works">How it works</a></li>
-                        <li><a href="./rewards.html" style="color:var(--red);font-weight:700;">Start a Campaign</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>More</h4>
-                    <ul>
-                        <li><a href="#dfy-content">Done-for-You Content</a></li>
+                        <li><a href="./rewards.html" style="color: var(--red); font-weight: 700;">For Runners</a></li>
+                        <li><a href="./dashboard.html" style="color: var(--red); font-weight: 700;">For Businesses</a></li>
+                        <li><a href="#package">The 30-Day Engine</a></li>
+                        <li><a href="#core-issue">Why it works</a></li>
+                        <li><a href="#options">Reserve</a></li>
                         <li><a href="#faq">FAQ</a></li>
-                        <li><a href="./policy-terms.html">Policy &amp; Terms</a></li>
                     </ul>
-                    <h4 style="margin-top:24px;">Contact</h4>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
                     <ul>
                         <li><a href="tel:0702086935">0702 086 935</a></li>
                         <li><a href="tel:0788476739">0788 476 739</a></li>
-                        <li><a href="https://www.tiktok.com/@boujeephoto" target="_blank" rel="noopener">TikTok</a></li>
-                        <li><a href="https://youtube.com/@boujeephoto" target="_blank" rel="noopener">YouTube</a></li>
-                        <li><a href="https://www.instagram.com/boujee.photo" target="_blank" rel="noopener">Instagram</a></li>
-                        <li><a href="https://www.facebook.com/362204604445328" target="_blank" rel="noopener">Facebook</a></li>
+                        <li><a href="https://www.tiktok.com/@boujeephoto" target="_blank">TikTok</a></li>
+                        <li><a href="https://youtube.com/@boujeephoto" target="_blank">YouTube</a></li>
+                        <li><a href="https://www.instagram.com/boujee.photo" target="_blank">Instagram</a></li>
+                        <li><a href="https://www.facebook.com/362204604445328" target="_blank">Facebook</a></li>
+                    </ul>
+                    <h4 style="margin-top:24px;">Legal</h4>
+                    <ul>
+                        <li><a href="./policy-terms.html">Policy &amp; Terms</a></li>
                     </ul>
                 </div>
             </div>
@@ -1794,5 +1719,6 @@
 
         document.querySelector('.faq-item')?.classList.add('open');
     </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"db0279dfbe7e494f92b2a5e5a50ae9b1","r":1}' crossorigin="anonymous"></script>
 </body>
-                                                            </html>
+    </html>
