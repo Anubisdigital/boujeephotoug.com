@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* All styles exactly the same as before */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root, [data-theme="dark"] { --bg: #000000; --bg-mid: #1a1a1a; --bg-card: #111111; --line: #222222; --text: #ffffff; --text-muted: #888888; --text-light: #cccccc; --red: #E8000D; --font-main: 'Space Grotesk', sans-serif; --font-mono: 'Space Mono', monospace; }
         [data-theme="light"] { --bg: #f5f5f5; --bg-mid: #ebebeb; --bg-card: #ffffff; --line: #dddddd; --text: #000000; --text-muted: #666666; --text-light: #333333; --red: #E8000D; }
@@ -55,6 +54,12 @@
         .field-error { font-size: 12px; color: var(--red); font-family: var(--font-mono); display: none; }
         .field-error.show { display: block; }
 
+        .forgot-link {
+            text-align: right; font-size: 13px; margin-top: -8px;
+        }
+        .forgot-link a { color: var(--text-muted); text-decoration: none; cursor: pointer; }
+        .forgot-link a:hover { color: var(--red); }
+
         .btn-submit { background: var(--red); color: #fff; border: none; font-family: var(--font-main); font-size: 15px; font-weight: 700; padding: 16px 32px; cursor: pointer; width: 100%; transition: opacity 0.2s; letter-spacing: 0.3px; position: relative; }
         .btn-submit:hover { opacity: 0.85; }
         .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -63,10 +68,46 @@
         .btn-submit.loading { pointer-events: none; }
         @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
 
+        .btn-ghost {
+            background: transparent; color: var(--text); border: 1px solid var(--line);
+            font-family: var(--font-main); font-size: 14px; font-weight: 600; padding: 13px 20px;
+            cursor: pointer; transition: border-color 0.2s; width: 100%;
+        }
+        .btn-ghost:hover { border-color: var(--text); }
+        .btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+
         .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--bg-mid); border: 1px solid var(--line); color: var(--text); font-size: 14px; padding: 14px 24px; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; z-index: 999; white-space: nowrap; font-family: var(--font-mono); }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast.error { border-color: var(--red); color: var(--red); }
         .toast.success { border-color: #22c55e; color: #22c55e; }
+
+        /* ── FORGOT PASSWORD MODAL ── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000;
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: var(--bg-mid); border: 1px solid var(--line); padding: 32px;
+            max-width: 420px; width: 100%;
+        }
+        .modal-close {
+            position: absolute; top: 16px; right: 16px; background: none; border: none;
+            color: var(--text-muted); font-size: 20px; cursor: pointer; line-height: 1;
+        }
+        .modal-close:hover { color: var(--text); }
+        .modal { position: relative; }
+        .modal h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.3px; }
+        .modal p.modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+        .modal .field { margin-bottom: 16px; }
+        .modal-step { display: none; }
+        .modal-step.active { display: block; }
+        .code-input {
+            font-family: var(--font-mono); font-size: 22px; letter-spacing: 8px; text-align: center;
+        }
+        .resend-row { text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 16px; }
+        .resend-row a { color: var(--red); text-decoration: none; cursor: pointer; }
+        .resend-row a.disabled { color: var(--text-muted); pointer-events: none; }
 
         @media (max-width: 900px) { nav { padding: 0 20px; } .page { grid-template-columns: 1fr; } .left-panel { display: none; } .right-panel { padding: 48px 24px; justify-content: flex-start; padding-top: 48px; } }
     </style>
@@ -118,11 +159,67 @@
                     <span class="field-error" id="passwordErr">Enter your password</span>
                 </div>
 
+                <div class="forgot-link">
+                    <a id="forgotPasswordLink">Forgot password?</a>
+                </div>
+
                 <button type="submit" class="btn-submit" id="submitBtn">
                     Log in
                     <span class="spinner"></span>
                 </button>
             </form>
+        </div>
+    </div>
+
+    <!-- ══════════ FORGOT PASSWORD MODAL ══════════ -->
+    <div class="modal-overlay" id="resetModal">
+        <div class="modal">
+            <button class="modal-close" id="closeResetModal" type="button">&#x2715;</button>
+
+            <!-- STEP 1: enter email -->
+            <div class="modal-step active" id="resetStep1">
+                <h2>Reset your password</h2>
+                <p class="modal-sub">Enter the email on your account and we'll send you a 6-digit code.</p>
+                <div class="field">
+                    <label for="resetEmail">Email address</label>
+                    <input type="email" id="resetEmail" placeholder="you@example.com" autocomplete="email">
+                    <span class="field-error" id="resetEmailErr">Enter a valid email address</span>
+                </div>
+                <button type="button" class="btn-submit" id="requestCodeBtn">
+                    Send code
+                    <span class="spinner"></span>
+                </button>
+            </div>
+
+            <!-- STEP 2: enter code + new password -->
+            <div class="modal-step" id="resetStep2">
+                <h2>Enter your code</h2>
+                <p class="modal-sub">We sent a 6-digit code to <strong id="resetEmailDisplay"></strong>. It expires in 24 minutes.</p>
+                <div class="field">
+                    <label for="resetCode">6-digit code</label>
+                    <input type="text" id="resetCode" class="code-input" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+                    <span class="field-error" id="resetCodeErr">Enter the 6-digit code</span>
+                </div>
+                <div class="field">
+                    <label for="newPassword">New password</label>
+                    <input type="password" id="newPassword" placeholder="At least 8 characters" autocomplete="new-password">
+                    <span class="field-error" id="newPasswordErr">Password must be at least 8 characters</span>
+                </div>
+                <button type="button" class="btn-submit" id="verifyResetBtn">
+                    Reset password
+                    <span class="spinner"></span>
+                </button>
+                <div class="resend-row">
+                    Didn't get it? <a id="resendCodeLink">Resend code</a>
+                </div>
+            </div>
+
+            <!-- STEP 3: success -->
+            <div class="modal-step" id="resetStep3">
+                <h2>Password updated</h2>
+                <p class="modal-sub">Your password has been reset. You can log in now with your new password.</p>
+                <button type="button" class="btn-ghost" id="backToLoginBtn">Back to log in</button>
+            </div>
         </div>
     </div>
 
@@ -132,6 +229,7 @@
         // ── CONFIG ──
         const FIREBASE_API_KEY    = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
         const FIREBASE_PROJECT_ID = 'boujee-academy';
+        const OTP_WORKER_URL      = 'https://boujee-otp-worker.kakoozaronald71.workers.dev';
 
         // ── THEME ──
         const saved = localStorage.getItem('theme') || 'dark';
@@ -164,7 +262,7 @@
         // ── LOGIN HANDLER ──
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
 
@@ -216,15 +314,12 @@
                     return;
                 }
 
-                // ── SAVE SESSION ──
                 localStorage.setItem('ba_token', data.idToken);
                 localStorage.setItem('ba_uid', data.localId);
                 localStorage.setItem('ba_email', data.email);
                 localStorage.setItem('ba_name', data.displayName || 'User');
-                localStorage.setItem('ba_refresh_token', data.refreshToken);  // ✅ ADDED THIS LINE
+                localStorage.setItem('ba_refresh_token', data.refreshToken);
 
-                // ── CHECK ROLE & REDIRECT ──
-                // 1. Check if Business (users collection)
                 const userCheck = await fetch(
                     `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/users/${data.localId}`,
                     { headers: { Authorization: `Bearer ${data.idToken}` } }
@@ -235,7 +330,6 @@
                     return;
                 }
 
-                // 2. Check if Runner (runners collection)
                 const runnerCheck = await fetch(
                     `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/runners/${data.localId}`,
                     { headers: { Authorization: `Bearer ${data.idToken}` } }
@@ -246,7 +340,6 @@
                     return;
                 }
 
-                // 3. If neither (orphaned account), send to business signup to re-onboard
                 showToast('Please finish setting up your profile.', 'error');
                 setTimeout(() => { window.location.href = '/signup.html'; }, 1500);
 
@@ -258,8 +351,158 @@
             }
         });
 
-        // ── ERROR CLEAR ON INPUT ──
         ['email', 'password'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => {
+                    clearErr(id + 'Err');
+                    setInputError(id, false);
+                });
+            }
+        });
+
+        // ══════════════════════════════════════════════════════════
+        // FORGOT PASSWORD FLOW
+        // ══════════════════════════════════════════════════════════
+        let resetEmail = '';
+        let resendCooldown = 0;
+        let resendTimer = null;
+
+        function openResetModal() {
+            document.getElementById('resetModal').classList.add('open');
+            showResetStep(1);
+            const loginEmail = document.getElementById('email').value.trim();
+            if (loginEmail) document.getElementById('resetEmail').value = loginEmail;
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').classList.remove('open');
+        }
+
+        function showResetStep(n) {
+            document.querySelectorAll('.modal-step').forEach(s => s.classList.remove('active'));
+            document.getElementById(`resetStep${n}`).classList.add('active');
+        }
+
+        document.getElementById('forgotPasswordLink').addEventListener('click', openResetModal);
+        document.getElementById('closeResetModal').addEventListener('click', closeResetModal);
+        document.getElementById('backToLoginBtn').addEventListener('click', closeResetModal);
+        document.getElementById('resetModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeResetModal();
+        });
+
+        async function requestResetCode() {
+            const email = document.getElementById('resetEmail').value.trim();
+            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRe.test(email)) {
+                showErr('resetEmailErr'); setInputError('resetEmail', true);
+                return;
+            }
+            clearErr('resetEmailErr'); setInputError('resetEmail', false);
+
+            const btn = document.getElementById('requestCodeBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${OTP_WORKER_URL}/request-reset`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email }),
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showToast(data.error || 'Could not send code. Please try again.', 'error');
+                    return;
+                }
+
+                resetEmail = email;
+                document.getElementById('resetEmailDisplay').textContent = email;
+                document.getElementById('resetCode').value = '';
+                document.getElementById('newPassword').value = '';
+                showResetStep(2);
+                startResendCooldown();
+                showToast('If an account exists, a code has been sent.', 'success');
+            } catch (err) {
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        }
+
+        function startResendCooldown() {
+            resendCooldown = 30;
+            const link = document.getElementById('resendCodeLink');
+            link.classList.add('disabled');
+            clearInterval(resendTimer);
+            resendTimer = setInterval(() => {
+                resendCooldown--;
+                if (resendCooldown <= 0) {
+                    clearInterval(resendTimer);
+                    link.textContent = 'Resend code';
+                    link.classList.remove('disabled');
+                } else {
+                    link.textContent = `Resend code (${resendCooldown}s)`;
+                }
+            }, 1000);
+        }
+
+        document.getElementById('requestCodeBtn').addEventListener('click', requestResetCode);
+        document.getElementById('resendCodeLink').addEventListener('click', () => {
+            if (resendCooldown > 0) return;
+            requestResetCode();
+        });
+
+        document.getElementById('verifyResetBtn').addEventListener('click', async () => {
+            const code = document.getElementById('resetCode').value.trim();
+            const newPassword = document.getElementById('newPassword').value;
+
+            let valid = true;
+            if (!/^\d{6}$/.test(code)) {
+                showErr('resetCodeErr'); setInputError('resetCode', true); valid = false;
+            } else {
+                clearErr('resetCodeErr'); setInputError('resetCode', false);
+            }
+            if (newPassword.length < 8) {
+                showErr('newPasswordErr'); setInputError('newPassword', true); valid = false;
+            } else {
+                clearErr('newPasswordErr'); setInputError('newPassword', false);
+            }
+            if (!valid) return;
+
+            const btn = document.getElementById('verifyResetBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${OTP_WORKER_URL}/verify-and-reset`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: resetEmail, code, newPassword }),
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showErr('resetCodeErr', data.error || 'Invalid or expired code');
+                    setInputError('resetCode', true);
+                    showToast(data.error || 'Could not reset password.', 'error');
+                    return;
+                }
+
+                clearInterval(resendTimer);
+                showResetStep(3);
+                document.getElementById('email').value = resetEmail;
+            } catch (err) {
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        });
+
+        ['resetEmail', 'resetCode', 'newPassword'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 el.addEventListener('input', () => {
