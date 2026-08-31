@@ -119,6 +119,39 @@
         .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
         .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
 
+        /* Campaign Documents */
+        .campaign-docs { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 8px; 
+            margin-top: 12px; 
+            padding-top: 12px; 
+            border-top: 1px solid var(--line);
+        }
+        .doc-thumb {
+            width: 48px; 
+            height: 48px; 
+            object-fit: cover; 
+            border-radius: 4px; 
+            border: 1px solid var(--line);
+            cursor: pointer;
+            display: block;
+        }
+        .doc-thumb:hover { border-color: var(--text-muted); }
+        .doc-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 4px 8px;
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 4px;
+        }
+        .doc-link:hover { border-color: var(--text-muted); color: var(--text); }
+
         @media (max-width: 900px) {
             nav { padding: 0 20px; }
             .grid-2 { grid-template-columns: 1fr; }
@@ -289,8 +322,26 @@
             businessPayment: parseInt(f.businessPayment?.integerValue || '0', 10),
             poolRemaining: parseInt(f.poolRemaining?.integerValue || '0', 10),
             maxPayoutPerVideo: parseInt(f.maxPayoutPerVideo?.integerValue || '10000', 10),
-            status: f.status?.stringValue || 'unknown'
+            status: f.status?.stringValue || 'unknown',
+            documents: (f.documents?.arrayValue?.values || []).map(v => ({
+              url: v.mapValue?.fields?.url?.stringValue || '',
+              documentType: v.mapValue?.fields?.documentType?.stringValue || '',
+            }))
           };
+        }
+
+        function renderCampaignDocuments(documents) {
+            if (!documents || documents.length === 0) return '';
+            const html = documents.map(doc => {
+                if (doc.documentType === 'image' && doc.url) {
+                    return `<a href="${doc.url}" target="_blank" rel="noopener"><img src="${doc.url}" class="doc-thumb" alt="Campaign material"></a>`;
+                }
+                if ((doc.documentType === 'pdf' || doc.documentType === 'txt') && doc.url) {
+                    return `<a href="${doc.url}" target="_blank" rel="noopener" class="doc-link">📄 Document</a>`;
+                }
+                return '';
+            }).join('');
+            return html ? `<div class="campaign-docs">${html}</div>` : '';
         }
 
         // ── INIT ──
@@ -441,6 +492,26 @@
                 }
             }
 
+            // Fetch documents for all campaigns that don't have them yet
+            const campaignsToEnrich = [...available, ...joined].filter(c => !c.documents);
+            if (campaignsToEnrich.length > 0) {
+                const enrichedCampaigns = await Promise.all(
+                    campaignsToEnrich.map(async c => {
+                        const enriched = await fetchCampaignById(c.orderTrackingId);
+                        return enriched || c;
+                    })
+                );
+                
+                // Replace in arrays
+                campaignsToEnrich.forEach((camp, idx) => {
+                    const enriched = enrichedCampaigns[idx];
+                    const inAvailable = available.indexOf(camp);
+                    if (inAvailable !== -1) available[inAvailable] = enriched;
+                    const inJoined = joined.indexOf(camp);
+                    if (inJoined !== -1) joined[inJoined] = enriched;
+                });
+            }
+
             // RENDER AVAILABLE CAMPAIGNS
             const availEl = document.getElementById('availableCampaigns');
             availEl.innerHTML = '';
@@ -452,6 +523,7 @@
                 available.forEach(c => {
                     const card = document.createElement('div');
                     card.className = 'card';
+                    const docsHtml = renderCampaignDocuments(c.documents);
                     card.innerHTML = `
                         <div class="label">${c.businessName || 'Campaign'}</div>
                         <div class="value">${formatMoney(c.businessPayment || c.budget)}</div>
@@ -459,6 +531,7 @@
                             Pool: ${formatMoney(c.poolRemaining)} left<br>
                             Max per video: ${formatMoney(c.maxPayoutPerVideo)}
                         </div>
+                        ${docsHtml}
                         <button class="btn-primary" style="width:100%;" onclick="joinCampaign('${c.orderTrackingId}')">Join Campaign</button>
                     `;
                     availEl.appendChild(card);
