@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boujee Insights</title>
+  <style>
+    /* RESET & BASE SHARP STYLES (0px Border Radius Everywhere) */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border-radius: 0px !important; /* Strictly 0px border radius */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* CONTAINER */
+    .app-card {
+      width: 100%;
+      max-width: 480px;
+      background: #0a0a0a;
+      border: 1px solid #dc2626;
+      box-shadow: 0 0 20px rgba(220, 38, 38, 0.15);
+      padding: 30px;
+    }
+
+    /* HEADER & LOGO */
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .brand-logo {
+      height: 60px;
+      width: auto;
+      object-fit: contain;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #ffffff;
+    }
+
+    .brand-title span {
+      color: #dc2626;
+    }
+
+    /* FORM CONTROLS */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #a1a1aa;
+      margin-bottom: 6px;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    textarea {
+      width: 100%;
+      background-color: #121212;
+      border: 1px solid #27272a;
+      color: #ffffff;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: #dc2626;
+      background-color: #18181b;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    /* SHARP RED BUTTON */
+    .btn-red {
+      width: 100%;
+      background-color: #dc2626;
+      color: #ffffff;
+      border: 1px solid #ef4444;
+      padding: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn-red:hover {
+      background-color: #b91c1c;
+    }
+
+    .btn-red:disabled {
+      background-color: #450a0a;
+      border-color: #7f1d1d;
+      color: #78716c;
+      cursor: not-allowed;
+    }
+
+    /* RESPONSE DISPLAY BOX */
+    .response-box {
+      margin-top: 20px;
+      padding: 14px;
+      background-color: #121212;
+      border-left: 3px solid #dc2626;
+      font-size: 0.9rem;
+      color: #d4d4d8;
+      line-height: 1.5;
+      display: none;
+      word-break: break-word;
+    }
+
+    /* NAV TAB CONTROLS */
+    .tab-bar {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #27272a;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #71717a;
+      padding: 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      color: #dc2626;
+      border-bottom: 2px solid #dc2626;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-card">
+    <!-- BRAND HEADER -->
+    <div class="header">
+      <img src="b.png" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
+      <div class="brand-title">BOUJEE <span>INSIGHTS</span></div>
+    </div>
+
+    <!-- TAB SWITCHER -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-login-btn" onclick="switchTab('login')">1. AUTHENTICATE</button>
+      <button class="tab-btn" id="tab-ask-btn" onclick="switchTab('ask')">2. QUERY</button>
+    </div>
+
+    <!-- SECTION 1: LOGIN FORM -->
+    <div id="section-login">
+      <form id="login-form">
+        <div class="form-group">
+          <label for="firebase-key">Firebase API Key</label>
+          <input type="password" id="firebase-key" placeholder="AIzaSy..." required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" value="ronaldkakooza72@gmail.com" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required>
+        </div>
+        <button type="submit" id="login-submit-btn" class="btn-red">GET ID TOKEN</button>
+      </form>
+    </div>
+
+    <!-- SECTION 2: QUERY BOX & SEND BUTTON -->
+    <div id="section-ask" class="hidden">
+      <form id="ask-form">
+        <div class="form-group">
+          <label for="question">Ask Analytics Engine</label>
+          <textarea id="question" placeholder="e.g. Give me a breakdown of active campaigns and total user submissions." required></textarea>
+        </div>
+        <button type="submit" id="ask-submit-btn" class="btn-red">SEND QUERY</button>
+      </form>
+    </div>
+
+    <!-- OUTPUT RESPONSE DISPLAY -->
+    <div id="output-box" class="response-box"></div>
+  </div>
+
+  <script>
+    const WORKER_URL = "https://boujee-insights-worker.kakoozaronald71.workers.dev/ask";
+    let activeToken = "";
+
+    // Tab Navigation Switcher
+    function switchTab(tab) {
+      const loginSection = document.getElementById("section-login");
+      const askSection = document.getElementById("section-ask");
+      const loginTabBtn = document.getElementById("tab-login-btn");
+      const askTabBtn = document.getElementById("tab-ask-btn");
+
+      if (tab === 'login') {
+        loginSection.classList.remove("hidden");
+        askSection.classList.add("hidden");
+        loginTabBtn.classList.add("active");
+        askTabBtn.classList.remove("active");
+      } else {
+        loginSection.classList.add("hidden");
+        askSection.classList.remove("hidden");
+        loginTabBtn.classList.remove("active");
+        askTabBtn.classList.add("active");
+      }
+    }
+
+    // 1. Authentication Request
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const apiKey = document.getElementById("firebase-key").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const btn = document.getElementById("login-submit-btn");
+      const output = document.getElementById("output-box");
+
+      btn.disabled = true;
+      btn.innerText = "AUTHENTICATING...";
+      output.style.display = "none";
+
+      try {
+        const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, returnSecureToken: true })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error?.message || "Authentication failed");
+
+        activeToken = data.idToken;
+        output.style.display = "block";
+        output.style.borderLeftColor = "#22c55e";
+        output.innerText = "AUTHENTICATION SUCCESSFUL. Token stored.";
+        
+        setTimeout(() => switchTab('ask'), 1000);
+      } catch (err) {
+        output.style.display = "block";
+        output.style.borderLeftColor = "#dc2626";
+        output.innerText = "Error: " + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "GET ID TOKEN";
+      }
+    });
+
+    // 2. Query Dispatch Request
+    document.getElementById("ask-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const question = document.getElementById("question").value.trim();
+      const btn = document.getElementById("ask-submit-btn");
+      const output = document.getElementById("output-box");
+
+      if (!activeToken) {
+        output.style.display = "block";
+        output.style.borderLeftColor = "#dc2626";
+        output.innerText = "Please authenticate first to obtain an ID token.";
+        switchTab('login');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "SENDING...";
+      output.style.display = "block";
+      output.style.borderLeftColor = "#dc2626";
+      output.innerText = "Processing query...";
+
+      try {
+        const res = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken: activeToken, question })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to fetch answer");
+
+        output.style.borderLeftColor = "#dc2626";
+        output.innerText = data.answer || JSON.stringify(data);
+      } catch (err) {
+        output.style.borderLeftColor = "#dc2626";
+        output.innerText = "Error: " + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "SEND QUERY";
+      }
+    });
+  </script>
+</body>
+</html>
