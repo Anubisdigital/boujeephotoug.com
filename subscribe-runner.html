@@ -379,17 +379,35 @@
             if (input) input.classList.toggle('error', hasError);
         }
 
+        // Helper function to normalize phone number for validation
+        function normalizePhone(phone) {
+            // Strip all non-digits
+            let digits = phone.replace(/\D/g, '');
+            
+            // If it starts with "256" and has 12 digits, convert to local format
+            if (digits.startsWith('256') && digits.length === 12) {
+                digits = '0' + digits.slice(3);
+            }
+            
+            return digits;
+        }
+
+        // Helper function to normalize TikTok handle
+        function normalizeTikTokHandle(handle) {
+            return handle.trim().replace(/^@/, '');
+        }
+
         function validate() {
             let valid = true;
 
             const firstName = document.getElementById('firstName').value.trim();
             const lastName  = document.getElementById('lastName').value.trim();
             const email     = document.getElementById('email').value.trim();
-            const phone     = document.getElementById('phone').value.trim();
+            const phoneRaw  = document.getElementById('phone').value.trim();
             const password  = document.getElementById('password').value;
             const confirm   = document.getElementById('confirmPassword').value;
             const terms     = document.getElementById('terms').checked;
-            const tiktokHandle = document.getElementById('tiktokHandle').value.trim();
+            const tiktokHandleRaw = document.getElementById('tiktokHandle').value;
 
             if (!firstName) {
                 showErr('firstNameErr'); setInputError('firstName', true); valid = false;
@@ -410,14 +428,17 @@
                 clearErr('emailErr'); setInputError('email', false);
             }
 
-            const phoneClean = phone.replace(/\s/g, '');
+            // Phone validation with normalization
+            const phoneNormalized = normalizePhone(phoneRaw);
             const phoneRe    = /^(07|03)\d{8}$/;
-            if (!phoneRe.test(phoneClean)) {
+            if (!phoneRe.test(phoneNormalized)) {
                 showErr('phoneErr'); setInputError('phone', true); valid = false;
             } else {
                 clearErr('phoneErr'); setInputError('phone', false);
             }
 
+            // TikTok handle normalization
+            const tiktokHandle = normalizeTikTokHandle(tiktokHandleRaw);
             if (!tiktokHandle) {
                 showErr('tiktokHandleErr'); setInputError('tiktokHandle', true); valid = false;
             } else {
@@ -445,7 +466,7 @@
             return {
                 valid,
                 firstName, lastName, email,
-                phone: phoneClean,
+                phone: phoneNormalized,
                 password,
                 tiktokHandle
             };
@@ -618,7 +639,7 @@
                 }
 
                 setTimeout(() => {
-                    window.location.href = '/rewards.html';
+                    window.location.href = '/records.html';
                 }, 1500);
 
             } catch (err) {
