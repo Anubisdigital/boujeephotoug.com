@@ -852,9 +852,10 @@
         <div class="card-body">
           <div class="field">
             <label for="recipientPicker">Recipient</label>
-            <select id="recipientPicker" onchange="handleRecipientChange()">
+            <select id="recipientPicker" onchange="handleRecipientChange()" style="min-height: 120px;">
               <option value="">— Select a recipient —</option>
             </select>
+            <p class="field-hint">Select from the list or type a phone number below</p>
           </div>
           <div class="field">
             <label for="manualPhone">Or type a phone number</label>
@@ -938,11 +939,11 @@
       </div>
     </div>
 
-    <!-- Campaign Details Modal -->
+    <!-- Campaign Details Modal with Business Details -->
     <div class="modal-overlay" id="campaignDetailsModal">
-      <div class="modal-box">
+      <div class="modal-box" style="max-width: 700px;">
         <div class="modal-head">
-          <span class="modal-title">Campaign details</span>
+          <span class="modal-title">Business Details & Campaign Info</span>
           <button class="modal-close" onclick="closeModal('campaignDetailsModal')">&times;</button>
         </div>
         <div class="modal-body" id="campaignDetailsBody">
@@ -961,6 +962,7 @@
   const ADMIN_WORKER = 'https://boujee-admin-worker.kakoozaronald71.workers.dev';
   const OPS_WORKER = 'https://boujee-ops-worker.kakoozaronald71.workers.dev';
   const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
+  const FIREBASE_PROJECT_ID = 'boujee-academy';
 
   // ── STATE ──
   let idToken = null;
@@ -1183,7 +1185,7 @@
       const [usersRes, bookingsRes, campaignsRes, submissionsRes, auditRes] = await Promise.all([
         callAdmin('/list-users'),
         callAdmin('/list-bookings'),
-        callOps('/admin/list-all-campaigns'),
+        callAdmin('/list-campaigns'),
         callOps('/admin/list-all-submissions'),
         callAdmin('/get-audit-log'),
       ]);
@@ -1199,15 +1201,6 @@
       
       const openSubs = submissionsData.filter(s => s.status !== 'rejected' && s.status !== 'approved').length;
       document.getElementById('statOpenSubmissions').textContent = openSubs;
-
-      const totalRevenue = bookingsData.reduce((sum, b) => sum + (b.amount || 0), 0);
-      document.getElementById('statDepositRevenue').textContent = `${totalRevenue.toLocaleString()} UGX`;
-
-      const openRollovers = bookingsData.filter(b => {
-        if (!b.rollsIntoPackageUntil) return false;
-        return new Date(b.rollsIntoPackageUntil) > new Date();
-      });
-      document.getElementById('statOpenRollovers').textContent = openRollovers.length;
 
       renderOverviewAudit(auditRes.entries || []);
     } catch (err) {
@@ -1323,11 +1316,11 @@
   }
 
   // ════════════════════════════════════════════════════════
-  // CAMPAIGNS (from Ops Worker)
+  // CAMPAIGNS (from Admin Worker)
   // ════════════════════════════════════════════════════════
   async function loadCampaigns() {
     try {
-      const data = await callOps('/admin/list-all-campaigns');
+      const data = await callAdmin('/list-campaigns');
       campaignsData = data.campaigns || [];
       renderCampaignsTable();
     } catch (err) {
@@ -1344,9 +1337,9 @@
     }
 
     body.innerHTML = campaignsData.map(c => {
-      const statusBadge = c.isExpired ? 
-        '<span class="badge expired">Expired</span>' : 
-        '<span class="badge active">Active</span>';
+      const statusBadge = c.status === 'active' ? 
+        '<span class="badge active">Active</span>' : 
+        '<span class="badge expired">Expired</span>';
       return `
         <tr>
           <td>${escapeHtml(c.businessName || '—')}</td>
@@ -1356,7 +1349,7 @@
           <td>${statusBadge}</td>
           <td>
             <div class="row-actions">
-              <button class="btn-secondary btn-small" onclick="openCampaignDetails('${escapeAttr(c.orderTrackingId)}')">View</button>
+              <button class="btn-secondary btn-small" onclick="openCampaignDetails('${escapeAttr(c.orderTrackingId)}')">Business Details</button>
               <button class="btn-secondary btn-small" onclick="openExpiryModal('${escapeAttr(c.orderTrackingId)}')">Change expiry</button>
             </div>
           </td>
@@ -1378,7 +1371,7 @@
 
     const isoDate = new Date(expiresAt + 'T00:00:00').toISOString();
     try {
-      await callOps('/admin/override-campaign-expiry', { campaignId: window._currentCampaignId, expiresAt: isoDate });
+      await callAdmin('/close-campaign', { campaignId: window._currentCampaignId, expiresAt: isoDate });
       showToast('Expiry updated', 'success');
       closeModal('changeExpiryModal');
       loadCampaigns();
@@ -1387,43 +1380,118 @@
     }
   }
 
+  // Fetch campaign documents from Firestore using admin's token
+  async function fetchCampaignDocuments(campaignId) {
+    try {
+      const res = await fetch(
+        `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/campaigns/${campaignId}`,
+        { headers: { Authorization: `Bearer ${idToken}` } }
+      );
+      if (!res.ok) return null;
+      const doc = await res.json();
+      const f = doc.fields || {};
+      
+      // Extract documents from Firestore
+      const documents = (f.documents?.arrayValue?.values || []).map(v => ({
+        url: v.mapValue?.fields?.url?.stringValue || '',
+        documentType: v.mapValue?.fields?.documentType?.stringValue || '',
+      }));
+
+      return {
+        businessName: f.businessName?.stringValue || 'Campaign',
+        businessEmail: f.businessEmail?.stringValue || '',
+        businessPhone: f.businessPhone?.stringValue || '',
+        businessType: f.businessType?.stringValue || '',
+        documents: documents
+      };
+    } catch (err) {
+      console.error('Error fetching campaign documents:', err);
+      return null;
+    }
+  }
+
+  // Render documents (images and files)
+  function renderMaterials(documents) {
+    if (!documents || documents.length === 0) {
+      return '<div class="empty-state">No reference materials uploaded.</div>';
+    }
+
+    return `
+      <div style="margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px;">
+        <div style="font-size: 11px; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Reference Materials</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+          ${documents.map(doc => {
+            if (doc.documentType === 'image') {
+              return `<a href="${doc.url}" target="_blank" rel="noopener" style="display: inline-block; width: 80px; height: 80px; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--bg);">
+                <img src="${doc.url}" alt="Reference image" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+              </a>`;
+            } else {
+              return `<a href="${doc.url}" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-light); text-decoration: none; background: var(--bg); border: 1px solid var(--line); padding: 8px 12px; border-radius: 6px;">
+                <span>📄</span><span>${doc.documentType || 'Document'}</span>
+              </a>`;
+            }
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
   async function openCampaignDetails(campaignId) {
     try {
       const campaign = campaignsData.find(c => c.orderTrackingId === campaignId);
-      let docsHtml = '<div class="empty-state">Loading documents…</div>';
-      
-      // Attempt to fetch documents from the new route
-      try {
-        const docsRes = await callOps('/admin/get-campaign-documents', { campaignId });
-        const docs = docsRes.documents || [];
-        if (docs.length) {
-          docsHtml = docs.map(d => `
-            <a href="${escapeHtml(d.url)}" target="_blank" rel="noopener" 
-               style="display:block; margin-bottom:8px; color:var(--teal); text-decoration:none;">
-               📄 ${escapeHtml(d.documentType || 'document')}
-            </a>
-          `).join('');
-        } else {
-          docsHtml = '<div class="empty-state">No documents uploaded.</div>';
-        }
-      } catch {
-        docsHtml = '<div class="empty-state">⚠️ Document fetching requires the /admin/get-campaign-documents route to be added to boujee-ops-worker.js (not yet implemented).</div>';
-      }
+      if (!campaign) return;
 
+      // Fetch business details and documents from Firestore
+      const businessDetails = await fetchCampaignDocuments(campaignId);
+      
       const detailsHtml = `
-        <p style="margin-bottom:10px;"><strong>Business:</strong> ${escapeHtml(campaign.businessName || '—')}</p>
-        <p style="margin-bottom:10px;"><strong>Business Payment:</strong> ${(campaign.businessPayment || 0).toLocaleString()} UGX</p>
-        <p style="margin-bottom:10px;"><strong>Boujee Fee:</strong> ${(campaign.boujeeFee || 0).toLocaleString()} UGX</p>
-        <p style="margin-bottom:10px;"><strong>Creator Pool:</strong> ${(campaign.creatorPool || 0).toLocaleString()} UGX</p>
-        <p style="margin-bottom:10px;"><strong>Max Payout:</strong> ${(campaign.maxPayoutPerVideo || 0).toLocaleString()} UGX</p>
-        <p style="margin-bottom:10px;"><strong>Pool Remaining:</strong> ${(campaign.poolRemaining || 0).toLocaleString()} UGX</p>
-        <p style="margin-bottom:10px;"><strong>Status:</strong> ${campaign.isExpired ? 'Expired' : 'Active'}</p>
-        <p style="margin-bottom:10px;"><strong>Created:</strong> ${formatDate(campaign.createdAt)}</p>
-        <p style="margin-bottom:20px;"><strong>Expires:</strong> ${formatDate(campaign.expiresAt)}</p>
-        <div style="border-top:1px solid var(--line); padding-top:16px;">
-          <h4 style="margin-bottom:12px; font-family:var(--font-mono); font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted);">Reference documents</h4>
-          ${docsHtml}
+        <div style="margin-bottom: 16px;">
+          <h3 style="margin-bottom: 12px; font-size: 18px; font-weight: 700;">Campaign Details</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Business Name</p>
+              <p style="font-size: 15px; font-weight: 600;">${escapeHtml(campaign.businessName || businessDetails?.businessName || '—')}</p>
+            </div>
+            <div>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Business Type</p>
+              <p style="font-size: 15px; font-weight: 600;">${escapeHtml(businessDetails?.businessType || '—')}</p>
+            </div>
+            <div>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Business Payment</p>
+              <p style="font-size: 15px; font-weight: 600;">${(campaign.businessPayment || 0).toLocaleString()} UGX</p>
+            </div>
+            <div>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Boujee Fee</p>
+              <p style="font-size: 15px; font-weight: 600;">${(campaign.boujeeFee || 0).toLocaleString()} UGX</p>
+            </div>
+            <div>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Creator Pool</p>
+              <p style="font-size: 15px; font-weight: 600;">${(campaign.creatorPool || 0).toLocaleString()} UGX</p>
+            </div>
+            <div>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Pool Remaining</p>
+              <p style="font-size: 15px; font-weight: 600;">${(campaign.poolRemaining || 0).toLocaleString()} UGX</p>
+            </div>
+            <div>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Max Payout Per Video</p>
+              <p style="font-size: 15px; font-weight: 600;">${(campaign.maxPayoutPerVideo || 0).toLocaleString()} UGX</p>
+            </div>
+            <div>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Status</p>
+              <p style="font-size: 15px; font-weight: 600;">${campaign.status === 'active' ? 'Active' : 'Expired'}</p>
+            </div>
+            <div>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Created</p>
+              <p style="font-size: 15px; font-weight: 600;">${formatDate(campaign.createdAt)}</p>
+            </div>
+            <div>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Expires</p>
+              <p style="font-size: 15px; font-weight: 600;">${formatDate(campaign.expiresAt)}</p>
+            </div>
+          </div>
         </div>
+
+        ${businessDetails?.documents ? renderMaterials(businessDetails.documents) : ''}
       `;
 
       document.getElementById('campaignDetailsBody').innerHTML = detailsHtml;
@@ -1588,7 +1656,7 @@
   }
 
   // ════════════════════════════════════════════════════════
-  // MESSAGES (from Ops Worker)
+  // MESSAGES (from Ops Worker) with improved UI
   // ════════════════════════════════════════════════════════
   async function loadRecipients() {
     try {
@@ -1601,11 +1669,41 @@
         return;
       }
 
-      select.innerHTML = '<option value="">— Select a recipient —</option>' + 
-        recipientsData.map(r => {
+      // Group recipients by type
+      const businesses = recipientsData.filter(r => r.type === 'business');
+      const runners = recipientsData.filter(r => r.type === 'runner');
+      const others = recipientsData.filter(r => r.type !== 'business' && r.type !== 'runner');
+
+      let html = '<option value="">— Select a recipient —</option>';
+      
+      if (businesses.length > 0) {
+        html += '<optgroup label="Businesses">';
+        businesses.forEach(r => {
           const name = r.name || r.firstName || r.phone || r.uid;
-          return `<option value="${escapeAttr(r.uid)}">${escapeHtml(name)} (${escapeHtml(r.type)})</option>`;
-        }).join('');
+          html += `<option value="${escapeAttr(r.uid)}">${escapeHtml(name)} (${escapeHtml(r.businessName || r.phone || 'Business')})</option>`;
+        });
+        html += '</optgroup>';
+      }
+
+      if (runners.length > 0) {
+        html += '<optgroup label="Runners">';
+        runners.forEach(r => {
+          const name = r.name || r.firstName || r.phone || r.uid;
+          html += `<option value="${escapeAttr(r.uid)}">${escapeHtml(name)} (${escapeHtml(r.phone || 'Runner')})</option>`;
+        });
+        html += '</optgroup>';
+      }
+
+      if (others.length > 0) {
+        html += '<optgroup label="Others">';
+        others.forEach(r => {
+          const name = r.name || r.firstName || r.phone || r.uid;
+          html += `<option value="${escapeAttr(r.uid)}">${escapeHtml(name)}</option>`;
+        });
+        html += '</optgroup>';
+      }
+
+      select.innerHTML = html;
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -1753,4 +1851,4 @@
   });
 </script>
 </body>
-          </html>
+</html>
