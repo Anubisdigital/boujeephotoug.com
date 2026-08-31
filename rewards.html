@@ -166,7 +166,7 @@
                 </div>
                 <div class="table-wrap" id="submissionsWrap">
                     <table><thead><tr>
-                        <th>Runner</th><th>Views</th><th>Payout</th><th>Status</th><th>Action</th>
+                        <th>Runner</th><th>Verified Views</th><th>Videos</th><th>Est. Payout</th>
                     </tr></thead><tbody id="submissionsBody"></tbody></table>
                 </div>
             </div>
@@ -228,6 +228,7 @@
         const FIREBASE_API_KEY    = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
         const RUNNER_WORKER_URL   = 'https://boujee-runner-worker.kakoozaronald71.workers.dev';
         const PAYMENT_WORKER_URL  = 'https://boujee-payment-worker.kakoozaronald71.workers.dev';
+        const REWARDS_WORKER_URL  = 'https://boujee-rewards-worker.kakoozaronald71.workers.dev';
         const TOKEN = localStorage.getItem('ba_token');
         const UID = localStorage.getItem('ba_uid');
 
@@ -274,6 +275,24 @@
             setTimeout(() => { el.innerHTML = ''; }, 5000);
         }
 
+        async function fetchCampaignById(campaignId) {
+          const res = await fetch(
+            `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/campaigns/${campaignId}`,
+            { headers: { Authorization: `Bearer ${TOKEN}` } }
+          );
+          if (!res.ok) return null;
+          const doc = await res.json();
+          const f = doc.fields || {};
+          return {
+            orderTrackingId: campaignId,
+            businessName: f.businessName?.stringValue || 'Campaign',
+            businessPayment: parseInt(f.businessPayment?.integerValue || '0', 10),
+            poolRemaining: parseInt(f.poolRemaining?.integerValue || '0', 10),
+            maxPayoutPerVideo: parseInt(f.maxPayoutPerVideo?.integerValue || '10000', 10),
+            status: f.status?.stringValue || 'unknown'
+          };
+        }
+
         // ── INIT ──
         async function init() {
             try {
@@ -302,8 +321,8 @@
                     return;
                 }
 
-                // Neither found – redirect to signup
-                window.location.href = '/subscribe.html';
+                // Neither found – redirect to homepage
+                window.location.href = '/';
             } catch (err) {
                 console.error('Init error:', err);
                 document.getElementById('loadingState').innerHTML = 'Error loading account. <a href="/login.html" style="color:var(--red)">Log in again</a>';
@@ -314,8 +333,8 @@
         // BUSINESS DASHBOARD
         // ============================================================
         async function loadBusinessDashboard() {
-            const data = await apiCall(`${PAYMENT_WORKER_URL}/list-campaigns`, {});
-            const campaigns = data.campaigns.filter(c => c.uid === UID);
+            const data = await apiCall(`${PAYMENT_WORKER_URL}/my-campaigns`, {});
+            const campaigns = data.campaigns;
             const listEl = document.getElementById('campaignList');
             listEl.innerHTML = '';
 
@@ -354,7 +373,7 @@
             statsEl.innerHTML = '<div class="loading-state" style="padding:20px;">Loading...</div>';
 
             // Fetch campaign details
-            const campaignsData = await apiCall(`${PAYMENT_WORKER_URL}/list-campaigns`, {});
+            const campaignsData = await apiCall(`${PAYMENT_WORKER_URL}/my-campaigns`, {});
             const camp = campaignsData.campaigns.find(c => c.orderTrackingId === id);
             if (!camp) return;
 
@@ -363,43 +382,26 @@
                 <div class="card"><div class="label">Pool Remaining</div><div class="value">${formatMoney(camp.poolRemaining)}</div></div>
             `;
 
-            // Fetch submissions for this campaign
-            const subsData = await apiCall(`${PAYMENT_WORKER_URL}/list-submissions`, { campaignId: id });
+            // Fetch submissions from Rewards Worker
+            const subsData = await apiCall(`${REWARDS_WORKER_URL}/campaign-submissions`, { campaignId: id });
             const tbody = document.getElementById('submissionsBody');
             tbody.innerHTML = '';
             if (!subsData.submissions || subsData.submissions.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No submissions yet.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No submissions yet.</td></tr>`;
                 return;
             }
             subsData.submissions.forEach(s => {
-                const payout = Math.min((s.verifiedViews / 1000) * 2000, camp.maxPayoutPerVideo);
-                const statusClass = s.status === 'verified' ? 'verified' : s.status === 'rejected' ? 'rejected' : 'pending';
+                const runnerName = s.runnerName || s.runnerUid || 'Unknown';
+                const estPayout = Math.min((s.totalVerifiedViews / 1000) * 2000, camp.maxPayoutPerVideo);
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><strong>${s.runnerUid || 'Unknown'}</strong></td>
-                    <td>${s.verifiedViews.toLocaleString()}</td>
-                    <td>${formatMoney(payout)}</td>
-                    <td><span class="badge ${statusClass}">${s.status}</span></td>
-                    <td>
-                        <button class="btn-outline-red" style="padding:4px 12px; font-size:12px;"
-                            onclick="forceRecheck('${s.submissionId}')">
-                            Force Recheck
-                        </button>
-                    </td>
+                    <td><strong>${runnerName}</strong></td>
+                    <td>${s.totalVerifiedViews.toLocaleString()}</td>
+                    <td>${s.videos.length}</td>
+                    <td>${formatMoney(estPayout)}</td>
                 `;
                 tbody.appendChild(tr);
             });
-        }
-
-        async function forceRecheck(submissionId) {
-            try {
-                await apiCall(`${PAYMENT_WORKER_URL}/force-verify-submission`, { submissionId });
-                alert('Force recheck triggered successfully.');
-                const activeId = document.querySelector('.card[style*="cursor:pointer"]')?.innerText;
-                if (activeId) loadCampaignDetail(activeId);
-            } catch (e) {
-                alert('Failed to trigger recheck: ' + e.message);
-            }
         }
 
         // ============================================================
@@ -417,16 +419,27 @@
             const bal = parseInt(fields.earnedBalance?.integerValue || '0');
             document.getElementById('runnerBalance').textContent = formatMoney(bal);
 
-            // Fetch open campaigns from Payment Worker
-            const campaignsData = await apiCall(`${PAYMENT_WORKER_URL}/list-campaigns`, {});
+            // Fetch open campaigns from Runner Worker
+            const campaignsData = await apiCall(`${RUNNER_WORKER_URL}/list-open-campaigns`, {});
             const allCampaigns = campaignsData.campaigns || [];
             
             // Get joined campaigns
             const activeIds = fields.activeCampaignIds?.arrayValue?.values?.map(v => v.stringValue) || [];
             
             // Separate available and joined
-            const available = allCampaigns.filter(c => !activeIds.includes(c.orderTrackingId) && c.status === 'active' && c.poolRemaining > 0);
-            const joined = allCampaigns.filter(c => activeIds.includes(c.orderTrackingId));
+            const available = allCampaigns.filter(c => !activeIds.includes(c.orderTrackingId));
+            
+            // Build joined list: use existing from allCampaigns if still open, otherwise fetch from Firestore
+            const joined = [];
+            for (const id of activeIds) {
+                const existing = allCampaigns.find(c => c.orderTrackingId === id);
+                if (existing) {
+                    joined.push(existing);
+                } else {
+                    const fetched = await fetchCampaignById(id);
+                    if (fetched) joined.push(fetched);
+                }
+            }
 
             // RENDER AVAILABLE CAMPAIGNS
             const availEl = document.getElementById('availableCampaigns');
@@ -469,7 +482,7 @@
             }
 
             // My submissions
-            const subsData = await apiCall(`${PAYMENT_WORKER_URL}/list-submissions`, { runnerUid: UID });
+            const subsData = await apiCall(`${RUNNER_WORKER_URL}/list-my-submissions`, {});
             const tbody = document.getElementById('mySubmissionsBody');
             tbody.innerHTML = '';
             if (!subsData.submissions || subsData.submissions.length === 0) {
