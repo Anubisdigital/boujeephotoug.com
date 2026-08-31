@@ -61,30 +61,31 @@
         }
         .card:hover { border-color: var(--text-muted); }
         .card .label { font-size: 12px; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-        .card .value { font-size: 28px; font-weight: 700; margin-top: 8px; }
+        .card .value { font-size: 28px; font-weight: 700; margin-top: 8px; word-break: break-word; }
         .card .value.red { color: var(--red); }
         .card .value.green { color: #22c55e; }
 
         .section-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin: 32px 0 16px; }
         .section-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; }
+        .flex-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
 
         /* Buttons */
         .btn-primary {
             background: var(--red); color: #fff; border: none; font-family: var(--font-main);
             font-size: 14px; font-weight: 600; padding: 12px 24px; cursor: pointer;
-            transition: opacity 0.2s; display: inline-block; text-decoration: none;
+            transition: opacity 0.2s; display: inline-block; text-decoration: none; text-align: center;
         }
         .btn-primary:hover { opacity: 0.85; }
         .btn-ghost {
             background: transparent; color: var(--text); border: 1px solid var(--line);
             font-family: var(--font-main); font-size: 14px; font-weight: 600; padding: 12px 24px;
-            cursor: pointer; transition: border-color 0.2s; text-decoration: none; display: inline-block;
+            cursor: pointer; transition: border-color 0.2s; text-decoration: none; display: inline-block; text-align: center;
         }
         .btn-ghost:hover { border-color: var(--text); }
         .btn-outline-red {
             background: transparent; color: var(--red); border: 1px solid var(--red);
             font-family: var(--font-main); font-size: 14px; font-weight: 600; padding: 12px 24px;
-            cursor: pointer; transition: background 0.2s, color 0.2s; text-decoration: none; display: inline-block;
+            cursor: pointer; transition: background 0.2s, color 0.2s; text-decoration: none; display: inline-block; text-align: center;
         }
         .btn-outline-red:hover { background: var(--red); color: #fff; }
 
@@ -98,9 +99,9 @@
         .form-group input:focus, .form-group select:focus { border-color: var(--text); }
 
         /* Tables */
-        .table-wrap { overflow-x: auto; border: 1px solid var(--line); }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+        .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 320px; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
         th { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: var(--text-muted); background: var(--bg); }
         tr:last-child td { border-bottom: none; }
         .badge {
@@ -152,14 +153,21 @@
         }
         .doc-link:hover { border-color: var(--text-muted); color: var(--text); }
 
+        /* Responsive Breakpoints */
         @media (max-width: 900px) {
             nav { padding: 0 20px; }
             .grid-2 { grid-template-columns: 1fr; }
             .grid-3 { grid-template-columns: 1fr 1fr; }
         }
         @media (max-width: 600px) {
+            nav { padding: 0 16px; }
+            .nav-right { gap: 12px; font-size: 13px; }
+            #userName { display: none; } /* Hide display name on extra small screens */
             .grid-3 { grid-template-columns: 1fr; }
-            .container { padding: 0 16px 40px; }
+            .container { padding: 0 16px 40px; margin: 20px auto; }
+            .card { padding: 16px; }
+            .card .value { font-size: 22px; }
+            .flex-header { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -171,20 +179,18 @@
             <span class="nav-logo-text">Boujee<span>Photo</span></span>
         </a>
         <div class="nav-right">
-            <span id="userName" style="color: var(--text-light); font-size: 14px;"></span>
+            <span id="userName" style="color: var(--text-light);"></span>
             <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"><i class="fas fa-sun"></i></button>
             <a id="logoutBtn">Log out</a>
         </div>
     </nav>
 
     <div class="container">
-        <!-- Loading -->
         <div id="loadingState" class="loading-state">
             <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 16px;"></i><br>
             Checking your account...
         </div>
 
-        <!-- ================== BUSINESS VIEW ================== -->
         <div id="businessView" class="hidden">
             <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 4px;">Your Campaigns</h2>
             <p class="section-sub">Select a campaign below to view its status and submissions.</p>
@@ -193,7 +199,7 @@
 
             <div id="campaignDetail" class="hidden" style="margin-top: 32px;">
                 <div class="grid-2" id="campaignStats"></div>
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin: 16px 0;">
+                <div class="flex-header" style="margin: 16px 0;">
                     <h3 class="section-title" style="margin:0;">Submissions</h3>
                     <a href="/subscribe.html" class="btn-primary">Top up campaign</a>
                 </div>
@@ -205,7 +211,6 @@
             </div>
         </div>
 
-        <!-- ================== RUNNER VIEW ================== -->
         <div id="runnerView" class="hidden">
             <div class="grid-2" id="runnerProfile">
                 <div class="card">
@@ -218,16 +223,15 @@
                 </div>
             </div>
 
-            <!-- Available Campaigns Section -->
             <div style="margin-top: 24px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div class="flex-header">
                     <h3 class="section-title" style="margin:0;">Open Campaigns</h3>
                     <span style="font-size: 13px; color: var(--text-muted);">Click "Join" to start submitting videos.</span>
                 </div>
                 <div id="availableCampaigns" class="grid-3"></div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; margin-top: 24px;">
+            <div class="grid-2" style="margin-top: 24px;">
                 <div class="card">
                     <h4 style="margin-bottom: 12px;">Submit a new video</h4>
                     <div id="submitAlert"></div>
