@@ -561,53 +561,20 @@
   </div>
 </nav>
 
-<!-- LOGIN REQUIRED -->
-<div class="gate-state" id="loginRequired">
+<!-- ADMIN SECRET GATE -->
+<div class="gate-state show" id="adminSecretGate">
   <div class="gate-icon">&#128274;</div>
-  <h2>Log in to continue</h2>
-  <p>Admin access requires a BoujeePhoto admin account.</p>
-  <a href="./login.html?next=this-is-admin-page-no-one-should-access-or-guess.html" class="btn-primary">Log in</a>
-  <p style="margin-top:20px; margin-bottom:0;">
-    <button class="nav-logout" style="text-decoration:underline;" onclick="showAdminSignupGate()">Have a setup code? Create an admin account</button>
-  </p>
-</div>
-
-<!-- ADMIN SIGNUP -->
-<div class="gate-state" id="adminSignupGate">
-  <div class="gate-icon">&#128273;</div>
-  <h2>Create an admin account</h2>
-  <p>This requires a setup code from whoever manages BoujeePhoto. Without it, no account is created.</p>
+  <h2>Admin access</h2>
+  <p>Enter the shared admin secret to continue.</p>
 
   <div style="max-width:380px; margin:0 auto; text-align:left;">
     <div class="field">
-      <label for="adminSignupCode">Setup code</label>
-      <input type="text" id="adminSignupCode" placeholder="Provided to you separately">
+      <label for="adminSecretInput">Admin secret</label>
+      <input type="password" id="adminSecretInput" placeholder="••••••••••••">
     </div>
-    <div class="field">
-      <label for="adminSignupName">Full name</label>
-      <input type="text" id="adminSignupName" placeholder="Your name">
-    </div>
-    <div class="field">
-      <label for="adminSignupEmail">Email address</label>
-      <input type="email" id="adminSignupEmail" placeholder="you@example.com">
-    </div>
-    <div class="field">
-      <label for="adminSignupPassword">Password</label>
-      <input type="password" id="adminSignupPassword" placeholder="At least 8 characters">
-    </div>
-    <button class="btn-primary" id="adminSignupBtn" onclick="submitAdminSignup()" style="width:100%; justify-content:center;">Create admin account</button>
-    <p style="margin-top:16px;">
-      <button class="nav-logout" style="text-decoration:underline;" onclick="hideAdminSignupGate()">Back to log in</button>
-    </p>
+    <button class="btn-primary" id="adminSecretBtn" onclick="submitAdminSecret()" style="width:100%; justify-content:center;">Enter</button>
+    <p id="adminSecretError" style="color:var(--red); font-size:13px; margin-top:10px; display:none;"></p>
   </div>
-</div>
-
-<!-- NOT ADMIN -->
-<div class="gate-state" id="notAdmin">
-  <div class="gate-icon">&#128683;</div>
-  <h2>This account doesn't have admin access</h2>
-  <p>If you believe this is a mistake, contact whoever manages the BoujeePhoto admin accounts.</p>
-  <a href="./dashboard.html" class="btn-primary">Go to your dashboard</a>
 </div>
 
 <!-- APP SHELL -->
@@ -615,17 +582,9 @@
 
   <div class="tab-bar">
     <button class="tab-btn active" data-view="overview" onclick="switchView('overview')">Overview</button>
-    <button class="tab-btn" data-view="users" onclick="switchView('users')">Users</button>
-    <button class="tab-btn" data-view="bookings" onclick="switchView('bookings')">Bookings</button>
-    <!-- ════════════════════════════════════════════════════════ -->
-    <!-- NEW CREATOR REWARDS TABS -->
     <button class="tab-btn" data-view="campaigns" onclick="switchView('campaigns')">Campaigns</button>
-    <button class="tab-btn" data-view="runners" onclick="switchView('runners')">Runners</button>
     <button class="tab-btn" data-view="submissions" onclick="switchView('submissions')">Submissions</button>
-    <!-- ════════════════════════════════════════════════════════ -->
-    <button class="tab-btn" data-view="announcements" onclick="switchView('announcements')">Announcements</button>
-    <button class="tab-btn" data-view="testimonials" onclick="switchView('testimonials')">Testimonials</button>
-    <button class="tab-btn" data-view="auditlog" onclick="switchView('auditlog')">Audit log</button>
+    <button class="tab-btn" data-view="messages" onclick="switchView('messages')">Messages</button>
   </div>
 
   <main>
@@ -633,101 +592,21 @@
     <div class="view active" id="view-overview">
       <p class="view-eyebrow">Dashboard</p>
       <h1 class="view-title">Overview.</h1>
-      <p class="view-sub">A quick read on users, bookings, and recent admin activity.</p>
+      <p class="view-sub">A quick read on campaigns and submissions.</p>
 
       <div class="stats-grid" id="statsGrid">
         <div class="stat-card">
-          <div class="stat-label">Total students</div>
-          <div class="stat-value" id="statTotalUsers">—</div>
+          <div class="stat-label">Total campaigns</div>
+          <div class="stat-value" id="statTotalCampaigns">—</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Total bookings</div>
-          <div class="stat-value" id="statTotalBookings">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Total deposit revenue</div>
-          <div class="stat-value" id="statDepositRevenue">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Open rollover windows</div>
-          <div class="stat-value" id="statOpenRollovers">—</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">Recent admin activity</div>
-        <div class="card-body" id="overviewAuditContainer">
-          <div class="empty-state">Loading…</div>
+          <div class="stat-label">Open submissions</div>
+          <div class="stat-value" id="statOpenSubmissions">—</div>
         </div>
       </div>
     </div>
 
-    <!-- ══════════ USERS VIEW ══════════ -->
-    <div class="view" id="view-users">
-      <div class="view-head-row">
-        <div>
-          <p class="view-eyebrow">Accounts</p>
-          <h1 class="view-title">Users.</h1>
-          <p class="view-sub">Manage user accounts — view business details and delete accounts.</p>
-        </div>
-        <button class="btn-secondary" onclick="loadUsers()">↻ Refresh</button>
-      </div>
-
-      <div class="card">
-        <div class="table-scroll">
-          <table class="data-table" id="usersTable">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Business name</th>
-                <th>Business type</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="usersTableBody">
-              <tr><td colspan="6"><div class="empty-state">Loading…</div></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══════════ BOOKINGS VIEW ══════════ -->
-    <div class="view" id="view-bookings">
-      <div class="view-head-row">
-        <div>
-          <p class="view-eyebrow">Reservations</p>
-          <h1 class="view-title">Bookings.</h1>
-          <p class="view-sub">All deposit bookings and their rollover status.</p>
-        </div>
-        <button class="btn-secondary" onclick="loadBookings()">↻ Refresh</button>
-      </div>
-
-      <div class="card">
-        <div class="table-scroll">
-          <table class="data-table" id="bookingsTable">
-            <thead>
-              <tr>
-                <th>Business name</th>
-                <th>Phone</th>
-                <th>Business type</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Paid date</th>
-                <th>Rollover deadline</th>
-              </tr>
-            </thead>
-            <tbody id="bookingsTableBody">
-              <tr><td colspan="7"><div class="empty-state">Loading…</div></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══════════ CAMPAIGNS VIEW (NEW) ══════════ -->
+    <!-- ══════════ CAMPAIGNS VIEW ══════════ -->
     <div class="view" id="view-campaigns">
       <div class="view-head-row">
         <div>
@@ -759,37 +638,7 @@
       </div>
     </div>
 
-    <!-- ══════════ RUNNERS VIEW (NEW) ══════════ -->
-    <div class="view" id="view-runners">
-      <div class="view-head-row">
-        <div>
-          <p class="view-eyebrow">Creators</p>
-          <h1 class="view-title">Runners.</h1>
-          <p class="view-sub">All registered creators (runners) and their earnings.</p>
-        </div>
-        <button class="btn-secondary" onclick="loadRunners()">↻ Refresh</button>
-      </div>
-
-      <div class="card">
-        <div class="table-scroll">
-          <table class="data-table" id="runnersTable">
-            <thead>
-              <tr>
-                <th>TikTok Handle</th>
-                <th>Email</th>
-                <th>Earned Balance</th>
-                <th>Active Campaigns</th>
-              </tr>
-            </thead>
-            <tbody id="runnersTableBody">
-              <tr><td colspan="4"><div class="empty-state">Loading…</div></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══════════ SUBMISSIONS VIEW (NEW) ══════════ -->
+    <!-- ══════════ SUBMISSIONS VIEW ══════════ -->
     <div class="view" id="view-submissions">
       <div class="view-head-row">
         <div>
@@ -821,89 +670,95 @@
       </div>
     </div>
 
-    <!-- ══════════ ANNOUNCEMENTS VIEW ══════════ -->
-    <div class="view" id="view-announcements">
+    <!-- ══════════ MESSAGES VIEW ══════════ -->
+    <div class="view" id="view-messages">
       <div class="view-head-row">
         <div>
-          <p class="view-eyebrow">Updates</p>
-          <h1 class="view-title">Announcements.</h1>
-          <p class="view-sub">Posts students see on their dashboard.</p>
+          <p class="view-eyebrow">Messaging</p>
+          <h1 class="view-title">Messages.</h1>
+          <p class="view-sub">Send SMS messages to runners and businesses.</p>
         </div>
-        <div style="display:flex; gap:10px;">
-          <button class="btn-secondary" onclick="loadAnnouncements()">↻ Refresh</button>
-          <button class="btn-primary" onclick="openCreateAnnouncementModal()">+ New post</button>
-        </div>
-      </div>
-
-      <div id="announcementsAdminContainer">
-        <div class="empty-state">Loading…</div>
-      </div>
-    </div>
-
-    <!-- ══════════ TESTIMONIALS VIEW ══════════ -->
-    <div class="view" id="view-testimonials">
-      <div class="view-head-row">
-        <div>
-          <p class="view-eyebrow">Moderation</p>
-          <h1 class="view-title">Testimonials.</h1>
-          <p class="view-sub">Approve, reject, or feature client testimonials before they go public.</p>
-        </div>
-        <button class="btn-secondary" onclick="loadPendingTestimonials()">↻ Refresh</button>
-      </div>
-
-      <div id="testimonialsAdminContainer">
-        <div class="empty-state">Loading…</div>
-      </div>
-    </div>
-
-    <!-- ══════════ AUDIT LOG VIEW ══════════ -->
-    <div class="view" id="view-auditlog">
-      <div class="view-head-row">
-        <div>
-          <p class="view-eyebrow">Accountability</p>
-          <h1 class="view-title">Audit log.</h1>
-          <p class="view-sub">Every sensitive action taken from this admin console, with who and when.</p>
-        </div>
-        <button class="btn-secondary" onclick="loadAuditLog()">↻ Refresh</button>
+        <button class="btn-secondary" onclick="loadRecipients()">↻ Load recipients</button>
       </div>
 
       <div class="card">
-        <div class="table-scroll">
-          <table class="data-table" id="auditTable">
-            <thead>
-              <tr>
-                <th>When</th>
-                <th>Admin</th>
-                <th>Action</th>
-                <th>Target</th>
-              </tr>
-            </thead>
-            <tbody id="auditTableBody">
-              <tr><td colspan="4"><div class="empty-state">Loading…</div></td></tr>
-            </tbody>
-          </table>
+        <div class="card-head">Compose message</div>
+        <div class="card-body">
+          <div class="field">
+            <label for="recipientPicker">Recipient</label>
+            <select id="recipientPicker" onchange="handleRecipientChange()">
+              <option value="">— Select a recipient —</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="manualPhone">Or type a phone number</label>
+            <input type="text" id="manualPhone" placeholder="+256712345678" oninput="handleManualPhoneInput()">
+          </div>
+          <div class="field">
+            <label for="messageTextarea">Message</label>
+            <textarea id="messageTextarea" placeholder="Hi {name}, ..."></textarea>
+            <p class="field-hint">Use {name} — it will be replaced with the recipient's first name.</p>
+          </div>
+          <div class="checkbox-row" style="margin-bottom:16px;">
+            <input type="checkbox" id="saveTemplateCheckbox">
+            <label for="saveTemplateCheckbox">Save as template</label>
+          </div>
+          <button class="btn-primary" id="sendMessageBtn" onclick="sendMessage()">Send</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">Saved templates</div>
+        <div class="card-body" id="templatesList">
+          <div class="empty-state">Loading…</div>
         </div>
       </div>
     </div>
 
-    <!-- ══════════ MODALS (only those still used) ══════════ -->
-    <!-- CREATE ANNOUNCEMENT MODAL -->
-    <div class="modal-overlay" id="createAnnouncementModal">
+    <!-- MODALS -->
+    <!-- Change Expiry Modal -->
+    <div class="modal-overlay" id="changeExpiryModal">
       <div class="modal-box">
         <div class="modal-head">
-          <span class="modal-title">New announcement</span>
-          <button class="modal-close" onclick="closeModal('createAnnouncementModal')">&times;</button>
+          <span class="modal-title">Change campaign expiry</span>
+          <button class="modal-close" onclick="closeModal('changeExpiryModal')">&times;</button>
         </div>
         <div class="modal-body">
           <div class="field">
-            <label for="newPostTitle">Title</label>
-            <input type="text" id="newPostTitle" placeholder="e.g. Chapter 7 is live">
+            <label for="expiryDateInput">New expiry date</label>
+            <input type="date" id="expiryDateInput">
           </div>
+          <button class="btn-primary" onclick="submitExpiryChange()">Save expiry</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Force Recheck Modal -->
+    <div class="modal-overlay" id="forceRecheckModal">
+      <div class="modal-box">
+        <div class="modal-head">
+          <span class="modal-title">Force verification recheck</span>
+          <button class="modal-close" onclick="closeModal('forceRecheckModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="margin-bottom:16px; font-size:14px; color:var(--text-muted);">Enter the verified views count for this submission.</p>
           <div class="field">
-            <label for="newPostBody">Body</label>
-            <textarea id="newPostBody" placeholder="What's new"></textarea>
+            <label for="verifiedViewsInput">Verified views</label>
+            <input type="number" id="verifiedViewsInput" placeholder="e.g. 10000" min="0">
           </div>
-          <button class="btn-primary" id="createAnnouncementBtn" onclick="submitCreateAnnouncement()">Post announcement</button>
+          <button class="btn-primary" onclick="submitForceRecheck()">Force recheck</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Campaign Details Modal -->
+    <div class="modal-overlay" id="campaignDetailsModal">
+      <div class="modal-box">
+        <div class="modal-head">
+          <span class="modal-title">Campaign details</span>
+          <button class="modal-close" onclick="closeModal('campaignDetailsModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="campaignDetailsBody">
         </div>
       </div>
     </div>
@@ -916,458 +771,306 @@
 
 <script>
   // ── CONFIG ──
-  const ADMIN_WORKER = 'https://boujee-admin-worker.kakoozaronald71.workers.dev';
-  const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
+  const OPS_WORKER = 'https://boujee-ops-worker.kakoozaronald71.workers.dev';
 
   // ── STATE ──
-  let idToken = null;
-  let adminUid = null;
-  let usersData = [];
-  let bookingsData = [];
-  let pendingTestimonialsData = [];
-  let auditLogData = [];
+  let adminSecret = sessionStorage.getItem('boujee_admin_secret') || '';
+  let campaignsData = [];
+  let submissionsData = [];
+  let recipientsData = [];
+  let templatesData = [];
+  let selectedRecipient = null;
 
   // ── INIT ──
   document.addEventListener('DOMContentLoaded', async () => {
     const theme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', theme);
 
-    const token = localStorage.getItem('ba_token');
-    const storedUid = localStorage.getItem('ba_uid');
-    const name = localStorage.getItem('ba_name') || localStorage.getItem('ba_email') || '';
-
-    if (!token || !storedUid) {
-      document.getElementById('loginRequired').classList.add('show');
-      return;
-    }
-
-    try {
-      const refreshed = await refreshToken(token);
-      if (!refreshed) {
-        document.getElementById('loginRequired').classList.add('show');
+    if (adminSecret) {
+      const valid = await testAdminSecret(adminSecret);
+      if (valid) {
+        showAppShell();
         return;
+      } else {
+        sessionStorage.removeItem('boujee_admin_secret');
+        adminSecret = '';
       }
-      idToken = refreshed;
-      adminUid = storedUid;
-      localStorage.setItem('ba_token', idToken);
-    } catch {
-      document.getElementById('loginRequired').classList.add('show');
-      return;
     }
-
-    const verified = await verifyAdmin();
-    if (!verified) {
-      document.getElementById('notAdmin').classList.add('show');
-      return;
-    }
-
-    document.getElementById('navUser').textContent = (name.split(' ')[0] || 'ADMIN').toUpperCase();
-    document.getElementById('appShell').style.display = 'block';
-
-    loadOverview();
+    document.getElementById('adminSecretGate').classList.add('show');
   });
 
-  // ── TOKEN REFRESH ──
-  async function refreshToken(currentToken) {
+  function showAppShell() {
+    document.getElementById('adminSecretGate').classList.remove('show');
+    document.getElementById('appShell').style.display = 'block';
+    document.getElementById('navUser').textContent = 'ADMIN';
+    loadOverview();
+  }
+
+  function logout() {
+    sessionStorage.removeItem('boujee_admin_secret');
+    window.location.reload();
+  }
+
+  // ── ADMIN SECRET GATE ──
+  async function submitAdminSecret() {
+    const secret = document.getElementById('adminSecretInput').value.trim();
+    if (!secret) { showToast('Enter the admin secret', 'error'); return; }
+
+    const btn = document.getElementById('adminSecretBtn');
+    btn.disabled = true; btn.textContent = 'Verifying…';
+    document.getElementById('adminSecretError').style.display = 'none';
+
     try {
-      const parts = currentToken.split('.');
-      if (parts.length !== 3) return null;
-      const payload = JSON.parse(atob(parts[1]));
-      const now = Math.floor(Date.now() / 1000);
-      if (payload.exp > now + 300) return currentToken;
-
-      const refreshTokenStored = localStorage.getItem('ba_refresh_token');
-      if (!refreshTokenStored) return null;
-
-      const res = await fetch(
-        `https://securetoken.googleapis.com/v1/token?key=${FIREBASE_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: `grant_type=refresh_token&refresh_token=${refreshTokenStored}`,
-        }
-      );
-      const data = await res.json();
-      if (data.id_token) {
-        localStorage.setItem('ba_refresh_token', data.refresh_token);
-        return data.id_token;
+      const valid = await testAdminSecret(secret);
+      if (valid) {
+        adminSecret = secret;
+        sessionStorage.setItem('boujee_admin_secret', secret);
+        showAppShell();
+      } else {
+        document.getElementById('adminSecretError').textContent = 'Invalid secret.';
+        document.getElementById('adminSecretError').style.display = 'block';
+        showToast('Invalid admin secret', 'error');
       }
-      return null;
-    } catch {
-      return null;
+    } catch (err) {
+      document.getElementById('adminSecretError').textContent = 'Could not verify secret.';
+      document.getElementById('adminSecretError').style.display = 'block';
+      showToast(err.message || 'Verification failed', 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Enter';
     }
   }
 
-  function authBody(extra = {}) {
-    return { idToken, ...extra };
-  }
-
-  function authHeaders() {
-    return { 'Content-Type': 'application/json' };
-  }
-
-  async function callAdmin(route, extra = {}) {
-    const res = await fetch(`${ADMIN_WORKER}${route}`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify(authBody(extra)),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Request failed');
-    return data;
-  }
-
-  async function verifyAdmin() {
+  async function testAdminSecret(secret) {
     try {
-      const data = await callAdmin('/verify-admin');
-      return data.isAdmin === true;
+      const res = await fetch(`${OPS_WORKER}/admin/list-all-campaigns`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminSecret: secret }),
+      });
+      if (res.status === 401) return false;
+      if (!res.ok) return false;
+      const data = await res.json();
+      return data && data.campaigns !== undefined;
     } catch {
       return false;
     }
   }
 
-  // ── ADMIN SIGNUP GATE ──
-  function showAdminSignupGate() {
-    document.getElementById('loginRequired').classList.remove('show');
-    document.getElementById('adminSignupGate').classList.add('show');
-  }
-
-  function hideAdminSignupGate() {
-    document.getElementById('adminSignupGate').classList.remove('show');
-    document.getElementById('loginRequired').classList.add('show');
-  }
-
-  async function submitAdminSignup() {
-    const setupCode = document.getElementById('adminSignupCode').value.trim();
-    const name = document.getElementById('adminSignupName').value.trim();
-    const email = document.getElementById('adminSignupEmail').value.trim();
-    const password = document.getElementById('adminSignupPassword').value;
-
-    if (!setupCode) { showToast('Enter the setup code', 'error'); return; }
-    if (!name || !email) { showToast('Name and email are required', 'error'); return; }
-    if (password.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
-
-    const btn = document.getElementById('adminSignupBtn');
-    btn.disabled = true; btn.textContent = 'Creating…';
-
-    try {
-      const res = await fetch(`${ADMIN_WORKER}/admin-signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ setupCode, name, email, password }),
-      });
-      const data = await res.json();
-
-      if (data.error) {
-        showToast(data.error, 'error');
-        return;
-      }
-
-      showToast('Admin account created — logging in…', 'success');
-
-      const signInRes = await fetch(
-        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, returnSecureToken: true }),
-        }
-      );
-      const signInData = await signInRes.json();
-
-      if (signInData.idToken) {
-        localStorage.setItem('ba_token', signInData.idToken);
-        localStorage.setItem('ba_refresh_token', signInData.refreshToken);
-        localStorage.setItem('ba_uid', signInData.localId);
-        localStorage.setItem('ba_email', email);
-        localStorage.setItem('ba_name', name);
-        setTimeout(() => { window.location.reload(); }, 800);
-      } else {
-        setTimeout(() => {
-          window.location.href = './login.html?next=this-is-admin-page-no-one-should-access-or-guess.html';
-        }, 1200);
-      }
-    } catch (err) {
-      showToast('Could not create account — try again', 'error');
-    } finally {
-      btn.disabled = false; btn.textContent = 'Create admin account';
-    }
-  }
-
-  // ── TAB SWITCHING (FIXED: Every tab triggers its own fetch now) ──
+  // ── TAB SWITCHING ──
   function switchView(view) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(`view-${view}`).classList.add('active');
     document.querySelector(`.tab-btn[data-view="${view}"]`).classList.add('active');
 
-    // Directly fetch data for each tab when clicked.
-    // This ensures fresh data every time and fixes the "Loading..." bug.
-    if (view === 'users') loadUsers();
-    if (view === 'bookings') loadBookings();
+    if (view === 'overview') loadOverview();
     if (view === 'campaigns') loadCampaigns();
-    if (view === 'runners') loadRunners();
     if (view === 'submissions') loadSubmissions();
-    if (view === 'announcements') loadAnnouncements();
-    if (view === 'testimonials') loadPendingTestimonials();
-    if (view === 'auditlog') loadAuditLog();
+    if (view === 'messages') { loadRecipients(); loadTemplates(); }
   }
 
   // ── MODAL HELPERS ──
   function openModal(id) { document.getElementById(id).classList.add('show'); }
   function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 
+  // ── API CALLS ──
+  async function callOps(route, extra = {}) {
+    const res = await fetch(`${OPS_WORKER}${route}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminSecret, ...extra }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  }
+
   // ════════════════════════════════════════════════════════
   // OVERVIEW
   // ════════════════════════════════════════════════════════
   async function loadOverview() {
     try {
-      const [usersRes, bookingsRes, testimonialsRes, auditRes] = await Promise.all([
-        callAdmin('/list-users'),
-        callAdmin('/list-bookings'),
-        callAdmin('/list-pending-testimonials'),
-        callAdmin('/get-audit-log'),
+      const [campaignsRes, submissionsRes] = await Promise.all([
+        callOps('/admin/list-all-campaigns'),
+        callOps('/admin/list-all-submissions'),
       ]);
 
-      usersData = usersRes.users || [];
-      bookingsData = bookingsRes.bookings || [];
-      pendingTestimonialsData = testimonialsRes.testimonials || [];
-      auditLogData = auditRes.entries || [];
+      campaignsData = campaignsRes.campaigns || [];
+      submissionsData = submissionsRes.submissions || [];
 
-      document.getElementById('statTotalUsers').textContent = usersData.length;
-      document.getElementById('statTotalBookings').textContent = bookingsData.length;
-
-      const totalRevenue = bookingsData.reduce((sum, b) => sum + (b.amount || 0), 0);
-      document.getElementById('statDepositRevenue').textContent = `${totalRevenue.toLocaleString()} UGX`;
-
-      const openRollovers = bookingsData.filter(b => {
-        if (!b.rollsIntoPackageUntil) return false;
-        return new Date(b.rollsIntoPackageUntil) > new Date();
-      });
-      document.getElementById('statOpenRollovers').textContent = openRollovers.length;
-
-      renderOverviewAudit();
+      document.getElementById('statTotalCampaigns').textContent = campaignsData.length;
+      const openSubs = submissionsData.filter(s => s.status !== 'rejected' && s.status !== 'approved').length;
+      document.getElementById('statOpenSubmissions').textContent = openSubs;
     } catch (err) {
       showToast(err.message || 'Could not load overview', 'error');
     }
   }
 
-  function renderOverviewAudit() {
-    const container = document.getElementById('overviewAuditContainer');
-    const recent = auditLogData.slice(0, 8);
-
-    if (!recent.length) {
-      container.innerHTML = '<div class="empty-state">No admin activity yet.</div>';
-      return;
-    }
-
-    container.innerHTML = recent.map(e => `
-      <div style="padding:10px 0; border-bottom:1px solid var(--line); font-size:13px;">
-        <span style="color:var(--text-muted); font-family:var(--font-mono); font-size:11px;">${formatDate(e.timestamp)}</span>
-        — <strong>${escapeHtml(e.action)}</strong>
-        ${e.targetUid ? `on <span style="color:var(--text-muted);">${escapeHtml(e.targetUid)}</span>` : ''}
-        by ${escapeHtml(e.adminEmail || e.adminUid)}
-      </div>
-    `).join('');
-  }
-
   // ════════════════════════════════════════════════════════
-  // USERS
-  // ════════════════════════════════════════════════════════
-  async function loadUsers() {
-    try {
-      const data = await callAdmin('/list-users');
-      usersData = data.users || [];
-      renderUsersTable();
-    } catch (err) {
-      document.getElementById('usersTableBody').innerHTML =
-        `<tr><td colspan="6"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
-    }
-  }
-
-  function renderUsersTable() {
-    const body = document.getElementById('usersTableBody');
-    if (!usersData.length) {
-      body.innerHTML = '<tr><td colspan="6"><div class="empty-state">No users yet.</div></td></tr>';
-      return;
-    }
-
-    body.innerHTML = usersData.map(u => `
-      <tr>
-        <td>${escapeHtml(u.name || '—')} ${u.isAdmin ? '<span class="badge admin" style="margin-left:6px;">Admin</span>' : ''}</td>
-        <td>${escapeHtml(u.email || '—')}</td>
-        <td>${escapeHtml(u.phone || '—')}</td>
-        <td>${escapeHtml(u.businessName || '—')}</td>
-        <td>${escapeHtml(u.businessType || '—')}</td>
-        <td>
-          <button class="btn-secondary btn-small btn-danger" onclick="deleteUser('${u.uid}', '${escapeAttr(u.email || u.name || u.uid)}')">Delete</button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  async function deleteUser(uid, label) {
-    if (!confirm(`Permanently delete ${label}'s account? This cannot be undone.`)) return;
-    try {
-      await callAdmin('/delete-user', { targetUid: uid });
-      showToast('User deleted', 'success');
-      loadUsers();
-    } catch (err) {
-      showToast(err.message, 'error');
-    }
-  }
-
-  // ════════════════════════════════════════════════════════
-  // BOOKINGS
-  // ════════════════════════════════════════════════════════
-  async function loadBookings() {
-    try {
-      const data = await callAdmin('/list-bookings');
-      bookingsData = data.bookings || [];
-      renderBookingsTable();
-    } catch (err) {
-      document.getElementById('bookingsTableBody').innerHTML =
-        `<tr><td colspan="7"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
-    }
-  }
-
-  function renderBookingsTable() {
-    const body = document.getElementById('bookingsTableBody');
-    if (!bookingsData.length) {
-      body.innerHTML = '<tr><td colspan="7"><div class="empty-state">No bookings yet.</div></td></tr>';
-      return;
-    }
-
-    body.innerHTML = bookingsData.map(b => {
-      const rolloverDate = b.rollsIntoPackageUntil ? new Date(b.rollsIntoPackageUntil) : null;
-      const isActive = rolloverDate && rolloverDate > new Date();
-
-      return `
-        <tr>
-          <td>${escapeHtml(b.businessName || '—')}</td>
-          <td>${escapeHtml(b.phone || '—')}</td>
-          <td>${escapeHtml(b.businessType || '—')}</td>
-          <td>${(b.amount || 0).toLocaleString()} UGX</td>
-          <td><span class="badge ${b.status === 'deposit_paid' ? 'active' : 'expired'}">${escapeHtml(b.status || '—')}</span></td>
-          <td style="font-family:var(--font-mono); font-size:11px;">${formatDate(b.paidAt)}</td>
-          <td style="font-family:var(--font-mono); font-size:11px;">
-            ${formatDate(b.rollsIntoPackageUntil)}
-            <span class="badge ${isActive ? 'active' : 'expired'}" style="margin-left:6px;">${isActive ? 'Open' : 'Expired'}</span>
-          </td>
-        </tr>
-      `;
-    }).join('');
-  }
-
-  // ════════════════════════════════════════════════════════
-  // CAMPAIGNS (NEW)
+  // CAMPAIGNS
   // ════════════════════════════════════════════════════════
   async function loadCampaigns() {
     try {
-      const data = await callAdmin('/list-campaigns');
-      const campaigns = data.campaigns || [];
-      const body = document.getElementById('campaignsTableBody');
-
-      if (!campaigns.length) {
-        body.innerHTML = '<tr><td colspan="6"><div class="empty-state">No campaigns yet.</div></td></tr>';
-        return;
-      }
-
-      body.innerHTML = campaigns.map(c => `
-        <tr>
-          <td>${escapeHtml(c.businessName || '—')}</td>
-          <td>${(c.businessPayment || 0).toLocaleString()} UGX</td>
-          <td>${(c.poolRemaining || 0).toLocaleString()} UGX</td>
-          <td>${(c.maxPayoutPerVideo || 0).toLocaleString()} UGX</td>
-          <td><span class="badge ${c.status === 'active' ? 'active' : 'expired'}">${escapeHtml(c.status || '—')}</span></td>
-          <td>
-            <button class="btn-secondary btn-small btn-danger" onclick="closeCampaign('${c.orderTrackingId}')">Close</button>
-          </td>
-        </tr>
-      `).join('');
+      const data = await callOps('/admin/list-all-campaigns');
+      campaignsData = data.campaigns || [];
+      renderCampaignsTable();
     } catch (err) {
       document.getElementById('campaignsTableBody').innerHTML =
         `<tr><td colspan="6"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
     }
   }
 
-  async function closeCampaign(campaignId) {
-    if (!confirm('Close this campaign? Runners will no longer be able to join.')) return;
+  function renderCampaignsTable() {
+    const body = document.getElementById('campaignsTableBody');
+    if (!campaignsData.length) {
+      body.innerHTML = '<tr><td colspan="6"><div class="empty-state">No campaigns yet.</div></td></tr>';
+      return;
+    }
+
+    body.innerHTML = campaignsData.map(c => {
+      const statusBadge = c.isExpired ? 
+        '<span class="badge expired">Expired</span>' : 
+        '<span class="badge active">Active</span>';
+      return `
+        <tr>
+          <td>${escapeHtml(c.businessName || '—')}</td>
+          <td>${(c.businessPayment || 0).toLocaleString()} UGX</td>
+          <td>${(c.poolRemaining || 0).toLocaleString()} UGX</td>
+          <td>${(c.maxPayoutPerVideo || 0).toLocaleString()} UGX</td>
+          <td>${statusBadge}</td>
+          <td>
+            <div class="row-actions">
+              <button class="btn-secondary btn-small" onclick="openCampaignDetails('${escapeAttr(c.orderTrackingId)}')">View</button>
+              <button class="btn-secondary btn-small" onclick="openExpiryModal('${escapeAttr(c.orderTrackingId)}')">Change expiry</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function openExpiryModal(campaignId) {
+    document.getElementById('campaignDetailsModal').classList.remove('show');
+    window._currentCampaignId = campaignId;
+    document.getElementById('expiryDateInput').value = '';
+    openModal('changeExpiryModal');
+  }
+
+  async function submitExpiryChange() {
+    const expiresAt = document.getElementById('expiryDateInput').value;
+    if (!expiresAt) { showToast('Please select a date', 'error'); return; }
+
+    const isoDate = new Date(expiresAt + 'T00:00:00').toISOString();
     try {
-      await callAdmin('/close-campaign', { campaignId });
-      showToast('Campaign closed', 'success');
+      await callOps('/admin/override-campaign-expiry', { campaignId: window._currentCampaignId, expiresAt: isoDate });
+      showToast('Expiry updated', 'success');
+      closeModal('changeExpiryModal');
       loadCampaigns();
     } catch (err) {
       showToast(err.message, 'error');
     }
   }
 
-  // ════════════════════════════════════════════════════════
-  // RUNNERS (NEW)
-  // ════════════════════════════════════════════════════════
-  async function loadRunners() {
+  async function openCampaignDetails(campaignId) {
     try {
-      const data = await callAdmin('/list-runners');
-      const runners = data.runners || [];
-      const body = document.getElementById('runnersTableBody');
-
-      if (!runners.length) {
-        body.innerHTML = '<tr><td colspan="4"><div class="empty-state">No runners yet.</div></td></tr>';
-        return;
+      const campaign = campaignsData.find(c => c.orderTrackingId === campaignId);
+      let docsHtml = '<div class="empty-state">Loading documents…</div>';
+      
+      // Attempt to fetch documents from the new route (requires backend addition)
+      try {
+        const docsRes = await callOps('/admin/get-campaign-documents', { campaignId });
+        const docs = docsRes.documents || [];
+        if (docs.length) {
+          docsHtml = docs.map(d => `
+            <a href="${escapeHtml(d.url)}" target="_blank" rel="noopener" 
+               style="display:block; margin-bottom:8px; color:var(--teal); text-decoration:none;">
+               📄 ${escapeHtml(d.documentType || 'document')}
+            </a>
+          `).join('');
+        } else {
+          docsHtml = '<div class="empty-state">No documents uploaded.</div>';
+        }
+      } catch {
+        docsHtml = '<div class="empty-state">⚠️ Document fetching requires the /admin/get-campaign-documents route to be added to boujee-ops-worker.js (not yet implemented).</div>';
       }
 
-      body.innerHTML = runners.map(r => `
-        <tr>
-          <td>${escapeHtml(r.tiktokHandle || '—')}</td>
-          <td>${escapeHtml(r.email || '—')}</td>
-          <td>${(r.earnedBalance || 0).toLocaleString()} UGX</td>
-          <td>${r.activeCampaignCount || 0}</td>
-        </tr>
-      `).join('');
+      const detailsHtml = `
+        <p style="margin-bottom:10px;"><strong>Business:</strong> ${escapeHtml(campaign.businessName || '—')}</p>
+        <p style="margin-bottom:10px;"><strong>Business Payment:</strong> ${(campaign.businessPayment || 0).toLocaleString()} UGX</p>
+        <p style="margin-bottom:10px;"><strong>Boujee Fee:</strong> ${(campaign.boujeeFee || 0).toLocaleString()} UGX</p>
+        <p style="margin-bottom:10px;"><strong>Creator Pool:</strong> ${(campaign.creatorPool || 0).toLocaleString()} UGX</p>
+        <p style="margin-bottom:10px;"><strong>Max Payout:</strong> ${(campaign.maxPayoutPerVideo || 0).toLocaleString()} UGX</p>
+        <p style="margin-bottom:10px;"><strong>Pool Remaining:</strong> ${(campaign.poolRemaining || 0).toLocaleString()} UGX</p>
+        <p style="margin-bottom:10px;"><strong>Status:</strong> ${campaign.isExpired ? 'Expired' : 'Active'}</p>
+        <p style="margin-bottom:10px;"><strong>Created:</strong> ${formatDate(campaign.createdAt)}</p>
+        <p style="margin-bottom:20px;"><strong>Expires:</strong> ${formatDate(campaign.expiresAt)}</p>
+        <div style="border-top:1px solid var(--line); padding-top:16px;">
+          <h4 style="margin-bottom:12px; font-family:var(--font-mono); font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted);">Reference documents</h4>
+          ${docsHtml}
+        </div>
+      `;
+
+      document.getElementById('campaignDetailsBody').innerHTML = detailsHtml;
+      openModal('campaignDetailsModal');
     } catch (err) {
-      document.getElementById('runnersTableBody').innerHTML =
-        `<tr><td colspan="4"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
+      showToast(err.message, 'error');
     }
   }
 
   // ════════════════════════════════════════════════════════
-  // SUBMISSIONS (NEW)
+  // SUBMISSIONS
   // ════════════════════════════════════════════════════════
   async function loadSubmissions() {
     try {
-      const data = await callAdmin('/list-submissions');
-      const submissions = data.submissions || [];
-      const body = document.getElementById('submissionsTableBody');
-
-      if (!submissions.length) {
-        body.innerHTML = '<tr><td colspan="6"><div class="empty-state">No submissions yet.</div></td></tr>';
-        return;
-      }
-
-      body.innerHTML = submissions.map(s => `
-        <tr>
-          <td>${escapeHtml(s.campaignId || '—')}</td>
-          <td>${escapeHtml(s.runnerUid || '—')}</td>
-          <td>
-            <a href="${escapeHtml(s.videoUrl)}" target="_blank" rel="noopener" style="color:var(--teal);">View video</a>
-          </td>
-          <td>${(s.verifiedViews || 0).toLocaleString()}</td>
-          <td><span class="badge ${s.status}">${escapeHtml(s.status || 'pending')}</span></td>
-          <td>
-            <button class="btn-secondary btn-small" onclick="forceRecheck('${s.submissionId}')">Force Recheck</button>
-          </td>
-        </tr>
-      `).join('');
+      const data = await callOps('/admin/list-all-submissions');
+      submissionsData = data.submissions || [];
+      renderSubmissionsTable();
     } catch (err) {
       document.getElementById('submissionsTableBody').innerHTML =
         `<tr><td colspan="6"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
     }
   }
 
-  async function forceRecheck(submissionId) {
+  function renderSubmissionsTable() {
+    const body = document.getElementById('submissionsTableBody');
+    if (!submissionsData.length) {
+      body.innerHTML = '<tr><td colspan="6"><div class="empty-state">No submissions yet.</div></td></tr>';
+      return;
+    }
+
+    body.innerHTML = submissionsData.map(s => `
+      <tr>
+        <td>${escapeHtml(s.campaignId || '—')}</td>
+        <td>${escapeHtml(s.runnerUid || '—')}</td>
+        <td>
+          <a href="${escapeHtml(s.videoUrl)}" target="_blank" rel="noopener" style="color:var(--teal);">View video</a>
+        </td>
+        <td>${(s.verifiedViews || 0).toLocaleString()}</td>
+        <td><span class="badge ${escapeHtml(s.status)}">${escapeHtml(s.status || 'pending')}</span></td>
+        <td>
+          <button class="btn-secondary btn-small" onclick="openForceRecheckModal('${escapeAttr(s.submissionId)}')">Force Recheck</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function openForceRecheckModal(submissionId) {
+    window._currentSubmissionId = submissionId;
+    document.getElementById('verifiedViewsInput').value = '';
+    openModal('forceRecheckModal');
+  }
+
+  async function submitForceRecheck() {
+    const verifiedViews = parseInt(document.getElementById('verifiedViewsInput').value, 10);
+    if (isNaN(verifiedViews) || verifiedViews < 0) { showToast('Enter a valid number', 'error'); return; }
+
     try {
-      await callAdmin('/force-verify-submission', { submissionId });
+      await callOps('/admin/force-verify-submission', { 
+        submissionId: window._currentSubmissionId, 
+        verifiedViews: verifiedViews 
+      });
       showToast('Force recheck triggered', 'success');
+      closeModal('forceRecheckModal');
       loadSubmissions();
     } catch (err) {
       showToast(err.message, 'error');
@@ -1375,102 +1078,112 @@
   }
 
   // ════════════════════════════════════════════════════════
-  // ANNOUNCEMENTS
+  // MESSAGES
   // ════════════════════════════════════════════════════════
-  async function loadAnnouncements() {
-    const container = document.getElementById('announcementsAdminContainer');
+  async function loadRecipients() {
     try {
-      const res = await fetch('https://boujee-content2-worker.kakoozaronald71.workers.dev/get-announcements', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}),
+      const data = await callOps('/list-recipients');
+      recipientsData = data.recipients || [];
+      const select = document.getElementById('recipientPicker');
+      
+      if (!recipientsData.length) {
+        select.innerHTML = '<option value="">— No recipients found —</option>';
+        return;
+      }
+
+      select.innerHTML = '<option value="">— Select a recipient —</option>' + 
+        recipientsData.map(r => {
+          const name = r.name || r.firstName || r.phone || r.uid;
+          return `<option value="${escapeAttr(r.uid)}">${escapeHtml(name)} (${escapeHtml(r.type)})</option>`;
+        }).join('');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  function handleRecipientChange() {
+    const selectedUid = document.getElementById('recipientPicker').value;
+    const manualPhone = document.getElementById('manualPhone');
+
+    if (selectedUid) {
+      manualPhone.value = '';
+      const recipient = recipientsData.find(r => r.uid === selectedUid);
+      selectedRecipient = recipient ? { 
+        uid: recipient.uid, 
+        collection: recipient.type === 'runner' ? 'runners' : 'users',
+        firstName: recipient.firstName || (recipient.name ? recipient.name.split(' ')[0] : '')
+      } : null;
+      updateMessagePlaceholder();
+    } else {
+      selectedRecipient = null;
+    }
+  }
+
+  function handleManualPhoneInput() {
+    const phone = document.getElementById('manualPhone').value.trim();
+    if (phone) {
+      document.getElementById('recipientPicker').value = '';
+      selectedRecipient = phone;
+      updateMessagePlaceholder();
+    } else {
+      selectedRecipient = null;
+    }
+  }
+
+  function updateMessagePlaceholder() {
+    const textarea = document.getElementById('messageTextarea');
+    const firstName = selectedRecipient && typeof selectedRecipient === 'object' ? 
+      (selectedRecipient.firstName || '') : '';
+    if (firstName) {
+      textarea.placeholder = `Hi ${firstName}, ...`;
+    } else {
+      textarea.placeholder = 'Hi {name}, ...';
+    }
+  }
+
+  async function sendMessage() {
+    const message = document.getElementById('messageTextarea').value.trim();
+    const saveTemplate = document.getElementById('saveTemplateCheckbox').checked;
+
+    if (!message) { showToast('Message cannot be empty', 'error'); return; }
+
+    let recipientPayload;
+    if (selectedRecipient && typeof selectedRecipient === 'object') {
+      recipientPayload = { uid: selectedRecipient.uid, collection: selectedRecipient.collection };
+    } else if (selectedRecipient && typeof selectedRecipient === 'string') {
+      recipientPayload = selectedRecipient;
+    } else {
+      showToast('Select a recipient or type a phone number', 'error'); return;
+    }
+
+    try {
+      await callOps('/send-message', { 
+        recipient: recipientPayload, 
+        message, 
+        save: saveTemplate 
       });
-      const data = await res.json();
-      const posts = data.posts || [];
-
-      if (!posts.length) {
-        container.innerHTML = '<div class="empty-state">No announcements yet.</div>';
-        return;
-      }
-
-      container.innerHTML = posts.map(p => `
-        <div class="card">
-          <div class="card-head">
-            <span>${escapeHtml(p.title)} <span style="color:var(--text-muted); font-weight:400; font-size:11px;">${formatDate(p.createdAt)}</span></span>
-            <button class="btn-secondary btn-small btn-danger" onclick="deleteAnnouncement('${p.postId}')">Delete</button>
-          </div>
-          <div class="card-body" style="font-size:14px; color:var(--text-light);">${escapeHtml(p.body)}</div>
-        </div>
-      `).join('');
-    } catch {
-      container.innerHTML = '<div class="empty-state">Could not load announcements.</div>';
-    }
-  }
-
-  function openCreateAnnouncementModal() {
-    document.getElementById('newPostTitle').value = '';
-    document.getElementById('newPostBody').value = '';
-    openModal('createAnnouncementModal');
-  }
-
-  async function submitCreateAnnouncement() {
-    const title = document.getElementById('newPostTitle').value.trim();
-    const postBody = document.getElementById('newPostBody').value.trim();
-
-    if (!title || !postBody) { showToast('Title and body are required', 'error'); return; }
-
-    const btn = document.getElementById('createAnnouncementBtn');
-    btn.disabled = true; btn.textContent = 'Posting…';
-
-    try {
-      await callAdmin('/create-announcement', { title, postBody });
-      showToast('Announcement posted', 'success');
-      closeModal('createAnnouncementModal');
-      loadAnnouncements();
-    } catch (err) {
-      showToast(err.message, 'error');
-    } finally {
-      btn.disabled = false; btn.textContent = 'Post announcement';
-    }
-  }
-
-  async function deleteAnnouncement(postId) {
-    if (!confirm('Delete this announcement?')) return;
-    try {
-      await callAdmin('/delete-announcement', { postId });
-      showToast('Announcement deleted', 'success');
-      loadAnnouncements();
+      showToast('Message sent', 'success');
+      if (saveTemplate) loadTemplates();
     } catch (err) {
       showToast(err.message, 'error');
     }
   }
 
-  // ════════════════════════════════════════════════════════
-  // TESTIMONIALS — MODERATION
-  // ════════════════════════════════════════════════════════
-  async function loadPendingTestimonials() {
-    const container = document.getElementById('testimonialsAdminContainer');
+  async function loadTemplates() {
+    const container = document.getElementById('templatesList');
     try {
-      const data = await callAdmin('/list-pending-testimonials');
-      pendingTestimonialsData = data.testimonials || [];
+      const data = await callOps('/list-templates');
+      templatesData = data.templates || [];
 
-      if (!pendingTestimonialsData.length) {
-        container.innerHTML = '<div class="empty-state">No testimonials waiting for review.</div>';
+      if (!templatesData.length) {
+        container.innerHTML = '<div class="empty-state">No saved templates yet.</div>';
         return;
       }
 
-      container.innerHTML = pendingTestimonialsData.map(t => `
-        <div class="card">
-          <div class="card-head">
-            <span>${escapeHtml(t.name)} <span style="color:var(--gold);">${'★'.repeat(t.rating)}${'☆'.repeat(5 - t.rating)}</span></span>
-            <span style="color:var(--text-muted); font-size:11px;">${formatDate(t.createdAt)}</span>
-          </div>
-          <div class="card-body">
-            <p style="font-size:14px; color:var(--text-light); margin-bottom:16px;">${escapeHtml(t.text)}</p>
-            <div class="row-actions">
-              <button class="btn-primary btn-small" onclick="moderateTestimonial('${t.testimonialId}','approve',false)">Approve</button>
-              <button class="btn-secondary btn-small" onclick="moderateTestimonial('${t.testimonialId}','approve',true)">Approve & feature</button>
-              <button class="btn-secondary btn-small btn-danger" onclick="moderateTestimonial('${t.testimonialId}','reject',false)">Reject</button>
-            </div>
-          </div>
+      container.innerHTML = templatesData.map(t => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--line);">
+          <span style="font-size:14px; color:var(--text-light); flex:1; margin-right:12px;">${escapeHtml(t.message || t.text || '')}</span>
+          <button class="btn-secondary btn-small" onclick="useTemplate('${escapeAttr(t.id || '')}')">Use</button>
         </div>
       `).join('');
     } catch (err) {
@@ -1478,56 +1191,11 @@
     }
   }
 
-  async function moderateTestimonial(testimonialId, action, featured) {
-    try {
-      await callAdmin('/moderate-testimonial', { testimonialId, action, featured });
-      showToast(action === 'approve' ? 'Testimonial approved' : 'Testimonial rejected', 'success');
-      loadPendingTestimonials();
-    } catch (err) {
-      showToast(err.message, 'error');
+  function useTemplate(templateId) {
+    const template = templatesData.find(t => t.id === templateId || t.templateId === templateId);
+    if (template) {
+      document.getElementById('messageTextarea').value = template.message || template.text || '';
     }
-  }
-
-  // ════════════════════════════════════════════════════════
-  // AUDIT LOG
-  // ════════════════════════════════════════════════════════
-  async function loadAuditLog() {
-    try {
-      const data = await callAdmin('/get-audit-log');
-      auditLogData = data.entries || [];
-      renderAuditTable();
-    } catch (err) {
-      document.getElementById('auditTableBody').innerHTML =
-        `<tr><td colspan="4"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
-    }
-  }
-
-  function renderAuditTable() {
-    const body = document.getElementById('auditTableBody');
-    if (!auditLogData.length) {
-      body.innerHTML = '<tr><td colspan="4"><div class="empty-state">No activity logged yet.</div></td></tr>';
-      return;
-    }
-
-    body.innerHTML = auditLogData.map(e => `
-      <tr>
-        <td style="font-family:var(--font-mono); font-size:11px;">${formatDate(e.timestamp)}</td>
-        <td>${escapeHtml(e.adminEmail || e.adminUid)}</td>
-        <td>${escapeHtml(e.action)}</td>
-        <td style="font-family:var(--font-mono); font-size:11px;">${escapeHtml(e.targetUid || '—')}</td>
-      </tr>
-    `).join('');
-  }
-
-  // ── LOGOUT ──
-  function logout() {
-    localStorage.removeItem('ba_token');
-    localStorage.removeItem('ba_uid');
-    localStorage.removeItem('ba_name');
-    localStorage.removeItem('ba_email');
-    localStorage.removeItem('ba_refresh_token');
-    sessionStorage.clear();
-    window.location.href = './login.html';
   }
 
   // ── HELPERS ──
@@ -1564,4 +1232,4 @@
   });
 </script>
 </body>
-  </html>
+</html>
