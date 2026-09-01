@@ -116,7 +116,7 @@
 
   .nav-logout:hover { color: var(--red); }
 
-  /* ── SECTION SWITCHER BAR (dropdown) ── */
+  /* ── SECTION SWITCHER BAR ── */
   .switcher-bar {
     display: flex;
     align-items: center;
@@ -1132,9 +1132,7 @@
   const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
   const FIREBASE_PROJECT_ID = 'boujee-academy';
 
-  // Creator Rewards V1 package table — used only to label campaigns by amount.
-  // Matches Boujee_Creator_Rewards_V1_Pricing.pdf. Any amount not in this list
-  // (e.g. pre-existing free-text campaigns) is labeled "Custom".
+  // Creator Rewards V1 package table
   const CAMPAIGN_PACKAGES = [
     { amount: 50000, creators: 2, days: 2 },
     { amount: 100000, creators: 3, days: 4 },
@@ -1207,6 +1205,15 @@
     document.getElementById('navUser').textContent = (name.split(' ')[0] || 'ADMIN').toUpperCase();
     document.getElementById('appShell').style.display = 'block';
 
+    // ── ADDED: Get admin secret for ops worker ──
+    try {
+      const secretData = await callAdmin('/get-admin-secret');
+      sessionStorage.setItem('boujee_admin_secret', secretData.adminSecret);
+      console.log('Admin secret stored successfully');
+    } catch (err) {
+      console.error('Failed to get admin secret:', err);
+    }
+
     loadOverview();
     refreshBadges();
   });
@@ -1262,7 +1269,7 @@
     return data;
   }
 
-  // Ops Worker calls (uses adminSecret - need to get from sessionStorage or localStorage)
+  // Ops Worker calls (uses adminSecret from sessionStorage)
   async function callOps(route, extra = {}) {
     const adminSecret = sessionStorage.getItem('boujee_admin_secret') || '';
     const res = await fetch(`${OPS_WORKER}${route}`, {
@@ -1352,7 +1359,7 @@
     }
   }
 
-  // ── VIEW SWITCHING (dropdown-driven) ──
+  // ── VIEW SWITCHING ──
   function switchView(view) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(`view-${view}`).classList.add('active');
@@ -1375,7 +1382,7 @@
   function openModal(id) { document.getElementById(id).classList.add('show'); }
   function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 
-  // ── BADGES (pending counts shown next to the dropdown) ──
+  // ── BADGES ──
   async function refreshBadges() {
     try {
       const [pr, pp] = await Promise.all([
@@ -1502,7 +1509,7 @@
   }
 
   // ════════════════════════════════════════════════════════
-  // BOOKINGS ("Kakooza Plan" / 30-Day Content Engine deposits — read only here)
+  // BOOKINGS
   // ════════════════════════════════════════════════════════
   async function loadBookings() {
     try {
@@ -1544,7 +1551,7 @@
   }
 
   // ════════════════════════════════════════════════════════
-  // CAMPAIGNS (Creator Rewards — from Admin Worker)
+  // CAMPAIGNS
   // ════════════════════════════════════════════════════════
   async function loadCampaigns() {
     try {
@@ -1613,7 +1620,6 @@
     }
   }
 
-  // Campaign-wide payout override (applies to every runner in the campaign)
   function openAdjustRateModal(campaignId, currentRate, currentCap) {
     window._currentCampaignId = campaignId;
     document.getElementById('rateInput').value = currentRate || 2000;
@@ -1642,7 +1648,6 @@
     }
   }
 
-  // Fetch campaign documents from Firestore using admin's token
   async function fetchCampaignDocuments(campaignId) {
     try {
       const res = await fetch(
@@ -1794,7 +1799,7 @@
   }
 
   // ════════════════════════════════════════════════════════
-  // PENDING RUNNERS (approval gate before a runner is active on a campaign)
+  // PENDING RUNNERS
   // ════════════════════════════════════════════════════════
   async function loadPendingRunners() {
     try {
@@ -1854,7 +1859,7 @@
   }
 
   // ════════════════════════════════════════════════════════
-  // SUBMISSIONS (from Ops Worker)
+  // SUBMISSIONS
   // ════════════════════════════════════════════════════════
   async function loadSubmissions() {
     try {
@@ -1914,7 +1919,7 @@
   }
 
   // ════════════════════════════════════════════════════════
-  // PAYMENTS (runners owed money once a campaign period expires)
+  // PAYMENTS
   // ════════════════════════════════════════════════════════
   async function loadPayments() {
     try {
@@ -1963,7 +1968,7 @@
   }
 
   // ════════════════════════════════════════════════════════
-  // REFERRALS (5% of a referred business's first paid campaign)
+  // REFERRALS
   // ════════════════════════════════════════════════════════
   async function loadReferrals() {
     try {
@@ -2079,7 +2084,7 @@
   }
 
   // ════════════════════════════════════════════════════════
-  // MESSAGES (from Ops Worker) with improved UI
+  // MESSAGES
   // ════════════════════════════════════════════════════════
   async function loadRecipients() {
     try {
@@ -2273,4 +2278,4 @@
   });
 </script>
 </body>
-</html>
+         </html>
