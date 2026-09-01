@@ -59,6 +59,9 @@
             background: var(--bg);
             border-bottom: 1px solid var(--line);
             flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 50;
         }
 
         .nav-logo {
@@ -373,6 +376,77 @@
             color: var(--teal);
         }
 
+        /* ── REFERRAL SECTION ── */
+        .referral-section {
+            border: 1px solid var(--line);
+            background: var(--bg-card);
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .referral-title {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 12px;
+            display: block;
+        }
+        
+        .referral-text {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        
+        .referral-link-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .referral-link-input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 12px 14px;
+            outline: none;
+            letter-spacing: 0.5px;
+        }
+        
+        .referral-link-input:focus {
+            border-color: var(--gold);
+        }
+        
+        .copy-link-btn {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            font-family: var(--font-main);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: opacity .2s;
+            white-space: nowrap;
+        }
+        
+        .copy-link-btn:hover {
+            opacity: .85;
+        }
+        
+        .referral-note {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            letter-spacing: 0.5px;
+        }
+
         /* ── PAY BUTTON ── */
         .pay-btn {
             width: 100%;
@@ -655,6 +729,12 @@
             .apply-promo-btn {
                 width: 100%;
             }
+            .referral-link-row {
+                flex-direction: column;
+            }
+            .copy-link-btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -673,8 +753,7 @@
 
     <main>
 
-        <!-- LOADING STATE — shown immediately on page load, hidden once
-             auth + booking checks finish (or fail/time out) -->
+        <!-- LOADING STATE -->
         <div class="loading-state show" id="loadingState">
             <p>Loading…</p>
         </div>
@@ -704,6 +783,17 @@
             <p class="page-eyebrow">Reserve</p>
             <h1 class="page-title">Choose your<br>growth plan.</h1>
             <p class="page-sub">Pick the plan that fits your business—whether you need a full 30-video content engine or a flexible creator rewards campaign.</p>
+
+            <!-- REFERRAL SECTION -->
+            <div class="referral-section">
+                <span class="referral-title">Refer a Business. Earn a Reward.</span>
+                <p class="referral-text">Share your unique referral link with businesses. When your referred business pays for their first Creator Rewards campaign, you earn a reward from Boujee's platform share.</p>
+                <div class="referral-link-row">
+                    <input type="text" id="referralLinkInput" class="referral-link-input" readonly>
+                    <button class="copy-link-btn" onclick="copyReferralLink()">Copy Link</button>
+                </div>
+                <p class="referral-note">Share via WhatsApp, Email, or social media.</p>
+            </div>
 
             <!-- PLANS GRID -->
             <div class="plans-grid">
@@ -745,10 +835,9 @@
                     <p class="plan-desc">Launch a rewards campaign to get short-form content from multiple creators. You only pay for verified views, and the campaign automatically stops when your budget is used.</p>
                     <ul class="plan-features">
                         <li>Set your own campaign budget (minimum 50,000 UGX)</li>
-                        <li>Boujee keeps a 25% platform fee</li>
-                        <li>75% of your budget goes directly to creators</li>
+                        <li>70% of your budget goes directly to creators</li>
                         <li>Creators earn 2,000 UGX per 1,000 verified views</li>
-                        <li>Max payout per video automatically scales with your budget</li>
+                        <li>Max payout per video is 10,000 UGX</li>
                         <li>Campaign automatically pauses when the pool is exhausted</li>
                     </ul>
 
@@ -821,10 +910,6 @@
         let promoChargeAmount = null;
 
         // ── FETCH WITH TIMEOUT ──
-        // Every network call on this page goes through this so a slow or
-        // unresponsive worker/Google endpoint can never freeze the page —
-        // the request fails after `ms` and falls into the calling code's
-        // catch block instead of hanging the await chain forever.
         async function fetchWithTimeout(url, options = {}, ms = 8000) {
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), ms);
@@ -840,7 +925,7 @@
             }
         }
 
-        // ── JWT helper (base64url decode) ──
+        // ── JWT helper ──
         function base64UrlDecode(str) {
             str = str.replace(/-/g, '+').replace(/_/g, '/');
             while (str.length % 4) str += '=';
@@ -858,17 +943,16 @@
             }
         }
 
-        // ── Guard clause: ensure tokens exist and are valid strings ──
+        // ── Guard clause ──
         function validateTokens() {
             const token = localStorage.getItem('ba_token');
-            // Only require the main token, not refresh token
             if (!token || token === 'undefined' || token === 'null' || token.trim() === '') {
                 return false;
             }
             return true;
         }
 
-        // ── Refresh token using REST API ──
+        // ── Refresh token ──
         async function refreshToken() {
             const refreshTokenStored = localStorage.getItem('ba_refresh_token');
             if (!refreshTokenStored || refreshTokenStored === 'undefined' || refreshTokenStored === 'null') {
@@ -894,14 +978,13 @@
             return data.id_token;
         }
 
-        // ── Ensure Valid Token Before Requests ──
+        // ── Ensure Valid Token ──
         async function getValidToken() {
             const token = localStorage.getItem('ba_token');
             const payload = parseJwt(token);
             const now = Math.floor(Date.now() / 1000);
 
             if (!payload || payload.exp <= now + 60) {
-                // Token is expired - try to refresh
                 try {
                     const newToken = await refreshToken();
                     idToken = newToken;
@@ -912,7 +995,6 @@
                     }
                     return newToken;
                 } catch (err) {
-                    // If refresh fails but token might still work, return the old token
                     console.warn('Token refresh failed, using existing token:', err);
                     idToken = token;
                     uid = payload?.sub;
@@ -925,9 +1007,8 @@
             return token;
         }
 
-        // ── Redirect to login if auth unrecoverable ──
+        // ── Redirect to login ──
         function forceLogin() {
-            // Don't clear localStorage - just redirect
             window.location.href = './login.html?next=subscribe.html';
         }
 
@@ -946,10 +1027,66 @@
             }
         }
 
-        // ── Show one of the four top-level states, hide the rest ──
+        // ── Show state ──
         function showState(stateId) {
             ['loadingState', 'loginRequired', 'alreadyBooked', 'depositForm'].forEach(id => {
                 document.getElementById(id).style.display = (id === stateId) ? 'block' : 'none';
+            });
+        }
+
+        // ── Get Referral Code ──
+        function getReferralCode() {
+            // Check URL params first
+            const urlParams = new URLSearchParams(window.location.search);
+            const refFromUrl = urlParams.get('ref');
+            if (refFromUrl) {
+                localStorage.setItem('ba_referral_code', refFromUrl);
+                return refFromUrl;
+            }
+            
+            // Check localStorage
+            const refFromStorage = localStorage.getItem('ba_referral_code');
+            if (refFromStorage) {
+                return refFromStorage;
+            }
+            
+            // Generate if not exists (for logged-in user)
+            if (uid) {
+                const generatedCode = `BP${uid.slice(0, 6).toUpperCase()}`;
+                localStorage.setItem('ba_referral_code', generatedCode);
+                return generatedCode;
+            }
+            
+            return null;
+        }
+
+        // ── Display Referral Link ──
+        function displayReferralLink() {
+            const refCode = getReferralCode();
+            if (refCode) {
+                const referralLink = `https://boujeephotoug.com/signup?ref=${refCode}`;
+                document.getElementById('referralLinkInput').value = referralLink;
+            }
+        }
+
+        // ── Copy Referral Link ──
+        function copyReferralLink() {
+            const linkInput = document.getElementById('referralLinkInput');
+            const link = linkInput.value;
+            
+            if (!link) {
+                showToast('No referral link available', 'error');
+                return;
+            }
+            
+            // Use Clipboard API
+            navigator.clipboard.writeText(link).then(() => {
+                showToast('Referral link copied!', 'success');
+            }).catch(() => {
+                // Fallback
+                linkInput.select();
+                document.execCommand('copy');
+                showToast('Referral link copied!', 'success');
             });
         }
 
@@ -959,15 +1096,15 @@
             document.documentElement.setAttribute('data-theme', theme);
 
             await initAuth();
-            // initAuth() redirects via forceLogin() if there's truly no
-            // token — if we're still here, we have *some* token to work with.
 
             const name = localStorage.getItem('ba_name') || localStorage.getItem('ba_email') || '';
             document.getElementById('navUser').textContent = name.split(' ')[0].toUpperCase();
             document.getElementById('logoutBtn').style.display = 'inline';
 
-            // Check if already booked — guarded so a slow/dead payment worker
-            // can never leave the page stuck on the loading state forever.
+            // Display referral link
+            displayReferralLink();
+
+            // Check if already booked
             const orderTrackingId = localStorage.getItem('ba_order_tracking_id');
             if (orderTrackingId) {
                 try {
@@ -994,10 +1131,7 @@
                         showState('alreadyBooked');
                         return;
                     }
-                    // Not completed — stale/pending tracking id, fall through to the form.
                 } catch (err) {
-                    // Network error or timeout — proceed to deposit form rather
-                    // than leaving the page stuck on the loading state.
                     console.warn('verify-payment check failed or timed out:', err.message);
                 }
             }
@@ -1126,11 +1260,9 @@
                     promoCodeValidated = true;
                     promoChargeAmount = data.chargeAmount;
 
-                    // Show discount display
                     const discountDisplay = document.getElementById('discountDisplay');
                     discountDisplay.classList.add('show');
 
-                    // Update display
                     const discount = amount - data.chargeAmount;
                     document.getElementById('originalAmount').textContent = amount.toLocaleString() + ' UGX';
                     document.getElementById('discountAmount').textContent = '-' + discount.toLocaleString() + ' UGX';
@@ -1156,8 +1288,7 @@
             }
         }
 
-        // Re-validate promo if the user changes the amount after applying it —
-        // the discount was computed against the old amount and is now stale.
+        // Re-validate promo if amount changes
         document.getElementById('rewardsAmount').addEventListener('input', () => {
             if (promoApplied) {
                 promoApplied = false;
@@ -1249,4 +1380,4 @@
         }
     </script>
 </body>
-</html>
+    </html>
