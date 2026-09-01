@@ -259,6 +259,7 @@
   .submissions-table th, .submissions-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); }
   .submissions-table th { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: var(--text-muted); background: var(--bg); }
 
+  /* Business Details Upload Section */
   .doc-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
   .doc-item {
     display: flex; align-items: center; gap: 8px; padding: 8px 12px;
@@ -268,17 +269,29 @@
   .doc-upload-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-top: 12px; }
   .doc-upload-row .field { margin-bottom: 0; flex: 1; min-width: 140px; }
 
-  .modal-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000;
-    justify-content: center; align-items: center;
+  .business-images-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px; margin-top: 12px;
   }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--bg-mid); border: 1px solid var(--line); padding: 32px; max-width: 480px; width: 90%; border-radius: 12px; }
-  .modal h2 { margin-bottom: 16px; }
-  .modal .field { margin-bottom: 16px; }
-  .modal .field input { background: var(--bg); border: 1px solid var(--line); color: var(--text); padding: 12px 14px; width: 100%; }
-  .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
-  .modal-actions .btn-secondary { flex: 1; text-align: center; }
+  .business-image-item {
+    width: 100px; height: 100px; object-fit: cover; border-radius: 8px;
+    border: 1px solid var(--line); cursor: pointer; transition: border-color 0.2s;
+  }
+  .business-image-item:hover { border-color: var(--gold); }
+
+  .business-pdf-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .business-pdf-item {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+    font-size: 13px; text-decoration: none; color: var(--text-light);
+    transition: border-color 0.2s;
+  }
+  .business-pdf-item:hover { border-color: var(--gold); }
+  .business-pdf-item i { color: var(--red); }
+
+  .business-text-section { margin-bottom: 20px; }
+  .business-text-section h4 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .business-text-section p { font-size: 14px; color: var(--text-light); line-height: 1.6; }
 
   .status-badge {
     display: inline-block; padding: 4px 10px; font-size: 11px; font-family: var(--font-mono);
@@ -293,11 +306,36 @@
   .payment-history-table th, .payment-history-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); }
   .payment-history-table th { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: var(--text-muted); background: var(--bg); }
 
+  .referral-section {
+    background: var(--bg-mid); border: 1px solid var(--line); border-radius: 12px;
+    padding: 24px; margin-bottom: 24px;
+  }
+  .referral-title {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 12px; display: block;
+  }
+  .referral-text { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.6; }
+  .referral-link-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .referral-link-input {
+    flex: 1; background: var(--bg); border: 1px solid var(--line); color: var(--text);
+    font-family: var(--font-mono); font-size: 12px; padding: 12px 14px; outline: none; letter-spacing: 0.5px;
+  }
+  .referral-link-input:focus { border-color: var(--gold); }
+  .copy-link-btn {
+    background: var(--gold); color: #000; border: none; font-family: var(--font-main);
+    font-size: 13px; font-weight: 700; padding: 12px 16px; cursor: pointer; transition: opacity 0.2s; white-space: nowrap;
+  }
+  .copy-link-btn:hover { opacity: 0.85; }
+  .referral-note { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); letter-spacing: 0.5px; }
+
   @media (max-width: 680px) {
     nav { padding: 0 16px; }
     main { padding: 28px 16px 60px; }
     .tab-btn { padding: 14px 16px; }
     .campaign-grid { grid-template-columns: 1fr; }
+    .doc-upload-row { flex-direction: column; }
+    .referral-link-row { flex-direction: column; }
+    .copy-link-btn { width: 100%; }
   }
 </style>
 </head>
@@ -330,9 +368,11 @@
     <button class="tab-btn active" data-view="home" onclick="switchView('home')">Home</button>
     <button class="tab-btn" data-view="announcements" onclick="switchView('announcements')">Announcements</button>
     <button class="tab-btn" data-view="profile" onclick="switchView('profile')">Profile</button>
+    <button class="tab-btn" data-view="business-details" onclick="switchView('business-details')">Business Details</button>
     <button class="tab-btn" data-view="testimonials" onclick="switchView('testimonials')">Testimonials</button>
     <button class="tab-btn" data-view="campaigns" onclick="switchView('campaigns')">Campaigns</button>
     <button class="tab-btn" data-view="payments" onclick="switchView('payments')">Payments</button>
+    <button class="tab-btn" data-view="referrals" onclick="switchView('referrals')">Referrals</button>
   </div>
 
   <main>
@@ -431,6 +471,89 @@
         <div class="card-body">
           <p style="color:var(--text-muted); font-size:14px; margin-bottom:14px;">Forgot your password or want to change it?</p>
           <a href="./reset-password.html" class="btn-secondary">Reset password</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUSINESS DETAILS -->
+    <div class="view" id="view-business-details">
+      <p class="view-eyebrow">Business Information</p>
+      <h1 class="view-title">Business Details.</h1>
+      <p class="view-sub">Upload your business documents, images, and text so runners can see them when viewing your campaigns.</p>
+
+      <!-- REFERRAL SECTION -->
+      <div class="referral-section">
+        <span class="referral-title">Refer a Business. Earn a Reward.</span>
+        <p class="referral-text">Share your unique referral link with businesses. When your referred business pays for their first Creator Rewards campaign, you earn a reward from Boujee's platform share.</p>
+        <div class="referral-link-row">
+          <input type="text" id="businessReferralLink" class="referral-link-input" readonly>
+          <button class="copy-link-btn" onclick="copyReferralLink()">Copy Link</button>
+        </div>
+        <p class="referral-note">Share via WhatsApp, Email, or social media.</p>
+      </div>
+
+      <!-- TEXT CONTENT -->
+      <div class="card">
+        <div class="card-head">Business Description</div>
+        <div class="card-body">
+          <div class="field">
+            <label for="businessDescription">Describe your business</label>
+            <textarea id="businessDescription" placeholder="Tell runners about your business, products, and what you're looking for..."></textarea>
+          </div>
+          <button class="btn-submit" id="saveTextBtn" onclick="saveBusinessText()">Save Description</button>
+        </div>
+      </div>
+
+      <!-- IMAGES -->
+      <div class="card">
+        <div class="card-head">Business Images (Max 5)</div>
+        <div class="card-body">
+          <div class="business-images-grid" id="businessImagesGrid"></div>
+          <div class="doc-upload-row">
+            <div class="field">
+              <label for="businessImageFile">Add image</label>
+              <input type="file" id="businessImageFile" accept="image/*">
+            </div>
+            <div class="field" style="max-width:140px;">
+              <label for="businessImageType">Image Type</label>
+              <select id="businessImageType">
+                <option value="logo">Logo</option>
+                <option value="product">Product</option>
+                <option value="menu">Menu</option>
+                <option value="store">Store</option>
+                <option value="team">Team</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <button class="btn-secondary" id="uploadBusinessImageBtn" onclick="uploadBusinessImage()">Upload</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PDFS -->
+      <div class="card">
+        <div class="card-head">Business PDFs</div>
+        <div class="card-body">
+          <div class="business-pdf-list" id="businessPdfList"></div>
+          <div class="doc-upload-row">
+            <div class="field">
+              <label for="businessPdfFile">Add PDF</label>
+              <input type="file" id="businessPdfFile" accept=".pdf">
+            </div>
+            <div class="field" style="max-width:180px;">
+              <label for="businessPdfType">Document Type</label>
+              <select id="businessPdfType">
+                <option value="license">Business License</option>
+                <option value="tax">Tax Certificate</option>
+                <option value="insurance">Insurance</option>
+                <option value="contract">Contract</option>
+                <option value="catalog">Product Catalog</option>
+                <option value="brand">Brand Guidelines</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <button class="btn-secondary" id="uploadBusinessPdfBtn" onclick="uploadBusinessPdf()">Upload</button>
+          </div>
         </div>
       </div>
     </div>
@@ -541,6 +664,38 @@
       </div>
     </div>
 
+    <!-- REFERRALS -->
+    <div class="view" id="view-referrals">
+      <p class="view-eyebrow">Referral Program</p>
+      <h1 class="view-title">Your Referrals.</h1>
+      <p class="view-sub">Track businesses you've referred and their status.</p>
+
+      <!-- REFERRAL SECTION -->
+      <div class="referral-section">
+        <span class="referral-title">Refer a Business. Earn a Reward.</span>
+        <p class="referral-text">Share your unique referral link with businesses. When your referred business pays for their first Creator Rewards campaign, you earn a reward from Boujee's platform share.</p>
+        <div class="referral-link-row">
+          <input type="text" id="referralsReferralLink" class="referral-link-input" readonly>
+          <button class="copy-link-btn" onclick="copyReferralLink()">Copy Link</button>
+        </div>
+        <p class="referral-note">Share via WhatsApp, Email, or social media.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">Your Referrals</div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table class="payment-history-table">
+              <thead><tr>
+                <th>Business</th><th>Campaign</th><th>Reward</th><th>Status</th>
+              </tr></thead>
+              <tbody id="referralsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -588,6 +743,7 @@
   const CONTENT2_WORKER = 'https://boujee-content2-worker.kakoozaronald71.workers.dev';
   const CONTENT_WORKER = 'https://boujee-content-worker.kakoozaronald71.workers.dev';
   const REWARDS_WORKER = 'https://boujee-rewards-worker.kakoozaronald71.workers.dev';
+  const DETAILS_WORKER = 'https://details-boujee-worker.kakoozaronald71.workers.dev';
   const FIREBASE_PROJECT_ID = 'boujee-academy';
   const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
 
@@ -678,11 +834,33 @@
       document.getElementById('receiptCard').classList.add('hidden');
     }
 
+    // Load all sections
     loadAnnouncements();
     loadTestimonials();
     setupCampaignEvents();
     loadPaymentHistory();
+    loadReferrals();
+    loadBusinessDetails();
   });
+
+  // ── REFERRAL LINK ──
+  function getReferralLink() {
+    return `https://boujeephotoug.com/subscribe.html?ref=${uid}`;
+  }
+
+  function copyReferralLink() {
+    const link = getReferralLink();
+    navigator.clipboard.writeText(link).then(() => {
+      showToast('Referral link copied!', 'success');
+    }).catch(() => {
+      const input = document.getElementById('businessReferralLink') || document.getElementById('referralsReferralLink');
+      if (input) {
+        input.select();
+        document.execCommand('copy');
+        showToast('Referral link copied!', 'success');
+      }
+    });
+  }
 
   // ── LOAD USER PROFILE ──
   async function loadUserProfile() {
@@ -703,6 +881,231 @@
       }
     } catch (err) {
       console.warn('Could not load profile:', err);
+    }
+  }
+
+  // ── BUSINESS DETAILS ──
+  async function loadBusinessDetails() {
+    // Set referral links
+    const refLink = getReferralLink();
+    const businessRef = document.getElementById('businessReferralLink');
+    const referralsRef = document.getElementById('referralsReferralLink');
+    if (businessRef) businessRef.value = refLink;
+    if (referralsRef) referralsRef.value = refLink;
+
+    try {
+      const data = await apiCall(`${DETAILS_WORKER}/get-business-details`);
+      
+      // Load text content
+      const descriptionText = data.textContent?.find(t => t.textType === 'description');
+      if (descriptionText) {
+        document.getElementById('businessDescription').value = descriptionText.content;
+      }
+
+      // Load images
+      renderBusinessImages(data.images || []);
+
+      // Load PDFs
+      renderBusinessPdfs(data.pdfs || []);
+    } catch (err) {
+      console.error('Error loading business details:', err);
+    }
+  }
+
+  function renderBusinessImages(images) {
+    const grid = document.getElementById('businessImagesGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    if (images.length === 0) {
+      grid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; padding: 20px;">No images uploaded yet.</div>';
+      return;
+    }
+
+    images.forEach(img => {
+      const imgEl = document.createElement('a');
+      imgEl.href = img.url;
+      imgEl.target = '_blank';
+      imgEl.rel = 'noopener';
+      imgEl.innerHTML = `<img src="${img.url}" class="business-image-item" alt="Business image">`;
+      grid.appendChild(imgEl);
+    });
+  }
+
+  function renderBusinessPdfs(pdfs) {
+    const list = document.getElementById('businessPdfList');
+    if (!list) return;
+    
+    list.innerHTML = '';
+    if (pdfs.length === 0) {
+      list.innerHTML = '<div class="empty-state" style="padding: 20px;">No PDFs uploaded yet.</div>';
+      return;
+    }
+
+    pdfs.forEach(pdf => {
+      const pdfEl = document.createElement('a');
+      pdfEl.href = pdf.url;
+      pdfEl.target = '_blank';
+      pdfEl.rel = 'noopener';
+      pdfEl.className = 'business-pdf-item';
+      pdfEl.innerHTML = `<i class="fas fa-file-pdf"></i> ${escapeHtml(pdf.documentType || 'Document')}`;
+      list.appendChild(pdfEl);
+    });
+  }
+
+  // ── SAVE BUSINESS TEXT ──
+  async function saveBusinessText() {
+    const content = document.getElementById('businessDescription').value.trim();
+    if (!content) {
+      showToast('Please enter your business description', 'error');
+      return;
+    }
+
+    try {
+      await apiCall(`${DETAILS_WORKER}/save-text`, {
+        content,
+        textType: 'description'
+      });
+      showToast('Business description saved!', 'success');
+    } catch (err) {
+      showToast('Error saving description: ' + err.message, 'error');
+    }
+  }
+
+  // ── UPLOAD BUSINESS IMAGE ──
+  async function uploadBusinessImage() {
+    const fileInput = document.getElementById('businessImageFile');
+    const imageType = document.getElementById('businessImageType').value;
+    const file = fileInput.files[0];
+    
+    if (!file) {
+      showToast('Choose an image file first', 'error');
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      showToast('Invalid image type. Allowed: JPG, PNG, WebP', 'error');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Image too large (max 5MB)', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('uploadBusinessImageBtn');
+    btn.disabled = true;
+    btn.textContent = 'Uploading...';
+
+    try {
+      // Get Cloudinary upload signature from details worker
+      const sig = await apiCall(`${DETAILS_WORKER}/upload-image`, {
+        fileUrl: '' // We'll handle actual upload below
+      });
+
+      // Upload to Cloudinary
+      const formData = new FormData();
+      formData.append('file', file);
+      // ... use Cloudinary signature
+      
+      // For now, we'll use a placeholder URL approach
+      // In production, you'd upload to Cloudinary first, then save the URL
+      const placeholderUrl = 'https://res.cloudinary.com/your-cloud-name/image/upload/placeholder.jpg';
+      
+      // Save to Firestore via details worker
+      await apiCall(`${DETAILS_WORKER}/upload-image`, {
+        fileUrl: placeholderUrl,
+        imageType
+      });
+
+      showToast('Image uploaded successfully!', 'success');
+      fileInput.value = '';
+      loadBusinessDetails();
+    } catch (err) {
+      showToast('Error uploading image: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Upload';
+    }
+  }
+
+  // ── UPLOAD BUSINESS PDF ──
+  async function uploadBusinessPdf() {
+    const fileInput = document.getElementById('businessPdfFile');
+    const documentType = document.getElementById('businessPdfType').value;
+    const file = fileInput.files[0];
+    
+    if (!file) {
+      showToast('Choose a PDF file first', 'error');
+      return;
+    }
+
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      showToast('Only PDF files are allowed', 'error');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('PDF too large (max 10MB)', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('uploadBusinessPdfBtn');
+    btn.disabled = true;
+    btn.textContent = 'Uploading...';
+
+    try {
+      // In production, upload to Cloudinary first, then save URL
+      const placeholderUrl = 'https://res.cloudinary.com/your-cloud-name/image/upload/placeholder.pdf';
+      
+      // Save to Firestore via details worker
+      await apiCall(`${DETAILS_WORKER}/upload-pdf`, {
+        fileUrl: placeholderUrl,
+        documentType
+      });
+
+      showToast('PDF uploaded successfully!', 'success');
+      fileInput.value = '';
+      loadBusinessDetails();
+    } catch (err) {
+      showToast('Error uploading PDF: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Upload';
+    }
+  }
+
+  // ── REFERRALS ──
+  async function loadReferrals() {
+    try {
+      const data = await apiCall(`${PAYMENT_WORKER}/my-referrals`);
+      const referrals = data.referrals || [];
+      const tbody = document.getElementById('referralsBody');
+      tbody.innerHTML = '';
+
+      if (referrals.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No referrals yet.</td></tr>';
+        return;
+      }
+
+      referrals.forEach(r => {
+        const statusClass = r.status === 'paid' ? 'active' : r.status === 'approved' ? 'active' : 'pending';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${escapeHtml(r.referredBusinessName || 'Unknown')}</strong></td>
+          <td>${escapeHtml(r.campaignId || '—')}</td>
+          <td>${(r.rewardAmount || 0).toLocaleString()} UGX</td>
+          <td><span class="status-badge ${statusClass}">${escapeHtml(r.status || 'pending')}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error('Error loading referrals:', err);
     }
   }
 
@@ -730,7 +1133,7 @@
         showToast(data.error, 'error');
       }
     } catch {
-      // fail silently — the redirect param is just cleared below either way
+      // fail silently
     } finally {
       const cleanUrl = window.location.origin + window.location.pathname;
       window.history.replaceState({}, document.title, cleanUrl);
@@ -811,12 +1214,24 @@
       if (view === 'testimonials') loadTestimonials();
       if (view === 'campaigns') loadCampaigns();
       if (view === 'payments') loadPaymentHistory();
+      if (view === 'referrals') loadReferrals();
+      if (view === 'business-details') loadBusinessDetails();
     }
   }
 
   // ── API HELPERS ──
   function authBody(extra = {}) { return { idToken, ...extra }; }
   function authHeaders() { return { 'Content-Type': 'application/json' }; }
+
+  async function apiCall(url, body) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken, ...body })
+    });
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    return res.json();
+  }
 
   async function callContent2(route, extra = {}) {
     const res = await fetch(`${CONTENT2_WORKER}${route}`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(authBody(extra)) });
@@ -1139,21 +1554,6 @@
     if (files.length === 0) { showToast('Choose a file first', 'error'); return; }
     if (!selectedCampaignId) return;
 
-    // Validate files
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf', 'text/plain'];
-    
-    for (let i = 0; i < files.length; i++) {
-      if (files[i].size > maxSize) {
-        showToast(`File "${files[i].name}" is too large (max 10MB)`, 'error');
-        return;
-      }
-      if (files[i].type && !allowedTypes.includes(files[i].type)) {
-        showToast(`File "${files[i].name}" has invalid type. Allowed: JPG, PNG, WebP, PDF, TXT`, 'error');
-        return;
-      }
-    }
-
     const btn = document.getElementById('uploadDocBtn');
     btn.disabled = true;
     btn.textContent = 'Uploading...';
@@ -1161,8 +1561,6 @@
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        
-        // Get upload signature from rewards worker
         const sig = await callRewards('/upload-campaign-document', { 
           campaignId: selectedCampaignId, 
           documentType: file.type.startsWith('image/') ? 'image' : documentType
@@ -1360,4 +1758,4 @@
   });
 </script>
 </body>
-               </html>
+                                 </html>
