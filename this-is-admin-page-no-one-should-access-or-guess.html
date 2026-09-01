@@ -542,6 +542,90 @@
 
   .modal-body { padding: 22px; }
 
+  /* ── BUSINESS DETAILS ── */
+  .business-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .business-detail-card {
+    border: 1px solid var(--line);
+    background: var(--bg-card);
+    padding: 20px;
+  }
+
+  .business-detail-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  .business-images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .business-image-item {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .business-image-item:hover { border-color: var(--gold); }
+
+  .business-pdf-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .business-pdf-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 13px;
+    text-decoration: none;
+    color: var(--text-light);
+    transition: border-color 0.2s;
+  }
+
+  .business-pdf-item:hover { border-color: var(--gold); }
+  .business-pdf-item i { color: var(--red); }
+
+  .business-text-content {
+    font-size: 14px;
+    color: var(--text-light);
+    line-height: 1.6;
+    margin-top: 8px;
+  }
+
+  .business-detail-section {
+    margin-bottom: 20px;
+  }
+
+  .business-detail-section h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
   /* ── TOAST ── */
   .toast {
     position: fixed;
@@ -573,6 +657,7 @@
     main { padding: 28px 16px 60px; }
     .field-row { grid-template-columns: 1fr; }
     .nav-tag { display: none; }
+    .business-details-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -655,6 +740,7 @@
       <option value="submissions">Submissions</option>
       <option value="payments">Payments</option>
       <option value="referrals">Referrals</option>
+      <option value="businessDetails">Business Details</option>
       <option value="announcements">Announcements</option>
       <option value="messages">Messages</option>
     </select>
@@ -960,6 +1046,22 @@
       </div>
     </div>
 
+    <!-- ══════════ BUSINESS DETAILS VIEW ══════════ -->
+    <div class="view" id="view-businessDetails">
+      <div class="view-head-row">
+        <div>
+          <p class="view-eyebrow">Business Information</p>
+          <h1 class="view-title">Business Details.</h1>
+          <p class="view-sub">View all business documents, images, and text content uploaded by businesses.</p>
+        </div>
+        <button class="btn-secondary" onclick="loadBusinessDetails()">↻ Refresh</button>
+      </div>
+
+      <div id="businessDetailsContainer">
+        <div class="empty-state">Loading…</div>
+      </div>
+    </div>
+
     <!-- ══════════ ANNOUNCEMENTS VIEW ══════════ -->
     <div class="view" id="view-announcements">
       <div class="view-head-row">
@@ -1119,6 +1221,18 @@
       </div>
     </div>
 
+    <!-- Business Details Modal -->
+    <div class="modal-overlay" id="businessDetailsModal">
+      <div class="modal-box" style="max-width: 700px;">
+        <div class="modal-head">
+          <span class="modal-title">Business Details</span>
+          <button class="modal-close" onclick="closeModal('businessDetailsModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="businessDetailsModalBody">
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -1129,10 +1243,11 @@
   // ── CONFIG ──
   const ADMIN_WORKER = 'https://boujee-admin-worker.kakoozaronald71.workers.dev';
   const OPS_WORKER = 'https://boujee-ops-worker.kakoozaronald71.workers.dev';
+  const DETAILS_WORKER = 'https://details-boujee-worker.kakoozaronald71.workers.dev';
   const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
   const FIREBASE_PROJECT_ID = 'boujee-academy';
 
-  // Creator Rewards V1 package table
+  // Creator Rewards V1 package table — used only to label campaigns by amount.
   const CAMPAIGN_PACKAGES = [
     { amount: 50000, creators: 2, days: 2 },
     { amount: 100000, creators: 3, days: 4 },
@@ -1205,7 +1320,7 @@
     document.getElementById('navUser').textContent = (name.split(' ')[0] || 'ADMIN').toUpperCase();
     document.getElementById('appShell').style.display = 'block';
 
-    // ── ADDED: Get admin secret for ops worker ──
+    // Store admin secret for ops worker
     try {
       const secretData = await callAdmin('/get-admin-secret');
       sessionStorage.setItem('boujee_admin_secret', secretData.adminSecret);
@@ -1276,6 +1391,18 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ adminSecret, ...extra }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  }
+
+  // Details Worker calls (uses idToken)
+  async function callDetails(route, extra = {}) {
+    const res = await fetch(`${DETAILS_WORKER}${route}`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(authBody(extra)),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Request failed');
@@ -1374,6 +1501,7 @@
     if (view === 'submissions') loadSubmissions();
     if (view === 'payments') loadPayments();
     if (view === 'referrals') loadReferrals();
+    if (view === 'businessDetails') loadBusinessDetails();
     if (view === 'announcements') loadAnnouncements();
     if (view === 'messages') { loadRecipients(); loadTemplates(); }
   }
@@ -2018,6 +2146,133 @@
   }
 
   // ════════════════════════════════════════════════════════
+  // BUSINESS DETAILS
+  // ════════════════════════════════════════════════════════
+  async function loadBusinessDetails() {
+    const container = document.getElementById('businessDetailsContainer');
+    container.innerHTML = '<div class="empty-state">Loading…</div>';
+
+    try {
+      const data = await callDetails('/get-all-details');
+      const businesses = data.businesses || [];
+
+      if (!businesses.length) {
+        container.innerHTML = '<div class="empty-state">No business details uploaded yet.</div>';
+        return;
+      }
+
+      container.innerHTML = businesses.map(b => {
+        const images = b.images || [];
+        const pdfs = b.pdfs || [];
+        const textContent = b.textContent || [];
+
+        // Build images HTML
+        const imagesHtml = images.length > 0
+          ? `<div class="business-images-grid">
+              ${images.map(img => `<a href="${img.url}" target="_blank" rel="noopener"><img src="${img.url}" class="business-image-item" alt="Business image"></a>`).join('')}
+            </div>`
+          : '<div class="empty-state" style="padding:12px;">No images uploaded.</div>';
+
+        // Build PDFs HTML
+        const pdfsHtml = pdfs.length > 0
+          ? `<div class="business-pdf-list">
+              ${pdfs.map(pdf => `<a href="${pdf.url}" target="_blank" rel="noopener" class="business-pdf-item"><i class="fas fa-file-pdf"></i> ${escapeHtml(pdf.documentType || 'Document')}</a>`).join('')}
+            </div>`
+          : '<div class="empty-state" style="padding:12px;">No PDFs uploaded.</div>';
+
+        // Build text content HTML
+        const textHtml = textContent.length > 0
+          ? textContent.map(t => `
+              <div class="business-detail-section">
+                <h4>${escapeHtml(t.textType || 'Description')}</h4>
+                <p class="business-text-content">${escapeHtml(t.content)}</p>
+              </div>
+            `).join('')
+          : '<div class="empty-state" style="padding:12px;">No text content uploaded.</div>';
+
+        return `
+          <div class="card" style="margin-bottom:24px;">
+            <div class="card-head">
+              <span>${escapeHtml(b.businessName || 'Unknown Business')}</span>
+              <button class="btn-secondary btn-small" onclick="openBusinessDetailsModal('${escapeAttr(b.businessUid)}')">View Details</button>
+            </div>
+            <div class="card-body">
+              <div class="business-details-grid">
+                <div class="business-detail-card">
+                  <h3>Text Content</h3>
+                  ${textHtml}
+                </div>
+                <div class="business-detail-card">
+                  <h3>Images</h3>
+                  ${imagesHtml}
+                </div>
+                <div class="business-detail-card">
+                  <h3>PDFs</h3>
+                  ${pdfsHtml}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch (err) {
+      container.innerHTML = `<div class="empty-state">Error loading business details: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  async function openBusinessDetailsModal(businessUid) {
+    try {
+      const data = await callDetails('/get-business-details', { businessUid });
+      const images = data.images || [];
+      const pdfs = data.pdfs || [];
+      const textContent = data.textContent || [];
+
+      const imagesHtml = images.length > 0
+        ? `<div class="business-images-grid">
+            ${images.map(img => `<a href="${img.url}" target="_blank" rel="noopener"><img src="${img.url}" class="business-image-item" alt="Business image"></a>`).join('')}
+          </div>`
+        : '<div class="empty-state" style="padding:12px;">No images uploaded.</div>';
+
+      const pdfsHtml = pdfs.length > 0
+        ? `<div class="business-pdf-list">
+            ${pdfs.map(pdf => `<a href="${pdf.url}" target="_blank" rel="noopener" class="business-pdf-item"><i class="fas fa-file-pdf"></i> ${escapeHtml(pdf.documentType || 'Document')}</a>`).join('')}
+          </div>`
+        : '<div class="empty-state" style="padding:12px;">No PDFs uploaded.</div>';
+
+      const textHtml = textContent.length > 0
+        ? textContent.map(t => `
+            <div class="business-detail-section">
+              <h4>${escapeHtml(t.textType || 'Description')}</h4>
+              <p class="business-text-content">${escapeHtml(t.content)}</p>
+            </div>
+          `).join('')
+        : '<div class="empty-state" style="padding:12px;">No text content uploaded.</div>';
+
+      document.getElementById('businessDetailsModalBody').innerHTML = `
+        <h3 style="margin-bottom:16px;">${escapeHtml(data.businessName || 'Business Details')}</h3>
+        <div class="business-details-grid">
+          <div class="business-detail-card">
+            <h3>Text Content</h3>
+            ${textHtml}
+          </div>
+          <div class="business-detail-card">
+            <h3>Images</h3>
+            ${imagesHtml}
+          </div>
+          <div class="business-detail-card">
+            <h3>PDFs</h3>
+            ${pdfsHtml}
+          </div>
+        </div>
+      `;
+
+      openModal('businessDetailsModal');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ════════════════════════════════════════════════════════
   // ANNOUNCEMENTS
   // ════════════════════════════════════════════════════════
   async function loadAnnouncements() {
@@ -2278,4 +2533,4 @@
   });
 </script>
 </body>
-         </html>
+ </html>
