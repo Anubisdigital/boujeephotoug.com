@@ -170,11 +170,52 @@
         .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
         .modal-actions .btn-ghost { flex: 1; text-align: center; }
 
+        /* Business Details Section */
+        .business-details-section {
+            background: var(--bg-mid); border: 1px solid var(--line); border-radius: 12px;
+            padding: 24px; margin-top: 24px;
+        }
+        .business-details-title {
+            font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--gold); margin-bottom: 16px; display: block;
+        }
+        .business-details-content {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+        }
+        .business-text-section { margin-bottom: 20px; }
+        .business-text-section h4 {
+            font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px;
+        }
+        .business-text-section p {
+            font-size: 14px; color: var(--text-light); line-height: 1.6;
+        }
+        .business-images-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px; margin-top: 12px;
+        }
+        .business-image-item {
+            width: 120px; height: 120px; object-fit: cover; border-radius: 8px;
+            border: 1px solid var(--line); cursor: pointer; transition: border-color 0.2s;
+        }
+        .business-image-item:hover { border-color: var(--gold); }
+        .business-pdf-list {
+            display: flex; flex-direction: column; gap: 8px; margin-top: 12px;
+        }
+        .business-pdf-item {
+            display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+            background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+            font-size: 13px; text-decoration: none; color: var(--text-light);
+            transition: border-color 0.2s;
+        }
+        .business-pdf-item:hover { border-color: var(--gold); }
+        .business-pdf-item i { color: var(--red); }
+
         /* Responsive Breakpoints */
         @media (max-width: 900px) {
             nav { padding: 0 20px; }
             .grid-2 { grid-template-columns: 1fr; }
             .grid-3 { grid-template-columns: 1fr 1fr; }
+            .business-details-content { grid-template-columns: 1fr; }
         }
         @media (max-width: 600px) {
             nav { padding: 0 16px; }
@@ -382,6 +423,7 @@
         const RUNNER_WORKER_URL   = 'https://boujee-runner-worker.kakoozaronald71.workers.dev';
         const PAYMENT_WORKER_URL  = 'https://boujee-payment-worker.kakoozaronald71.workers.dev';
         const REWARDS_WORKER_URL  = 'https://boujee-rewards-worker.kakoozaronald71.workers.dev';
+        const DETAILS_WORKER_URL  = 'https://details-boujee-worker.kakoozaronald71.workers.dev';
         const TOKEN = localStorage.getItem('ba_token');
         const UID = localStorage.getItem('ba_uid');
 
@@ -430,6 +472,11 @@
             t._timer = setTimeout(() => t.classList.remove('show'), 4000);
         }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
         // ── REFERRAL LINK ──
         function getReferralLink() {
             return `https://boujeephotoug.com/subscribe.html?ref=${UID}`;
@@ -457,6 +504,71 @@
                 document.execCommand('copy');
                 showToast('Referral link copied!', 'success');
             });
+        }
+
+        // ── FETCH BUSINESS DETAILS ──
+        async function fetchBusinessDetails(campaignId) {
+            try {
+                const data = await apiCall(`${DETAILS_WORKER_URL}/get-campaign-details`, { campaignId });
+                return data;
+            } catch (err) {
+                console.error('Error fetching business details:', err);
+                return null;
+            }
+        }
+
+        // ── RENDER BUSINESS DETAILS ──
+        function renderBusinessDetails(containerId, details) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            if (!details || (!details.textContent?.length && !details.images?.length && !details.pdfs?.length)) {
+                container.innerHTML = '<div class="business-details-section"><span class="business-details-title">Business Details</span><p style="color: var(--text-muted);">No business details available yet.</p></div>';
+                return;
+            }
+
+            let html = `<div class="business-details-section">
+                <span class="business-details-title">${escapeHtml(details.businessName || 'Business')} — Details</span>
+                <div class="business-details-content">`;
+
+            // Text Content
+            if (details.textContent?.length) {
+                html += `<div class="business-text-section">
+                    <h4>About the Business</h4>`;
+                details.textContent.forEach(text => {
+                    if (text.textType === 'description' || text.textType === 'about' || text.textType === 'mission') {
+                        html += `<p>${escapeHtml(text.content)}</p>`;
+                    }
+                });
+                html += `</div>`;
+            }
+
+            // Images
+            if (details.images?.length) {
+                html += `<div class="business-text-section">
+                    <h4>Business Images</h4>
+                    <div class="business-images-grid">`;
+                details.images.forEach(img => {
+                    html += `<a href="${img.url}" target="_blank" rel="noopener"><img src="${img.url}" class="business-image-item" alt="Business image"></a>`;
+                });
+                html += `</div></div>`;
+            }
+
+            // PDFs
+            if (details.pdfs?.length) {
+                html += `<div class="business-text-section">
+                    <h4>Business Documents</h4>
+                    <div class="business-pdf-list">`;
+                details.pdfs.forEach(pdf => {
+                    html += `<a href="${pdf.url}" target="_blank" rel="noopener" class="business-pdf-item">
+                        <i class="fas fa-file-pdf"></i> ${escapeHtml(pdf.documentType || 'Document')}
+                    </a>`;
+                });
+                html += `</div></div>`;
+            }
+
+            html += `</div></div>`;
+            container.innerHTML = html;
         }
 
         // ── INIT ──
@@ -524,374 +636,4 @@
                 card.className = 'card';
                 card.style.cursor = 'pointer';
                 const used = c.creatorPool - c.poolRemaining;
-                const pct = c.creatorPool > 0 ? Math.round((used / c.creatorPool) * 100) : 0;
-                const statusClass = c.status === 'active' ? 'active' : c.status === 'pending_payment' ? 'pending' : 'expired';
-                card.innerHTML = `
-                    <div class="label"><span class="badge ${statusClass}">${c.status}</span></div>
-                    <div class="value">${formatMoney(c.businessPayment)}</div>
-                    <div style="font-size:13px; color:var(--text-muted); margin-top:8px;">
-                        Pool: ${formatMoney(c.poolRemaining)} remaining
-                    </div>
-                    <div style="height:4px; background:var(--line); margin-top:12px; border-radius:999px; overflow:hidden;">
-                        <div style="height:100%; background:var(--red); width:${pct}%;"></div>
-                    </div>
-                `;
-                card.addEventListener('click', () => loadCampaignDetail(c.orderTrackingId));
-                listEl.appendChild(card);
-            });
-        }
-
-        async function loadBusinessReferrals() {
-            try {
-                const data = await apiCall(`${PAYMENT_WORKER_URL}/my-referrals`, {});
-                const referrals = data.referrals || [];
-                const tbody = document.getElementById('businessReferralsBody');
-                tbody.innerHTML = '';
-
-                if (referrals.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No referrals yet.</td></tr>`;
-                    return;
-                }
-
-                referrals.forEach(r => {
-                    const statusClass = r.status === 'paid' ? 'paid' : r.status === 'approved' ? 'approved' : 'pending';
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><strong>${escapeHtml(r.referredBusinessName || 'Unknown')}</strong></td>
-                        <td>${escapeHtml(r.campaignId || '—')}</td>
-                        <td>${formatMoney(r.rewardAmount || 0)}</td>
-                        <td><span class="badge ${statusClass}">${escapeHtml(r.status || 'pending')}</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                console.error('Error loading referrals:', err);
-            }
-        }
-
-        async function loadCampaignDetail(id) {
-            const detailEl = document.getElementById('campaignDetail');
-            detailEl.classList.remove('hidden');
-            const statsEl = document.getElementById('campaignStats');
-            statsEl.innerHTML = '<div class="loading-state" style="padding:20px;">Loading...</div>';
-
-            const campaignsData = await apiCall(`${PAYMENT_WORKER_URL}/my-campaigns`, {});
-            const camp = campaignsData.campaigns.find(c => c.orderTrackingId === id);
-            if (!camp) return;
-
-            statsEl.innerHTML = `
-                <div class="card"><div class="label">Creator Pool</div><div class="value green">${formatMoney(camp.creatorPool)}</div></div>
-                <div class="card"><div class="label">Pool Remaining</div><div class="value">${formatMoney(camp.poolRemaining)}</div></div>
-            `;
-
-            const subsData = await apiCall(`${REWARDS_WORKER_URL}/campaign-submissions`, { campaignId: id });
-            const tbody = document.getElementById('submissionsBody');
-            tbody.innerHTML = '';
-            if (!subsData.submissions || subsData.submissions.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No submissions yet.</td></tr>`;
-                return;
-            }
-            subsData.submissions.forEach(s => {
-                const runnerName = s.runnerName || s.runnerUid || 'Unknown';
-                const estPayout = Math.min((s.totalVerifiedViews / 1000) * 2000, camp.maxPayoutPerVideo);
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${escapeHtml(runnerName)}</strong></td>
-                    <td>${s.totalVerifiedViews.toLocaleString()}</td>
-                    <td>${s.videos.length}</td>
-                    <td>${formatMoney(estPayout)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // ============================================================
-        // RUNNER DASHBOARD
-        // ============================================================
-        async function loadRunnerDashboard() {
-            // Profile
-            const runnerRes = await fetch(
-                `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/runners/${UID}`,
-                { headers: { Authorization: `Bearer ${TOKEN}` } }
-            );
-            const runnerData = await runnerRes.json();
-            const fields = runnerData.fields || {};
-            document.getElementById('runnerHandle').textContent = fields.tiktokHandle?.stringValue || '@unknown';
-            const bal = parseInt(fields.earnedBalance?.integerValue || '0');
-            document.getElementById('runnerBalance').textContent = formatMoney(bal);
-
-            // Load referrals
-            await loadRunnerReferrals();
-
-            // Load approval status
-            await loadApprovalStatus();
-
-            // Load withdrawal history
-            await loadWithdrawalHistory();
-
-            // Fetch open campaigns
-            const campaignsData = await apiCall(`${RUNNER_WORKER_URL}/list-open-campaigns`, {});
-            const allCampaigns = campaignsData.campaigns || [];
-            
-            const activeIds = fields.activeCampaignIds?.arrayValue?.values?.map(v => v.stringValue) || [];
-            
-            const available = allCampaigns.filter(c => !activeIds.includes(c.orderTrackingId));
-            
-            const joined = [];
-            for (const id of activeIds) {
-                const existing = allCampaigns.find(c => c.orderTrackingId === id);
-                if (existing) {
-                    joined.push(existing);
-                } else {
-                    const fetched = await fetchCampaignById(id);
-                    if (fetched) joined.push(fetched);
-                }
-            }
-
-            // RENDER AVAILABLE CAMPAIGNS
-            const availEl = document.getElementById('availableCampaigns');
-            availEl.innerHTML = '';
-            if (available.length === 0) {
-                availEl.innerHTML = `<div class="card" style="grid-column: 1/-1; text-align:center; color:var(--text-muted);">
-                    No open campaigns available right now. Check back later!
-                </div>`;
-            } else {
-                available.forEach(c => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.innerHTML = `
-                        <div class="label">${escapeHtml(c.businessName || 'Campaign')}</div>
-                        <div class="value">${formatMoney(c.businessPayment || c.budget)}</div>
-                        <div style="font-size:13px; color:var(--text-muted); margin: 8px 0 16px;">
-                            Pool: ${formatMoney(c.poolRemaining)} left<br>
-                            Max per video: ${formatMoney(c.maxPayoutPerVideo)}
-                        </div>
-                        <button class="btn-primary" style="width:100%;" onclick="joinCampaign('${c.orderTrackingId}')">Join Campaign</button>
-                    `;
-                    availEl.appendChild(card);
-                });
-            }
-
-            // RENDER JOINED DROPDOWN
-            const select = document.getElementById('campaignSelect');
-            select.innerHTML = `<option value="">— Select —</option>`;
-            if (joined.length === 0) {
-                select.innerHTML = `<option value="">— Join a campaign first —</option>`;
-                select.disabled = true;
-            } else {
-                select.disabled = false;
-                joined.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c.orderTrackingId;
-                    opt.textContent = `Campaign ${c.orderTrackingId.slice(0,6)} (${formatMoney(c.businessPayment)})`;
-                    select.appendChild(opt);
-                });
-            }
-
-            // My submissions
-            const subsData = await apiCall(`${RUNNER_WORKER_URL}/list-my-submissions`, {});
-            const tbody = document.getElementById('mySubmissionsBody');
-            tbody.innerHTML = '';
-            if (!subsData.submissions || subsData.submissions.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">No submissions yet.</td></tr>`;
-                return;
-            }
-            subsData.submissions.forEach(s => {
-                const statusClass = s.status === 'verified' ? 'verified' : s.status === 'rejected' ? 'rejected' : 'pending';
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${s.campaignId.slice(0,8)}...</td>
-                    <td>${s.verifiedViews.toLocaleString()}</td>
-                    <td><span class="badge ${statusClass}">${escapeHtml(s.status)}</span></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        async function loadRunnerReferrals() {
-            try {
-                const data = await apiCall(`${PAYMENT_WORKER_URL}/my-referrals`, {});
-                const referrals = data.referrals || [];
-                const tbody = document.getElementById('runnerReferralsBody');
-                tbody.innerHTML = '';
-
-                if (referrals.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No referrals yet.</td></tr>`;
-                    return;
-                }
-
-                referrals.forEach(r => {
-                    const statusClass = r.status === 'paid' ? 'paid' : r.status === 'approved' ? 'approved' : 'pending';
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><strong>${escapeHtml(r.referredBusinessName || 'Unknown')}</strong></td>
-                        <td>${escapeHtml(r.campaignId || '—')}</td>
-                        <td>${formatMoney(r.rewardAmount || 0)}</td>
-                        <td><span class="badge ${statusClass}">${escapeHtml(r.status || 'pending')}</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                console.error('Error loading referrals:', err);
-            }
-        }
-
-        async function loadApprovalStatus() {
-            try {
-                const data = await apiCall(`${RUNNER_WORKER_URL}/my-pending-requests`, {});
-                const pendingRequests = data.pendingRequests || [];
-                const activeIds = data.activeCampaignIds || [];
-                const tbody = document.getElementById('approvalStatusBody');
-                tbody.innerHTML = '';
-
-                if (pendingRequests.length === 0 && activeIds.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:var(--text-muted);">No campaign requests yet.</td></tr>`;
-                    return;
-                }
-
-                pendingRequests.forEach(r => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${escapeHtml(r.campaignId || 'Unknown')}</td>
-                        <td><span class="badge pending">Pending</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-
-                activeIds.forEach(id => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${escapeHtml(id || 'Unknown')}</td>
-                        <td><span class="badge active">Active</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                console.error('Error loading approval status:', err);
-                const tbody = document.getElementById('approvalStatusBody');
-                tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:var(--text-muted);">Error loading approvals.</td></tr>`;
-            }
-        }
-
-        async function loadWithdrawalHistory() {
-            try {
-                const data = await apiCall(`${PAYMENT_WORKER_URL}/my-withdrawals`, {});
-                const withdrawals = data.withdrawals || [];
-                const tbody = document.getElementById('withdrawalHistoryBody');
-                tbody.innerHTML = '';
-
-                if (withdrawals.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">No withdrawals yet.</td></tr>`;
-                    return;
-                }
-
-                withdrawals.forEach(w => {
-                    const statusClass = w.status === 'completed' ? 'paid' : w.status === 'pending' ? 'pending' : 'rejected';
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${escapeHtml(w.createdAt ? new Date(w.createdAt).toLocaleDateString() : '—')}</td>
-                        <td>${formatMoney(w.amount || 0)}</td>
-                        <td><span class="badge ${statusClass}">${escapeHtml(w.status || 'pending')}</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                console.error('Error loading withdrawal history:', err);
-            }
-        }
-
-        // ── WITHDRAW MODAL ──
-        function openWithdrawModal() {
-            document.getElementById('withdrawModal').classList.add('open');
-        }
-
-        function closeWithdrawModal() {
-            document.getElementById('withdrawModal').classList.remove('open');
-        }
-
-        async function confirmWithdraw() {
-            const amount = parseInt(document.getElementById('withdrawAmount').value, 10);
-            const method = document.getElementById('withdrawMethod').value;
-            const phone = document.getElementById('withdrawPhone').value.trim();
-
-            if (!amount || amount < 1000) {
-                showToast('Enter a valid amount (minimum 1,000 UGX)', 'error');
-                return;
-            }
-
-            if (!phone) {
-                showToast('Enter your phone number', 'error');
-                return;
-            }
-
-            try {
-                const data = await apiCall(`${PAYMENT_WORKER_URL}/withdraw`, {
-                    amount,
-                    method,
-                    phone
-                });
-
-                if (data.error) {
-                    showToast(data.error, 'error');
-                    return;
-                }
-
-                showToast('Withdrawal request submitted!', 'success');
-                closeWithdrawModal();
-                loadWithdrawalHistory();
-                loadRunnerDashboard();
-            } catch (err) {
-                showToast('Error processing withdrawal: ' + err.message, 'error');
-            }
-        }
-
-        // ── JOIN CAMPAIGN ──
-        window.joinCampaign = async function(campaignId) {
-            try {
-                const res = await fetch(`${RUNNER_WORKER_URL}/join-campaign`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ idToken: TOKEN, campaignId })
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Failed to join campaign');
-                showToast('Successfully joined the campaign!', 'success');
-                loadRunnerDashboard();
-            } catch (err) {
-                showToast('Error joining campaign: ' + err.message, 'error');
-            }
-        };
-
-        // ── SUBMIT VIDEO ──
-        document.getElementById('submitForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const campaignId = document.getElementById('campaignSelect').value;
-            const videoUrl = document.getElementById('videoUrl').value;
-
-            if (!campaignId || !videoUrl) {
-                showToast('Please select a campaign and enter a video URL.', 'error');
-                return;
-            }
-
-            try {
-                const res = await fetch(`${RUNNER_WORKER_URL}/submit-video`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ idToken: TOKEN, campaignId, videoUrl })
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Submit failed');
-                
-                showToast('Video submitted successfully! It will be reviewed shortly.', 'success');
-                document.getElementById('videoUrl').value = '';
-                loadRunnerDashboard();
-            } catch (err) {
-                showToast('Error: ' + err.message, 'error');
-            }
-        });
-
-        // ── START ──
-        init();
-    </script>
-</body>
-    </html>
+                const pct = c.creatorPool > 0 ? Math.round((used / c
