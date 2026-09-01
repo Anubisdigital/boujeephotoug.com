@@ -14,14 +14,14 @@
         :root, [data-theme="dark"] {
             --bg: #000000; --bg-mid: #1a1a1a; --bg-card: #111111;
             --line: #222222; --text: #ffffff; --text-muted: #888888;
-            --text-light: #cccccc; --red: #E8000D;
+            --text-light: #cccccc; --red: #E8000D; --gold: #E8B84B; --green: #22c55e;
             --font-main: 'Space Grotesk', sans-serif;
             --font-mono: 'Space Mono', monospace;
         }
         [data-theme="light"] {
             --bg: #f5f5f5; --bg-mid: #ebebeb; --bg-card: #ffffff;
             --line: #dddddd; --text: #000000; --text-muted: #666666;
-            --text-light: #333333; --red: #E8000D;
+            --text-light: #333333; --red: #E8000D; --gold: #B8860B; --green: #16a34a;
         }
         html { scroll-behavior: smooth; }
         body {
@@ -63,7 +63,8 @@
         .card .label { font-size: 12px; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
         .card .value { font-size: 28px; font-weight: 700; margin-top: 8px; word-break: break-word; }
         .card .value.red { color: var(--red); }
-        .card .value.green { color: #22c55e; }
+        .card .value.green { color: var(--green); }
+        .card .value.gold { color: var(--gold); }
 
         .section-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin: 32px 0 16px; }
         .section-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; }
@@ -88,6 +89,12 @@
             cursor: pointer; transition: background 0.2s, color 0.2s; text-decoration: none; display: inline-block; text-align: center;
         }
         .btn-outline-red:hover { background: var(--red); color: #fff; }
+        .btn-gold {
+            background: var(--gold); color: #000; border: none; font-family: var(--font-main);
+            font-size: 14px; font-weight: 600; padding: 12px 24px; cursor: pointer;
+            transition: opacity 0.2s; display: inline-block; text-decoration: none; text-align: center;
+        }
+        .btn-gold:hover { opacity: 0.85; }
 
         /* Forms */
         .form-group { margin-bottom: 16px; }
@@ -111,6 +118,33 @@
         .badge.pending { background: #fef3c7; color: #92400e; }
         .badge.verified { background: #d1fae5; color: #065f46; }
         .badge.rejected { background: #fee2e2; color: #991b1b; }
+        .badge.active { background: #d1fae5; color: #065f46; }
+        .badge.approved { background: #d1fae5; color: #065f46; }
+        .badge.paid { background: #d1fae5; color: #065f46; }
+        .badge.expired { background: #fee2e2; color: #991b1b; }
+
+        /* Referral Section */
+        .referral-section {
+            background: var(--bg-mid); border: 1px solid var(--line); border-radius: 12px;
+            padding: 24px; margin-bottom: 24px;
+        }
+        .referral-title {
+            font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--gold); margin-bottom: 12px; display: block;
+        }
+        .referral-text { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.6; }
+        .referral-link-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .referral-link-input {
+            flex: 1; background: var(--bg); border: 1px solid var(--line); color: var(--text);
+            font-family: var(--font-mono); font-size: 12px; padding: 12px 14px; outline: none; letter-spacing: 0.5px;
+        }
+        .referral-link-input:focus { border-color: var(--gold); }
+        .copy-link-btn {
+            background: var(--gold); color: #000; border: none; font-family: var(--font-main);
+            font-size: 13px; font-weight: 700; padding: 12px 16px; cursor: pointer; transition: opacity 0.2s; white-space: nowrap;
+        }
+        .copy-link-btn:hover { opacity: 0.85; }
+        .referral-note { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); letter-spacing: 0.5px; }
 
         /* Alert Messages */
         .alert {
@@ -120,38 +154,21 @@
         .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
         .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
 
-        /* Campaign Documents */
-        .campaign-docs { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 8px; 
-            margin-top: 12px; 
-            padding-top: 12px; 
-            border-top: 1px solid var(--line);
+        /* Withdrawal Modal */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            z-index: 1000; justify-content: center; align-items: center;
         }
-        .doc-thumb {
-            width: 48px; 
-            height: 48px; 
-            object-fit: cover; 
-            border-radius: 4px; 
-            border: 1px solid var(--line);
-            cursor: pointer;
-            display: block;
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: var(--bg-mid); border: 1px solid var(--line); padding: 32px;
+            max-width: 480px; width: 90%; border-radius: 12px;
         }
-        .doc-thumb:hover { border-color: var(--text-muted); }
-        .doc-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 12px;
-            color: var(--text-muted);
-            text-decoration: none;
-            padding: 4px 8px;
-            background: var(--bg);
-            border: 1px solid var(--line);
-            border-radius: 4px;
-        }
-        .doc-link:hover { border-color: var(--text-muted); color: var(--text); }
+        .modal h2 { margin-bottom: 16px; }
+        .modal .form-group { margin-bottom: 16px; }
+        .modal .form-group input { background: var(--bg); border: 1px solid var(--line); color: var(--text); padding: 12px 14px; width: 100%; }
+        .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+        .modal-actions .btn-ghost { flex: 1; text-align: center; }
 
         /* Responsive Breakpoints */
         @media (max-width: 900px) {
@@ -162,12 +179,13 @@
         @media (max-width: 600px) {
             nav { padding: 0 16px; }
             .nav-right { gap: 12px; font-size: 13px; }
-            #userName { display: none; } /* Hide display name on extra small screens */
             .grid-3 { grid-template-columns: 1fr; }
             .container { padding: 0 16px 40px; margin: 20px auto; }
             .card { padding: 16px; }
             .card .value { font-size: 22px; }
             .flex-header { flex-direction: column; align-items: flex-start; }
+            .referral-link-row { flex-direction: column; }
+            .copy-link-btn { width: 100%; }
         }
     </style>
 </head>
@@ -191,9 +209,31 @@
             Checking your account...
         </div>
 
+        <!-- BUSINESS VIEW -->
         <div id="businessView" class="hidden">
             <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 4px;">Your Campaigns</h2>
             <p class="section-sub">Select a campaign below to view its status and submissions.</p>
+
+            <!-- REFERRAL SECTION -->
+            <div class="referral-section">
+                <span class="referral-title">Refer a Business. Earn a Reward.</span>
+                <p class="referral-text">Share your unique referral link with businesses. When your referred business pays for their first Creator Rewards campaign, you earn a reward from Boujee's platform share.</p>
+                <div class="referral-link-row">
+                    <input type="text" id="businessReferralLink" class="referral-link-input" readonly>
+                    <button class="copy-link-btn" onclick="copyBusinessReferralLink()">Copy Link</button>
+                </div>
+                <p class="referral-note">Share via WhatsApp, Email, or social media.</p>
+            </div>
+
+            <!-- REFERRAL STATUS -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="label">Your Referrals</div>
+                <div class="table-wrap" style="margin-top: 12px;">
+                    <table><thead><tr>
+                        <th>Business</th><th>Campaign</th><th>Reward</th><th>Status</th>
+                    </tr></thead><tbody id="businessReferralsBody"></tbody></table>
+                </div>
+            </div>
 
             <div id="campaignList" class="grid-3"></div>
 
@@ -211,6 +251,7 @@
             </div>
         </div>
 
+        <!-- RUNNER VIEW -->
         <div id="runnerView" class="hidden">
             <div class="grid-2" id="runnerProfile">
                 <div class="card">
@@ -223,6 +264,51 @@
                 </div>
             </div>
 
+            <!-- REFERRAL SECTION -->
+            <div class="referral-section" style="margin-top: 24px;">
+                <span class="referral-title">Refer a Business. Earn a Reward.</span>
+                <p class="referral-text">Share your unique referral link with businesses. When your referred business pays for their first Creator Rewards campaign, you earn a reward from Boujee's platform share.</p>
+                <div class="referral-link-row">
+                    <input type="text" id="runnerReferralLink" class="referral-link-input" readonly>
+                    <button class="copy-link-btn" onclick="copyRunnerReferralLink()">Copy Link</button>
+                </div>
+                <p class="referral-note">Share via WhatsApp, Email, or social media.</p>
+            </div>
+
+            <!-- REFERRAL STATUS -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="label">Your Referrals</div>
+                <div class="table-wrap" style="margin-top: 12px;">
+                    <table><thead><tr>
+                        <th>Business</th><th>Campaign</th><th>Reward</th><th>Status</th>
+                    </tr></thead><tbody id="runnerReferralsBody"></tbody></table>
+                </div>
+            </div>
+
+            <!-- APPROVAL STATUS -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="label">Campaign Approvals</div>
+                <div class="table-wrap" style="margin-top: 12px;">
+                    <table><thead><tr>
+                        <th>Campaign</th><th>Status</th>
+                    </tr></thead><tbody id="approvalStatusBody"></tbody></table>
+                </div>
+            </div>
+
+            <!-- WITHDRAW SECTION -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="flex-header">
+                    <div class="label">Withdraw Earnings</div>
+                    <button class="btn-gold" onclick="openWithdrawModal()">Withdraw Funds</button>
+                </div>
+                <div class="table-wrap" style="margin-top: 12px;">
+                    <table><thead><tr>
+                        <th>Date</th><th>Amount</th><th>Status</th>
+                    </tr></thead><tbody id="withdrawalHistoryBody"></tbody></table>
+                </div>
+            </div>
+
+            <!-- OPEN CAMPAIGNS -->
             <div style="margin-top: 24px;">
                 <div class="flex-header">
                     <h3 class="section-title" style="margin:0;">Open Campaigns</h3>
@@ -258,6 +344,36 @@
             </div>
         </div>
     </div>
+
+    <!-- WITHDRAW MODAL -->
+    <div class="modal-overlay" id="withdrawModal">
+        <div class="modal">
+            <h2>Withdraw Earnings</h2>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">Enter the amount you want to withdraw.</p>
+            <div class="form-group">
+                <label for="withdrawAmount">Amount (UGX)</label>
+                <input type="number" id="withdrawAmount" min="1000" step="1000" placeholder="e.g. 50000">
+            </div>
+            <div class="form-group">
+                <label for="withdrawMethod">Withdrawal Method</label>
+                <select id="withdrawMethod">
+                    <option value="mtn">MTN Mobile Money</option>
+                    <option value="airtel">Airtel Money</option>
+                    <option value="bank">Bank Transfer</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="withdrawPhone">Phone Number</label>
+                <input type="tel" id="withdrawPhone" placeholder="07XX XXX XXX">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-ghost" onclick="closeWithdrawModal()">Cancel</button>
+                <button class="btn-primary" onclick="confirmWithdraw()">Confirm Withdrawal</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
 
     <script>
         // ── CONFIG ──
@@ -306,58 +422,59 @@
 
         function formatMoney(n) { return Math.round(n).toLocaleString() + ' UGX'; }
 
-        function showAlert(elementId, message, type = 'success') {
-            const el = document.getElementById(elementId);
-            el.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-            setTimeout(() => { el.innerHTML = ''; }, 5000);
+        function showToast(msg, type = '') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + type;
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), 4000);
         }
 
-        async function fetchCampaignById(campaignId) {
-          const res = await fetch(
-            `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/campaigns/${campaignId}`,
-            { headers: { Authorization: `Bearer ${TOKEN}` } }
-          );
-          if (!res.ok) return null;
-          const doc = await res.json();
-          const f = doc.fields || {};
-          return {
-            orderTrackingId: campaignId,
-            businessName: f.businessName?.stringValue || 'Campaign',
-            businessPayment: parseInt(f.businessPayment?.integerValue || '0', 10),
-            poolRemaining: parseInt(f.poolRemaining?.integerValue || '0', 10),
-            maxPayoutPerVideo: parseInt(f.maxPayoutPerVideo?.integerValue || '10000', 10),
-            status: f.status?.stringValue || 'unknown',
-            documents: (f.documents?.arrayValue?.values || []).map(v => ({
-              url: v.mapValue?.fields?.url?.stringValue || '',
-              documentType: v.mapValue?.fields?.documentType?.stringValue || '',
-            }))
-          };
+        // ── REFERRAL LINK ──
+        function getReferralLink() {
+            return `https://boujeephotoug.com/subscribe.html?ref=${UID}`;
         }
 
-        function renderCampaignDocuments(documents) {
-            if (!documents || documents.length === 0) return '';
-            const html = documents.map(doc => {
-                if (doc.documentType === 'image' && doc.url) {
-                    return `<a href="${doc.url}" target="_blank" rel="noopener"><img src="${doc.url}" class="doc-thumb" alt="Campaign material"></a>`;
-                }
-                if ((doc.documentType === 'pdf' || doc.documentType === 'txt') && doc.url) {
-                    return `<a href="${doc.url}" target="_blank" rel="noopener" class="doc-link">📄 Document</a>`;
-                }
-                return '';
-            }).join('');
-            return html ? `<div class="campaign-docs">${html}</div>` : '';
+        function copyBusinessReferralLink() {
+            const link = getReferralLink();
+            navigator.clipboard.writeText(link).then(() => {
+                showToast('Referral link copied!', 'success');
+            }).catch(() => {
+                const input = document.getElementById('businessReferralLink');
+                input.select();
+                document.execCommand('copy');
+                showToast('Referral link copied!', 'success');
+            });
+        }
+
+        function copyRunnerReferralLink() {
+            const link = getReferralLink();
+            navigator.clipboard.writeText(link).then(() => {
+                showToast('Referral link copied!', 'success');
+            }).catch(() => {
+                const input = document.getElementById('runnerReferralLink');
+                input.select();
+                document.execCommand('copy');
+                showToast('Referral link copied!', 'success');
+            });
         }
 
         // ── INIT ──
         async function init() {
             try {
-                // Determine role: check users/{uid} first, then runners/{uid}
+                // Set referral links
+                const refLink = getReferralLink();
+                const businessRef = document.getElementById('businessReferralLink');
+                const runnerRef = document.getElementById('runnerReferralLink');
+                if (businessRef) businessRef.value = refLink;
+                if (runnerRef) runnerRef.value = refLink;
+
+                // Determine role
                 const userRes = await fetch(
                     `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/users/${UID}`,
                     { headers: { Authorization: `Bearer ${TOKEN}` } }
                 );
                 if (userRes.ok) {
-                    // It's a Business user
                     document.getElementById('loadingState').classList.add('hidden');
                     document.getElementById('businessView').classList.remove('hidden');
                     await loadBusinessDashboard();
@@ -369,14 +486,12 @@
                     { headers: { Authorization: `Bearer ${TOKEN}` } }
                 );
                 if (runnerRes.ok) {
-                    // It's a Runner
                     document.getElementById('loadingState').classList.add('hidden');
                     document.getElementById('runnerView').classList.remove('hidden');
                     await loadRunnerDashboard();
                     return;
                 }
 
-                // Neither found – redirect to homepage
                 window.location.href = '/';
             } catch (err) {
                 console.error('Init error:', err);
@@ -388,6 +503,10 @@
         // BUSINESS DASHBOARD
         // ============================================================
         async function loadBusinessDashboard() {
+            // Load referrals
+            await loadBusinessReferrals();
+
+            // Load campaigns
             const data = await apiCall(`${PAYMENT_WORKER_URL}/my-campaigns`, {});
             const campaigns = data.campaigns;
             const listEl = document.getElementById('campaignList');
@@ -406,8 +525,9 @@
                 card.style.cursor = 'pointer';
                 const used = c.creatorPool - c.poolRemaining;
                 const pct = c.creatorPool > 0 ? Math.round((used / c.creatorPool) * 100) : 0;
+                const statusClass = c.status === 'active' ? 'active' : c.status === 'pending_payment' ? 'pending' : 'expired';
                 card.innerHTML = `
-                    <div class="label">${c.status}</div>
+                    <div class="label"><span class="badge ${statusClass}">${c.status}</span></div>
                     <div class="value">${formatMoney(c.businessPayment)}</div>
                     <div style="font-size:13px; color:var(--text-muted); margin-top:8px;">
                         Pool: ${formatMoney(c.poolRemaining)} remaining
@@ -421,13 +541,40 @@
             });
         }
 
+        async function loadBusinessReferrals() {
+            try {
+                const data = await apiCall(`${PAYMENT_WORKER_URL}/my-referrals`, {});
+                const referrals = data.referrals || [];
+                const tbody = document.getElementById('businessReferralsBody');
+                tbody.innerHTML = '';
+
+                if (referrals.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No referrals yet.</td></tr>`;
+                    return;
+                }
+
+                referrals.forEach(r => {
+                    const statusClass = r.status === 'paid' ? 'paid' : r.status === 'approved' ? 'approved' : 'pending';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${escapeHtml(r.referredBusinessName || 'Unknown')}</strong></td>
+                        <td>${escapeHtml(r.campaignId || '—')}</td>
+                        <td>${formatMoney(r.rewardAmount || 0)}</td>
+                        <td><span class="badge ${statusClass}">${escapeHtml(r.status || 'pending')}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error('Error loading referrals:', err);
+            }
+        }
+
         async function loadCampaignDetail(id) {
             const detailEl = document.getElementById('campaignDetail');
             detailEl.classList.remove('hidden');
             const statsEl = document.getElementById('campaignStats');
             statsEl.innerHTML = '<div class="loading-state" style="padding:20px;">Loading...</div>';
 
-            // Fetch campaign details
             const campaignsData = await apiCall(`${PAYMENT_WORKER_URL}/my-campaigns`, {});
             const camp = campaignsData.campaigns.find(c => c.orderTrackingId === id);
             if (!camp) return;
@@ -437,7 +584,6 @@
                 <div class="card"><div class="label">Pool Remaining</div><div class="value">${formatMoney(camp.poolRemaining)}</div></div>
             `;
 
-            // Fetch submissions from Rewards Worker
             const subsData = await apiCall(`${REWARDS_WORKER_URL}/campaign-submissions`, { campaignId: id });
             const tbody = document.getElementById('submissionsBody');
             tbody.innerHTML = '';
@@ -450,7 +596,7 @@
                 const estPayout = Math.min((s.totalVerifiedViews / 1000) * 2000, camp.maxPayoutPerVideo);
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><strong>${runnerName}</strong></td>
+                    <td><strong>${escapeHtml(runnerName)}</strong></td>
                     <td>${s.totalVerifiedViews.toLocaleString()}</td>
                     <td>${s.videos.length}</td>
                     <td>${formatMoney(estPayout)}</td>
@@ -474,17 +620,23 @@
             const bal = parseInt(fields.earnedBalance?.integerValue || '0');
             document.getElementById('runnerBalance').textContent = formatMoney(bal);
 
-            // Fetch open campaigns from Runner Worker
+            // Load referrals
+            await loadRunnerReferrals();
+
+            // Load approval status
+            await loadApprovalStatus();
+
+            // Load withdrawal history
+            await loadWithdrawalHistory();
+
+            // Fetch open campaigns
             const campaignsData = await apiCall(`${RUNNER_WORKER_URL}/list-open-campaigns`, {});
             const allCampaigns = campaignsData.campaigns || [];
             
-            // Get joined campaigns
             const activeIds = fields.activeCampaignIds?.arrayValue?.values?.map(v => v.stringValue) || [];
             
-            // Separate available and joined
             const available = allCampaigns.filter(c => !activeIds.includes(c.orderTrackingId));
             
-            // Build joined list: use existing from allCampaigns if still open, otherwise fetch from Firestore
             const joined = [];
             for (const id of activeIds) {
                 const existing = allCampaigns.find(c => c.orderTrackingId === id);
@@ -494,26 +646,6 @@
                     const fetched = await fetchCampaignById(id);
                     if (fetched) joined.push(fetched);
                 }
-            }
-
-            // Fetch documents for all campaigns that don't have them yet
-            const campaignsToEnrich = [...available, ...joined].filter(c => !c.documents);
-            if (campaignsToEnrich.length > 0) {
-                const enrichedCampaigns = await Promise.all(
-                    campaignsToEnrich.map(async c => {
-                        const enriched = await fetchCampaignById(c.orderTrackingId);
-                        return enriched || c;
-                    })
-                );
-                
-                // Replace in arrays
-                campaignsToEnrich.forEach((camp, idx) => {
-                    const enriched = enrichedCampaigns[idx];
-                    const inAvailable = available.indexOf(camp);
-                    if (inAvailable !== -1) available[inAvailable] = enriched;
-                    const inJoined = joined.indexOf(camp);
-                    if (inJoined !== -1) joined[inJoined] = enriched;
-                });
             }
 
             // RENDER AVAILABLE CAMPAIGNS
@@ -527,15 +659,13 @@
                 available.forEach(c => {
                     const card = document.createElement('div');
                     card.className = 'card';
-                    const docsHtml = renderCampaignDocuments(c.documents);
                     card.innerHTML = `
-                        <div class="label">${c.businessName || 'Campaign'}</div>
+                        <div class="label">${escapeHtml(c.businessName || 'Campaign')}</div>
                         <div class="value">${formatMoney(c.businessPayment || c.budget)}</div>
                         <div style="font-size:13px; color:var(--text-muted); margin: 8px 0 16px;">
                             Pool: ${formatMoney(c.poolRemaining)} left<br>
                             Max per video: ${formatMoney(c.maxPayoutPerVideo)}
                         </div>
-                        ${docsHtml}
                         <button class="btn-primary" style="width:100%;" onclick="joinCampaign('${c.orderTrackingId}')">Join Campaign</button>
                     `;
                     availEl.appendChild(card);
@@ -572,10 +702,147 @@
                 tr.innerHTML = `
                     <td>${s.campaignId.slice(0,8)}...</td>
                     <td>${s.verifiedViews.toLocaleString()}</td>
-                    <td><span class="badge ${statusClass}">${s.status}</span></td>
+                    <td><span class="badge ${statusClass}">${escapeHtml(s.status)}</span></td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        async function loadRunnerReferrals() {
+            try {
+                const data = await apiCall(`${PAYMENT_WORKER_URL}/my-referrals`, {});
+                const referrals = data.referrals || [];
+                const tbody = document.getElementById('runnerReferralsBody');
+                tbody.innerHTML = '';
+
+                if (referrals.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No referrals yet.</td></tr>`;
+                    return;
+                }
+
+                referrals.forEach(r => {
+                    const statusClass = r.status === 'paid' ? 'paid' : r.status === 'approved' ? 'approved' : 'pending';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${escapeHtml(r.referredBusinessName || 'Unknown')}</strong></td>
+                        <td>${escapeHtml(r.campaignId || '—')}</td>
+                        <td>${formatMoney(r.rewardAmount || 0)}</td>
+                        <td><span class="badge ${statusClass}">${escapeHtml(r.status || 'pending')}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error('Error loading referrals:', err);
+            }
+        }
+
+        async function loadApprovalStatus() {
+            try {
+                const data = await apiCall(`${RUNNER_WORKER_URL}/my-pending-requests`, {});
+                const pendingRequests = data.pendingRequests || [];
+                const activeIds = data.activeCampaignIds || [];
+                const tbody = document.getElementById('approvalStatusBody');
+                tbody.innerHTML = '';
+
+                if (pendingRequests.length === 0 && activeIds.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:var(--text-muted);">No campaign requests yet.</td></tr>`;
+                    return;
+                }
+
+                pendingRequests.forEach(r => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${escapeHtml(r.campaignId || 'Unknown')}</td>
+                        <td><span class="badge pending">Pending</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                activeIds.forEach(id => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${escapeHtml(id || 'Unknown')}</td>
+                        <td><span class="badge active">Active</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error('Error loading approval status:', err);
+                const tbody = document.getElementById('approvalStatusBody');
+                tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:var(--text-muted);">Error loading approvals.</td></tr>`;
+            }
+        }
+
+        async function loadWithdrawalHistory() {
+            try {
+                const data = await apiCall(`${PAYMENT_WORKER_URL}/my-withdrawals`, {});
+                const withdrawals = data.withdrawals || [];
+                const tbody = document.getElementById('withdrawalHistoryBody');
+                tbody.innerHTML = '';
+
+                if (withdrawals.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">No withdrawals yet.</td></tr>`;
+                    return;
+                }
+
+                withdrawals.forEach(w => {
+                    const statusClass = w.status === 'completed' ? 'paid' : w.status === 'pending' ? 'pending' : 'rejected';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${escapeHtml(w.createdAt ? new Date(w.createdAt).toLocaleDateString() : '—')}</td>
+                        <td>${formatMoney(w.amount || 0)}</td>
+                        <td><span class="badge ${statusClass}">${escapeHtml(w.status || 'pending')}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error('Error loading withdrawal history:', err);
+            }
+        }
+
+        // ── WITHDRAW MODAL ──
+        function openWithdrawModal() {
+            document.getElementById('withdrawModal').classList.add('open');
+        }
+
+        function closeWithdrawModal() {
+            document.getElementById('withdrawModal').classList.remove('open');
+        }
+
+        async function confirmWithdraw() {
+            const amount = parseInt(document.getElementById('withdrawAmount').value, 10);
+            const method = document.getElementById('withdrawMethod').value;
+            const phone = document.getElementById('withdrawPhone').value.trim();
+
+            if (!amount || amount < 1000) {
+                showToast('Enter a valid amount (minimum 1,000 UGX)', 'error');
+                return;
+            }
+
+            if (!phone) {
+                showToast('Enter your phone number', 'error');
+                return;
+            }
+
+            try {
+                const data = await apiCall(`${PAYMENT_WORKER_URL}/withdraw`, {
+                    amount,
+                    method,
+                    phone
+                });
+
+                if (data.error) {
+                    showToast(data.error, 'error');
+                    return;
+                }
+
+                showToast('Withdrawal request submitted!', 'success');
+                closeWithdrawModal();
+                loadWithdrawalHistory();
+                loadRunnerDashboard();
+            } catch (err) {
+                showToast('Error processing withdrawal: ' + err.message, 'error');
+            }
         }
 
         // ── JOIN CAMPAIGN ──
@@ -588,10 +855,10 @@
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Failed to join campaign');
-                alert('Successfully joined the campaign!');
+                showToast('Successfully joined the campaign!', 'success');
                 loadRunnerDashboard();
             } catch (err) {
-                alert('Error joining campaign: ' + err.message);
+                showToast('Error joining campaign: ' + err.message, 'error');
             }
         };
 
@@ -601,7 +868,10 @@
             const campaignId = document.getElementById('campaignSelect').value;
             const videoUrl = document.getElementById('videoUrl').value;
 
-            if (!campaignId || !videoUrl) return alert('Please select a campaign and enter a video URL.');
+            if (!campaignId || !videoUrl) {
+                showToast('Please select a campaign and enter a video URL.', 'error');
+                return;
+            }
 
             try {
                 const res = await fetch(`${RUNNER_WORKER_URL}/submit-video`, {
@@ -612,11 +882,11 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Submit failed');
                 
-                showAlert('submitAlert', 'Video submitted successfully! It will be reviewed shortly.', 'success');
+                showToast('Video submitted successfully! It will be reviewed shortly.', 'success');
                 document.getElementById('videoUrl').value = '';
                 loadRunnerDashboard();
             } catch (err) {
-                showAlert('submitAlert', 'Error: ' + err.message, 'error');
+                showToast('Error: ' + err.message, 'error');
             }
         });
 
@@ -624,4 +894,4 @@
         init();
     </script>
 </body>
-</html>
+    </html>
