@@ -160,6 +160,11 @@
   }
   .btn-ghost:hover, .btn-secondary:hover { border-color: var(--text); }
 
+  .btn-danger {
+    border-color: rgba(250,0,1,.4); color: var(--red);
+  }
+  .btn-danger:hover { border-color: var(--red); background: rgba(250,0,1,.06); }
+
   #appShell { display: none; }
 
   .card { border: 1px solid var(--line); background: var(--bg-card); margin-bottom: 24px; }
@@ -275,6 +280,19 @@
   .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
   .modal-actions .btn-secondary { flex: 1; text-align: center; }
 
+  .status-badge {
+    display: inline-block; padding: 4px 10px; font-size: 11px; font-family: var(--font-mono);
+    letter-spacing: 0.5px; text-transform: uppercase; border: 1px solid var(--line);
+  }
+  .status-badge.active { color: var(--teal); border-color: rgba(95,182,173,.35); }
+  .status-badge.pending { color: var(--gold); border-color: rgba(232,184,75,.35); }
+  .status-badge.completed { color: var(--teal); border-color: rgba(95,182,173,.35); }
+  .status-badge.expired { color: var(--red); border-color: rgba(250,0,1,.35); }
+
+  .payment-history-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .payment-history-table th, .payment-history-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+  .payment-history-table th { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: var(--text-muted); background: var(--bg); }
+
   @media (max-width: 680px) {
     nav { padding: 0 16px; }
     main { padding: 28px 16px 60px; }
@@ -305,9 +323,7 @@
   <a href="./signup.html" class="btn-secondary">Create account</a>
 </div>
 
-<!-- APP SHELL — shown for any logged-in Business user, regardless of filming-deposit
-     status. Campaigns and the filming package are two separate products; a business
-     with only a campaign should still see their dashboard. -->
+<!-- APP SHELL -->
 <div id="appShell">
 
   <div class="tab-bar">
@@ -316,6 +332,7 @@
     <button class="tab-btn" data-view="profile" onclick="switchView('profile')">Profile</button>
     <button class="tab-btn" data-view="testimonials" onclick="switchView('testimonials')">Testimonials</button>
     <button class="tab-btn" data-view="campaigns" onclick="switchView('campaigns')">Campaigns</button>
+    <button class="tab-btn" data-view="payments" onclick="switchView('payments')">Payments</button>
   </div>
 
   <main>
@@ -388,6 +405,23 @@
           <div class="field">
             <label for="profileName">Display name</label>
             <input type="text" id="profileName" placeholder="Your name">
+          </div>
+          <div class="field">
+            <label for="profileBusinessName">Business name</label>
+            <input type="text" id="profileBusinessName" placeholder="Your business name">
+          </div>
+          <div class="field">
+            <label for="profileBusinessType">Business type</label>
+            <select id="profileBusinessType">
+              <option value="">Select business type</option>
+              <option value="restaurant">Restaurant</option>
+              <option value="fashion">Fashion</option>
+              <option value="beauty">Beauty & Salon</option>
+              <option value="fitness">Fitness</option>
+              <option value="tech">Technology</option>
+              <option value="education">Education</option>
+              <option value="other">Other</option>
+            </select>
           </div>
           <button class="btn-submit" id="saveProfileBtn">Save changes</button>
         </div>
@@ -468,7 +502,7 @@
             <div class="doc-upload-row">
               <div class="field">
                 <label for="docFile">Add a file</label>
-                <input type="file" id="docFile" accept="image/*,.pdf,.txt">
+                <input type="file" id="docFile" accept="image/*,.pdf,.txt" multiple>
               </div>
               <div class="field" style="max-width:140px;">
                 <label for="docType">Type</label>
@@ -486,6 +520,22 @@
           <div class="card-head">Submissions</div>
           <div class="card-body" id="submissionsBody">
             <div class="empty-state">No submissions yet.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMENTS -->
+    <div class="view" id="view-payments">
+      <p class="view-eyebrow">Transactions</p>
+      <h1 class="view-title">Payment History.</h1>
+      <p class="view-sub">All your payments and transactions.</p>
+      
+      <div class="card">
+        <div class="card-head">All payments</div>
+        <div class="card-body">
+          <div id="paymentHistoryContainer">
+            <div class="empty-state">Loading payment history…</div>
           </div>
         </div>
       </div>
@@ -512,13 +562,31 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="topUpModal">
+  <div class="modal">
+    <h2>Top up campaign</h2>
+    <p style="color:var(--text-muted); font-size:14px; margin-bottom:16px;">
+      Enter the additional amount to add to your campaign pool.
+    </p>
+    <div class="field">
+      <label for="topUpAmount">Additional amount (UGX)</label>
+      <input type="number" id="topUpAmount" min="50000" step="1000" value="50000" placeholder="e.g. 50000">
+      <span style="font-size:12px; color:var(--text-muted);">Minimum 50,000 UGX</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="cancelTopUpBtn">Cancel</button>
+      <button class="btn-primary" id="confirmTopUpBtn">Pay now</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
   // ── CONFIG ──
   const PAYMENT_WORKER = 'https://boujee-payment-worker.kakoozaronald71.workers.dev';
   const CONTENT2_WORKER = 'https://boujee-content2-worker.kakoozaronald71.workers.dev';
-  const CONTENT_WORKER = 'https://boujee-content-worker.kakoozaronald71.workers.dev'; // profile photo upload only
+  const CONTENT_WORKER = 'https://boujee-content-worker.kakoozaronald71.workers.dev';
   const REWARDS_WORKER = 'https://boujee-rewards-worker.kakoozaronald71.workers.dev';
   const FIREBASE_PROJECT_ID = 'boujee-academy';
   const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
@@ -531,6 +599,7 @@
   let pendingPhotoFile = null;
   let campaignsData = [];
   let selectedCampaignId = null;
+  let paymentsData = [];
 
   function setAppState(state) {
     document.querySelectorAll('.gate-state').forEach(el => el.classList.remove('show'));
@@ -581,6 +650,9 @@
     document.getElementById('homeGreeting').textContent = `Welcome back, ${firstName}.`;
     document.getElementById('profileName').value = name || '';
 
+    // Load user profile data
+    await loadUserProfile();
+
     setAppState('app');
 
     const bookingValid = await checkBookingStatus();
@@ -609,7 +681,30 @@
     loadAnnouncements();
     loadTestimonials();
     setupCampaignEvents();
+    loadPaymentHistory();
   });
+
+  // ── LOAD USER PROFILE ──
+  async function loadUserProfile() {
+    try {
+      const data = await callContent2('/get-profile');
+      if (data.name) {
+        document.getElementById('profileName').value = data.name;
+        localStorage.setItem('ba_name', data.name);
+      }
+      if (data.businessName) {
+        document.getElementById('profileBusinessName').value = data.businessName;
+      }
+      if (data.businessType) {
+        document.getElementById('profileBusinessType').value = data.businessType;
+      }
+      if (data.photoUrl) {
+        document.getElementById('profilePhotoPreview').src = data.photoUrl;
+      }
+    } catch (err) {
+      console.warn('Could not load profile:', err);
+    }
+  }
 
   // ── PESAPAL REDIRECT HANDLING ──
   async function handlePaymentRedirect() {
@@ -671,7 +766,7 @@
     }
   }
 
-  // ── CHECK BOOKING STATUS (filming deposit only — separate from campaigns) ──
+  // ── CHECK BOOKING STATUS ──
   async function checkBookingStatus() {
     const orderTrackingId = localStorage.getItem('ba_order_tracking_id');
     if (!orderTrackingId) return false;
@@ -715,6 +810,7 @@
       if (view === 'announcements') loadAnnouncements();
       if (view === 'testimonials') loadTestimonials();
       if (view === 'campaigns') loadCampaigns();
+      if (view === 'payments') loadPaymentHistory();
     }
   }
 
@@ -815,9 +911,15 @@
         photoUrl = uploadData.secure_url;
       }
       const name = document.getElementById('profileName').value.trim();
+      const businessName = document.getElementById('profileBusinessName').value.trim();
+      const businessType = document.getElementById('profileBusinessType').value;
+      
       const extra = {};
       if (name) extra.name = name;
+      if (businessName) extra.businessName = businessName;
+      if (businessType) extra.businessType = businessType;
       if (photoUrl) extra.photoUrl = photoUrl;
+      
       await callContent2('/update-profile', extra);
       if (name) localStorage.setItem('ba_name', name);
       showToast('Profile updated', 'success');
@@ -890,6 +992,10 @@
       document.getElementById('campaignCount').style.display = '';
     });
     document.getElementById('uploadDocBtn').addEventListener('click', uploadCampaignDocument);
+    
+    // Top up modal events
+    document.getElementById('cancelTopUpBtn').addEventListener('click', () => document.getElementById('topUpModal').classList.remove('open'));
+    document.getElementById('confirmTopUpBtn').addEventListener('click', confirmTopUp);
   }
 
   async function loadCampaigns() {
@@ -915,9 +1021,10 @@
       campaignsData.forEach(c => {
         const used = (c.creatorPool || 0) - (c.poolRemaining || 0);
         const pct = c.creatorPool > 0 ? Math.round((used / c.creatorPool) * 100) : 0;
+        const statusClass = c.status === 'active' ? 'active' : c.status === 'pending_payment' ? 'pending' : 'expired';
         html += `
           <div class="campaign-card" data-id="${c.orderTrackingId}">
-            <div class="label">${escapeHtml(c.status)}</div>
+            <div class="label"><span class="status-badge ${statusClass}">${escapeHtml(c.status)}</span></div>
             <div class="value">${formatMoney(c.businessPayment)}</div>
             <div style="font-size:13px; color:var(--text-muted);">Pool: ${formatMoney(c.poolRemaining)} remaining</div>
             <div class="progress"><div class="fill" style="width:${pct}%;"></div></div>
@@ -960,7 +1067,7 @@
       </div>
       <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
         <button class="btn-secondary" onclick="topUpCampaign('${campaignId}')">Top up campaign</button>
-        <button class="btn-secondary" style="color:var(--red); border-color:var(--red);" onclick="closeCampaign('${campaignId}')">Close campaign</button>
+        <button class="btn-secondary btn-danger" onclick="closeCampaign('${campaignId}')">Close campaign</button>
       </div>`;
 
     await loadCampaignDocuments(campaignId);
@@ -974,15 +1081,17 @@
         subsBody.innerHTML = '<div class="empty-state">No submissions yet.</div>';
         return;
       }
-      let tableHtml = '<table class="submissions-table"><thead><tr><th>Runner</th><th>Verified Views</th><th>Videos</th><th>Est. Payout</th></tr></thead><tbody>';
+      let tableHtml = '<table class="submissions-table"><thead><tr><th>Runner</th><th>Verified Views</th><th>Videos</th><th>Est. Payout</th><th>Status</th></tr></thead><tbody>';
       submissions.forEach(s => {
         const runnerName = s.runnerName || s.runnerUid || 'Unknown';
         const estPayout = Math.min((s.totalVerifiedViews / 1000) * 2000, campaign.maxPayoutPerVideo || 10000);
+        const statusClass = s.status === 'verified' ? 'active' : s.status === 'pending' ? 'pending' : 'expired';
         tableHtml += `<tr>
           <td>${escapeHtml(runnerName)}</td>
           <td>${s.totalVerifiedViews.toLocaleString()}</td>
           <td>${s.videos.length}</td>
           <td>${formatMoney(estPayout)}</td>
+          <td><span class="status-badge ${statusClass}">${escapeHtml(s.status || 'pending')}</span></td>
         </tr>`;
       });
       tableHtml += '</tbody></table>';
@@ -992,21 +1101,13 @@
     }
   }
 
-  // ── CAMPAIGN REFERENCE MATERIAL (upload/list documents) ──
+  // ── CAMPAIGN REFERENCE MATERIAL ──
   async function loadCampaignDocuments(campaignId) {
     const listEl = document.getElementById('docList');
     listEl.innerHTML = '<div class="empty-state" style="padding:12px;">Loading…</div>';
     try {
-      const res = await fetch(
-        `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/campaigns/${campaignId}`,
-        { headers: { Authorization: `Bearer ${idToken}` } }
-      );
-      const doc = await res.json();
-      const f = doc.fields || {};
-      const docs = (f.documents?.arrayValue?.values || []).map(v => ({
-        url: v.mapValue?.fields?.url?.stringValue || '',
-        documentType: v.mapValue?.fields?.documentType?.stringValue || '',
-      }));
+      const data = await callRewards('/get-campaign-documents', { campaignId });
+      const docs = data.documents || [];
 
       if (docs.length === 0) {
         listEl.innerHTML = '<div class="empty-state" style="padding:12px;">No files added yet.</div>';
@@ -1033,36 +1134,62 @@
   async function uploadCampaignDocument() {
     const fileInput = document.getElementById('docFile');
     const documentType = document.getElementById('docType').value;
-    const file = fileInput.files[0];
-    if (!file) { showToast('Choose a file first', 'error'); return; }
+    const files = fileInput.files;
+    
+    if (files.length === 0) { showToast('Choose a file first', 'error'); return; }
     if (!selectedCampaignId) return;
+
+    // Validate files
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf', 'text/plain'];
+    
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].size > maxSize) {
+        showToast(`File "${files[i].name}" is too large (max 10MB)`, 'error');
+        return;
+      }
+      if (files[i].type && !allowedTypes.includes(files[i].type)) {
+        showToast(`File "${files[i].name}" has invalid type. Allowed: JPG, PNG, WebP, PDF, TXT`, 'error');
+        return;
+      }
+    }
 
     const btn = document.getElementById('uploadDocBtn');
     btn.disabled = true;
-    btn.textContent = 'Uploading…';
+    btn.textContent = 'Uploading...';
 
     try {
-      const sig = await callRewards('/upload-campaign-document', { campaignId: selectedCampaignId, documentType });
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // Get upload signature from rewards worker
+        const sig = await callRewards('/upload-campaign-document', { 
+          campaignId: selectedCampaignId, 
+          documentType: file.type.startsWith('image/') ? 'image' : documentType
+        });
 
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('api_key', sig.params.api_key);
-      formData.append('timestamp', sig.params.timestamp);
-      formData.append('folder', sig.params.folder);
-      formData.append('public_id', sig.params.public_id);
-      formData.append('type', sig.params.type);
-      formData.append('signature', sig.params.signature);
-      if (sig.params.resource_type) formData.append('resource_type', sig.params.resource_type);
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('api_key', sig.params.api_key);
+        formData.append('timestamp', sig.params.timestamp);
+        formData.append('folder', sig.params.folder);
+        formData.append('public_id', sig.params.public_id);
+        formData.append('type', sig.params.type);
+        formData.append('signature', sig.params.signature);
+        if (sig.params.resource_type) formData.append('resource_type', sig.params.resource_type);
 
-      const uploadRes = await fetch(sig.uploadUrl, { method: 'POST', body: formData });
-      const uploadData = await uploadRes.json();
-      if (!uploadData.secure_url) throw new Error('Upload to Cloudinary failed');
+        const uploadRes = await fetch(sig.uploadUrl, { method: 'POST', body: formData });
+        const uploadData = await uploadRes.json();
+        if (!uploadData.secure_url) throw new Error('Upload to Cloudinary failed');
 
-      await callRewards('/attach-campaign-document', {
-        campaignId: selectedCampaignId, url: uploadData.secure_url, documentType
-      });
+        await callRewards('/attach-campaign-document', {
+          campaignId: selectedCampaignId, 
+          url: uploadData.secure_url, 
+          documentType: file.type.startsWith('image/') ? 'image' : documentType
+        });
+      }
 
-      showToast('File added', 'success');
+      showToast('Files uploaded successfully', 'success');
       fileInput.value = '';
       await loadCampaignDocuments(selectedCampaignId);
     } catch (err) {
@@ -1073,17 +1200,60 @@
     }
   }
 
-  async function topUpCampaign(campaignId) {
-    document.getElementById('newCampaignModal').classList.add('open');
-    document.getElementById('campaignAmount').value = 100000;
-    showToast('Top-up feature not yet implemented. Please create a new campaign.', 'error');
+  // ── TOP UP CAMPAIGN ──
+  function topUpCampaign(campaignId) {
+    selectedCampaignId = campaignId;
+    document.getElementById('topUpModal').classList.add('open');
   }
 
+  async function confirmTopUp() {
+    const amountInput = document.getElementById('topUpAmount');
+    const amount = parseInt(amountInput.value, 10);
+    
+    if (isNaN(amount) || amount < 50000) {
+      showToast('Please enter a valid amount of at least 50,000 UGX.', 'error');
+      return;
+    }
+    
+    const btn = document.getElementById('confirmTopUpBtn');
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+    
+    try {
+      const data = await callPayment('/top-up-campaign', {
+        campaignId: selectedCampaignId,
+        amount: amount
+      });
+      
+      if (data.redirectUrl) {
+        window.location.href = data.redirectUrl;
+      } else {
+        showToast('Top-up successful!', 'success');
+        document.getElementById('topUpModal').classList.remove('open');
+        loadCampaigns();
+      }
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Pay now';
+    }
+  }
+
+  // ── CLOSE CAMPAIGN ──
   async function closeCampaign(campaignId) {
     if (!confirm('Are you sure you want to close this campaign? This cannot be undone.')) return;
-    showToast('Close campaign feature not yet implemented.', 'error');
+    
+    try {
+      await callPayment('/close-campaign', { campaignId });
+      showToast('Campaign closed successfully', 'success');
+      loadCampaigns();
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    }
   }
 
+  // ── CREATE CAMPAIGN ──
   async function createCampaignOrder() {
     const amountInput = document.getElementById('campaignAmount');
     const amount = parseInt(amountInput.value, 10);
@@ -1107,6 +1277,39 @@
       showToast('Error: ' + err.message, 'error');
       btn.disabled = false;
       btn.textContent = 'Pay now';
+    }
+  }
+
+  // ── PAYMENT HISTORY ──
+  async function loadPaymentHistory() {
+    const container = document.getElementById('paymentHistoryContainer');
+    container.innerHTML = '<div class="empty-state">Loading payment history…</div>';
+    
+    try {
+      const data = await callPayment('/payment-history');
+      paymentsData = data.payments || [];
+      
+      if (paymentsData.length === 0) {
+        container.innerHTML = '<div class="empty-state">No payments yet.</div>';
+        return;
+      }
+      
+      let html = '<table class="payment-history-table"><thead><tr><th>Date</th><th>Reference</th><th>Amount</th><th>Status</th></tr></thead><tbody>';
+      
+      paymentsData.forEach(p => {
+        const statusClass = p.status === 'COMPLETED' ? 'completed' : p.status === 'PENDING' ? 'pending' : 'expired';
+        html += `<tr>
+          <td>${formatDate(p.createdAt)}</td>
+          <td>${escapeHtml(p.orderTrackingId || '—')}</td>
+          <td>${formatMoney(p.amount || 0)}</td>
+          <td><span class="status-badge ${statusClass}">${escapeHtml(p.status || '—')}</span></td>
+        </tr>`;
+      });
+      
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    } catch (err) {
+      container.innerHTML = `<div class="empty-state">Error loading payment history: ${escapeHtml(err.message)}</div>`;
     }
   }
 
@@ -1138,9 +1341,23 @@
 
   function formatMoney(n) { return Math.round(n || 0).toLocaleString() + ' UGX'; }
 
+  function formatDate(iso) {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch {
+      return iso;
+    }
+  }
+
+  // Modal close on click outside
   document.getElementById('newCampaignModal').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) document.getElementById('newCampaignModal').classList.remove('open');
   });
+  
+  document.getElementById('topUpModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) document.getElementById('topUpModal').classList.remove('open');
+  });
 </script>
 </body>
-</html>
+               </html>
