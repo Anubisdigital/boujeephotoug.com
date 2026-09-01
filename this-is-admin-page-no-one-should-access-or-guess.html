@@ -9,7 +9,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  /* ===== COMPLETE CSS (unchanged) ===== */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -117,44 +116,57 @@
 
   .nav-logout:hover { color: var(--red); }
 
-  /* ── TAB BAR ── */
-  .tab-bar {
+  /* ── SECTION SWITCHER BAR (dropdown) ── */
+  .switcher-bar {
     display: flex;
+    align-items: center;
+    justify-content: flex-start;
     border-bottom: 1px solid var(--line);
     background: var(--bg);
-    overflow-x: auto;
     flex-shrink: 0;
     position: sticky;
     top: 64px;
     z-index: 49;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    padding: 12px 40px;
+    gap: 12px;
   }
 
-  .tab-bar::-webkit-scrollbar { display: none; }
-
-  .tab-btn {
+  .switcher-label {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: 10px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     color: var(--text-muted);
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    padding: 16px 20px;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: color .2s, border-color .2s;
     flex-shrink: 0;
   }
 
-  .tab-btn:hover { color: var(--text-light); }
-
-  .tab-btn.active {
+  #viewSelect {
+    background: var(--bg-mid);
+    border: 1px solid var(--line);
     color: var(--text);
-    border-bottom-color: var(--red);
+    font-family: var(--font-main);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 10px 14px;
+    outline: none;
+    min-width: 220px;
+    cursor: pointer;
   }
+
+  #viewSelect:focus { border-color: var(--text); }
+
+  .switcher-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    display: none;
+  }
+
+  .switcher-badge.show { display: inline-block; }
 
   /* ── MAIN ── */
   main {
@@ -286,6 +298,20 @@
   }
 
   .btn-danger:hover { border-color: var(--red); background: rgba(250,0,1,.06); }
+
+  .btn-success {
+    border-color: rgba(95,182,173,.4);
+    color: var(--teal);
+  }
+
+  .btn-success:hover { border-color: var(--teal); background: rgba(95,182,173,.06); }
+
+  .btn-gold {
+    border-color: rgba(232,184,75,.4);
+    color: var(--gold);
+  }
+
+  .btn-gold:hover { border-color: var(--gold); background: rgba(232,184,75,.06); }
 
   .btn-small {
     padding: 8px 14px;
@@ -419,8 +445,11 @@
   .badge.expired { color: var(--red); border-color: rgba(250,0,1,.35); }
   .badge.admin { color: var(--gold); border-color: rgba(232,184,75,.35); }
   .badge.pending { color: var(--gold); border-color: rgba(232,184,75,.35); }
+  .badge.approved { color: var(--teal); border-color: rgba(95,182,173,.35); }
+  .badge.paid { color: var(--teal); border-color: rgba(95,182,173,.35); }
   .badge.verified { color: var(--teal); border-color: rgba(95,182,173,.35); }
   .badge.rejected { color: var(--red); border-color: rgba(250,0,1,.35); }
+  .badge.custom { color: var(--text-muted); border-color: var(--line-soft); }
 
   .row-actions {
     display: flex;
@@ -539,8 +568,9 @@
 
   @media (max-width: 680px) {
     nav { padding: 0 16px; }
+    .switcher-bar { padding: 12px 16px; flex-wrap: wrap; }
+    #viewSelect { min-width: 0; flex: 1; }
     main { padding: 28px 16px 60px; }
-    .tab-btn { padding: 14px 14px; }
     .field-row { grid-template-columns: 1fr; }
     .nav-tag { display: none; }
   }
@@ -613,15 +643,23 @@
 <!-- APP SHELL -->
 <div id="appShell" style="display:none;">
 
-  <div class="tab-bar">
-    <button class="tab-btn active" data-view="overview" onclick="switchView('overview')">Overview</button>
-    <button class="tab-btn" data-view="users" onclick="switchView('users')">Users</button>
-    <button class="tab-btn" data-view="bookings" onclick="switchView('bookings')">Bookings</button>
-    <button class="tab-btn" data-view="campaigns" onclick="switchView('campaigns')">Campaigns</button>
-    <button class="tab-btn" data-view="runners" onclick="switchView('runners')">Runners</button>
-    <button class="tab-btn" data-view="submissions" onclick="switchView('submissions')">Submissions</button>
-    <button class="tab-btn" data-view="announcements" onclick="switchView('announcements')">Announcements</button>
-    <button class="tab-btn" data-view="messages" onclick="switchView('messages')">Messages</button>
+  <div class="switcher-bar">
+    <span class="switcher-label">Section</span>
+    <select id="viewSelect" onchange="switchView(this.value)">
+      <option value="overview">Overview</option>
+      <option value="users">Users</option>
+      <option value="bookings">Bookings</option>
+      <option value="campaigns">Campaigns</option>
+      <option value="runners">Runners</option>
+      <option value="pendingRunners">Pending Runners</option>
+      <option value="submissions">Submissions</option>
+      <option value="payments">Payments</option>
+      <option value="referrals">Referrals</option>
+      <option value="announcements">Announcements</option>
+      <option value="messages">Messages</option>
+    </select>
+    <span class="switcher-badge" id="pendingRunnersBadge">0 pending</span>
+    <span class="switcher-badge" id="pendingPaymentsBadge">0 pending</span>
   </div>
 
   <main>
@@ -647,6 +685,14 @@
         <div class="stat-card">
           <div class="stat-label">Open submissions</div>
           <div class="stat-value" id="statOpenSubmissions">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending runner approvals</div>
+          <div class="stat-value" id="statPendingRunners">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending payments</div>
+          <div class="stat-value" id="statPendingPayments">—</div>
         </div>
       </div>
 
@@ -696,7 +742,7 @@
         <div>
           <p class="view-eyebrow">Reservations</p>
           <h1 class="view-title">Bookings.</h1>
-          <p class="view-sub">All deposit bookings and their rollover status.</p>
+          <p class="view-sub">All deposit bookings and their rollover status (30-Day Content Engine / "Kakooza Plan" deposits — separate from Creator Rewards campaigns).</p>
         </div>
         <button class="btn-secondary" onclick="loadBookings()">↻ Refresh</button>
       </div>
@@ -729,7 +775,7 @@
         <div>
           <p class="view-eyebrow">Rewards</p>
           <h1 class="view-title">Campaigns.</h1>
-          <p class="view-sub">All Creator Rewards campaigns created by businesses.</p>
+          <p class="view-sub">All Creator Rewards campaigns created by businesses. 70% of every campaign goes to the creator pool; the 30% platform share splits internally into 5% website designer / 25% Boujee.</p>
         </div>
         <button class="btn-secondary" onclick="loadCampaigns()">↻ Refresh</button>
       </div>
@@ -740,15 +786,16 @@
             <thead>
               <tr>
                 <th>Business</th>
+                <th>Package</th>
                 <th>Total Payment</th>
                 <th>Pool Remaining</th>
-                <th>Max Payout</th>
+                <th>Payout Rate / Max</th>
                 <th>Status</th>
                 <th></th>
               </tr>
             </thead>
             <tbody id="campaignsTableBody">
-              <tr><td colspan="6"><div class="empty-state">Loading…</div></td></tr>
+              <tr><td colspan="7"><div class="empty-state">Loading…</div></td></tr>
             </tbody>
           </table>
         </div>
@@ -785,6 +832,38 @@
       </div>
     </div>
 
+    <!-- ══════════ PENDING RUNNERS VIEW ══════════ -->
+    <div class="view" id="view-pendingRunners">
+      <div class="view-head-row">
+        <div>
+          <p class="view-eyebrow">Approvals</p>
+          <h1 class="view-title">Pending Runners.</h1>
+          <p class="view-sub">Runners who requested to join a campaign but haven't been approved yet. Approving sends them a notification email via Resend.</p>
+        </div>
+        <button class="btn-secondary" onclick="loadPendingRunners()">↻ Refresh</button>
+      </div>
+
+      <div class="card">
+        <div class="table-scroll">
+          <table class="data-table" id="pendingRunnersTable">
+            <thead>
+              <tr>
+                <th>Runner</th>
+                <th>TikTok Handle</th>
+                <th>Email</th>
+                <th>Campaign</th>
+                <th>Requested</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="pendingRunnersTableBody">
+              <tr><td colspan="6"><div class="empty-state">Loading…</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- ══════════ SUBMISSIONS VIEW ══════════ -->
     <div class="view" id="view-submissions">
       <div class="view-head-row">
@@ -810,6 +889,70 @@
               </tr>
             </thead>
             <tbody id="submissionsTableBody">
+              <tr><td colspan="6"><div class="empty-state">Loading…</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ PAYMENTS VIEW ══════════ -->
+    <div class="view" id="view-payments">
+      <div class="view-head-row">
+        <div>
+          <p class="view-eyebrow">Payouts</p>
+          <h1 class="view-title">Payments.</h1>
+          <p class="view-sub">Runners owed money for an expired campaign period. Mark as Paid once you've sent the money — this does not send money automatically.</p>
+        </div>
+        <button class="btn-secondary" onclick="loadPayments()">↻ Refresh</button>
+      </div>
+
+      <div class="card">
+        <div class="table-scroll">
+          <table class="data-table" id="paymentsTable">
+            <thead>
+              <tr>
+                <th>Campaign</th>
+                <th>Runner</th>
+                <th>Period Views</th>
+                <th>Amount Owed</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="paymentsTableBody">
+              <tr><td colspan="6"><div class="empty-state">Loading…</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ REFERRALS VIEW ══════════ -->
+    <div class="view" id="view-referrals">
+      <div class="view-head-row">
+        <div>
+          <p class="view-eyebrow">Referral Program</p>
+          <h1 class="view-title">Referrals.</h1>
+          <p class="view-sub">5% of a referred business's first paid campaign, paid from the 30% platform share. Only becomes payable after that business's first campaign payment.</p>
+        </div>
+        <button class="btn-secondary" onclick="loadReferrals()">↻ Refresh</button>
+      </div>
+
+      <div class="card">
+        <div class="table-scroll">
+          <table class="data-table" id="referralsTable">
+            <thead>
+              <tr>
+                <th>Referrer</th>
+                <th>Referred Business</th>
+                <th>Campaign</th>
+                <th>Reward (5%)</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="referralsTableBody">
               <tr><td colspan="6"><div class="empty-state">Loading…</div></td></tr>
             </tbody>
           </table>
@@ -916,7 +1059,32 @@
             <label for="expiryDateInput">New expiry date</label>
             <input type="date" id="expiryDateInput">
           </div>
+          <p class="field-hint" style="margin-bottom:16px;">Setting this to a past date immediately ends the campaign period and moves its runners into Payments as pending.</p>
           <button class="btn-primary" onclick="submitExpiryChange()">Save expiry</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Adjust Payout Rate Modal (campaign-wide) -->
+    <div class="modal-overlay" id="adjustRateModal">
+      <div class="modal-box">
+        <div class="modal-head">
+          <span class="modal-title">Adjust payout for this campaign</span>
+          <button class="modal-close" onclick="closeModal('adjustRateModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="field-hint" style="margin-bottom:16px;">This overrides the rate/cap for every runner in this campaign. Default rate is 2,000 UGX per 1,000 verified views, capped at 10,000 UGX per video.</p>
+          <div class="field-row">
+            <div class="field">
+              <label for="rateInput">Rate per 1,000 views (UGX)</label>
+              <input type="number" id="rateInput" min="0" step="100" placeholder="2000">
+            </div>
+            <div class="field">
+              <label for="capInput">Max payout per video (UGX)</label>
+              <input type="number" id="capInput" min="0" step="500" placeholder="10000">
+            </div>
+          </div>
+          <button class="btn-primary" onclick="submitRateChange()">Save payout settings</button>
         </div>
       </div>
     </div>
@@ -964,13 +1132,40 @@
   const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
   const FIREBASE_PROJECT_ID = 'boujee-academy';
 
+  // Creator Rewards V1 package table — used only to label campaigns by amount.
+  // Matches Boujee_Creator_Rewards_V1_Pricing.pdf. Any amount not in this list
+  // (e.g. pre-existing free-text campaigns) is labeled "Custom".
+  const CAMPAIGN_PACKAGES = [
+    { amount: 50000, creators: 2, days: 2 },
+    { amount: 100000, creators: 3, days: 4 },
+    { amount: 200000, creators: 4, days: 7 },
+    { amount: 300000, creators: 5, days: 10 },
+    { amount: 500000, creators: 7, days: 15 },
+    { amount: 750000, creators: 10, days: 20 },
+    { amount: 1000000, creators: 14, days: 25 },
+  ];
+
+  function getPackageInfo(amount) {
+    return CAMPAIGN_PACKAGES.find(p => p.amount === amount) || null;
+  }
+
+  function packageLabelHtml(amount) {
+    const pkg = getPackageInfo(amount);
+    if (!pkg) return '<span class="badge custom">Custom</span>';
+    return `<span class="badge active">${pkg.creators} creators / ${pkg.days}d</span>`;
+  }
+
   // ── STATE ──
   let idToken = null;
   let adminUid = null;
   let usersData = [];
   let bookingsData = [];
   let campaignsData = [];
+  let runnersData = [];
+  let pendingRunnersData = [];
   let submissionsData = [];
+  let paymentsData = [];
+  let referralsData = [];
   let recipientsData = [];
   let templatesData = [];
   let selectedRecipient = null;
@@ -1013,6 +1208,7 @@
     document.getElementById('appShell').style.display = 'block';
 
     loadOverview();
+    refreshBadges();
   });
 
   // ── TOKEN REFRESH ──
@@ -1156,19 +1352,21 @@
     }
   }
 
-  // ── TAB SWITCHING ──
+  // ── VIEW SWITCHING (dropdown-driven) ──
   function switchView(view) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(`view-${view}`).classList.add('active');
-    document.querySelector(`.tab-btn[data-view="${view}"]`).classList.add('active');
+    document.getElementById('viewSelect').value = view;
 
     if (view === 'overview') loadOverview();
     if (view === 'users') loadUsers();
     if (view === 'bookings') loadBookings();
     if (view === 'campaigns') loadCampaigns();
     if (view === 'runners') loadRunners();
+    if (view === 'pendingRunners') loadPendingRunners();
     if (view === 'submissions') loadSubmissions();
+    if (view === 'payments') loadPayments();
+    if (view === 'referrals') loadReferrals();
     if (view === 'announcements') loadAnnouncements();
     if (view === 'messages') { loadRecipients(); loadTemplates(); }
   }
@@ -1177,32 +1375,62 @@
   function openModal(id) { document.getElementById(id).classList.add('show'); }
   function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 
+  // ── BADGES (pending counts shown next to the dropdown) ──
+  async function refreshBadges() {
+    try {
+      const [pr, pp] = await Promise.all([
+        callAdmin('/list-pending-runners').catch(() => ({ pendingRunners: [] })),
+        callAdmin('/list-pending-payments').catch(() => ({ payments: [] })),
+      ]);
+      const prCount = (pr.pendingRunners || []).length;
+      const ppCount = (pp.payments || []).filter(p => p.status === 'pending').length;
+
+      const prBadge = document.getElementById('pendingRunnersBadge');
+      prBadge.textContent = `${prCount} pending runner${prCount === 1 ? '' : 's'}`;
+      prBadge.classList.toggle('show', prCount > 0);
+
+      const ppBadge = document.getElementById('pendingPaymentsBadge');
+      ppBadge.textContent = `${ppCount} pending payment${ppCount === 1 ? '' : 's'}`;
+      ppBadge.classList.toggle('show', ppCount > 0);
+    } catch {
+      // badges are best-effort; ignore failures silently
+    }
+  }
+
   // ════════════════════════════════════════════════════════
   // OVERVIEW
   // ════════════════════════════════════════════════════════
   async function loadOverview() {
     try {
-      const [usersRes, bookingsRes, campaignsRes, submissionsRes, auditRes] = await Promise.all([
+      const [usersRes, bookingsRes, campaignsRes, submissionsRes, auditRes, pendingRunnersRes, paymentsRes] = await Promise.all([
         callAdmin('/list-users'),
         callAdmin('/list-bookings'),
         callAdmin('/list-campaigns'),
         callOps('/admin/list-all-submissions'),
         callAdmin('/get-audit-log'),
+        callAdmin('/list-pending-runners').catch(() => ({ pendingRunners: [] })),
+        callAdmin('/list-pending-payments').catch(() => ({ payments: [] })),
       ]);
 
       usersData = usersRes.users || [];
       bookingsData = bookingsRes.bookings || [];
       campaignsData = campaignsRes.campaigns || [];
       submissionsData = submissionsRes.submissions || [];
+      pendingRunnersData = pendingRunnersRes.pendingRunners || [];
+      paymentsData = paymentsRes.payments || [];
 
       document.getElementById('statTotalUsers').textContent = usersData.length;
       document.getElementById('statTotalBookings').textContent = bookingsData.length;
       document.getElementById('statTotalCampaigns').textContent = campaignsData.length;
-      
+
       const openSubs = submissionsData.filter(s => s.status !== 'rejected' && s.status !== 'approved').length;
       document.getElementById('statOpenSubmissions').textContent = openSubs;
 
+      document.getElementById('statPendingRunners').textContent = pendingRunnersData.length;
+      document.getElementById('statPendingPayments').textContent = paymentsData.filter(p => p.status === 'pending').length;
+
       renderOverviewAudit(auditRes.entries || []);
+      refreshBadges();
     } catch (err) {
       showToast(err.message || 'Could not load overview', 'error');
     }
@@ -1274,7 +1502,7 @@
   }
 
   // ════════════════════════════════════════════════════════
-  // BOOKINGS
+  // BOOKINGS ("Kakooza Plan" / 30-Day Content Engine deposits — read only here)
   // ════════════════════════════════════════════════════════
   async function loadBookings() {
     try {
@@ -1316,7 +1544,7 @@
   }
 
   // ════════════════════════════════════════════════════════
-  // CAMPAIGNS (from Admin Worker)
+  // CAMPAIGNS (Creator Rewards — from Admin Worker)
   // ════════════════════════════════════════════════════════
   async function loadCampaigns() {
     try {
@@ -1325,32 +1553,36 @@
       renderCampaignsTable();
     } catch (err) {
       document.getElementById('campaignsTableBody').innerHTML =
-        `<tr><td colspan="6"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
+        `<tr><td colspan="7"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
     }
   }
 
   function renderCampaignsTable() {
     const body = document.getElementById('campaignsTableBody');
     if (!campaignsData.length) {
-      body.innerHTML = '<tr><td colspan="6"><div class="empty-state">No campaigns yet.</div></td></tr>';
+      body.innerHTML = '<tr><td colspan="7"><div class="empty-state">No campaigns yet.</div></td></tr>';
       return;
     }
 
     body.innerHTML = campaignsData.map(c => {
-      const statusBadge = c.status === 'active' ? 
-        '<span class="badge active">Active</span>' : 
-        '<span class="badge expired">Expired</span>';
+      const statusBadge = c.status === 'active' ?
+        '<span class="badge active">Active</span>' :
+        (c.status === 'pending_payment' ? '<span class="badge pending">Pending Payment</span>' : '<span class="badge expired">Expired</span>');
+      const rate = c.payoutPerThousandViews || 2000;
+      const cap = c.maxPayoutPerVideo || 10000;
       return `
         <tr>
           <td>${escapeHtml(c.businessName || '—')}</td>
+          <td>${packageLabelHtml(c.businessPayment || 0)}</td>
           <td>${(c.businessPayment || 0).toLocaleString()} UGX</td>
           <td>${(c.poolRemaining || 0).toLocaleString()} UGX</td>
-          <td>${(c.maxPayoutPerVideo || 0).toLocaleString()} UGX</td>
+          <td>${rate.toLocaleString()} / ${cap.toLocaleString()} UGX</td>
           <td>${statusBadge}</td>
           <td>
             <div class="row-actions">
-              <button class="btn-secondary btn-small" onclick="openCampaignDetails('${escapeAttr(c.orderTrackingId)}')">Business Details</button>
+              <button class="btn-secondary btn-small" onclick="openCampaignDetails('${escapeAttr(c.orderTrackingId)}')">Details</button>
               <button class="btn-secondary btn-small" onclick="openExpiryModal('${escapeAttr(c.orderTrackingId)}')">Change expiry</button>
+              <button class="btn-secondary btn-small btn-gold" onclick="openAdjustRateModal('${escapeAttr(c.orderTrackingId)}', ${rate}, ${cap})">Adjust payout</button>
             </div>
           </td>
         </tr>
@@ -1375,6 +1607,36 @@
       showToast('Expiry updated', 'success');
       closeModal('changeExpiryModal');
       loadCampaigns();
+      refreshBadges();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // Campaign-wide payout override (applies to every runner in the campaign)
+  function openAdjustRateModal(campaignId, currentRate, currentCap) {
+    window._currentCampaignId = campaignId;
+    document.getElementById('rateInput').value = currentRate || 2000;
+    document.getElementById('capInput').value = currentCap || 10000;
+    openModal('adjustRateModal');
+  }
+
+  async function submitRateChange() {
+    const rate = parseInt(document.getElementById('rateInput').value, 10);
+    const cap = parseInt(document.getElementById('capInput').value, 10);
+    if (isNaN(rate) || rate < 0 || isNaN(cap) || cap < 0) {
+      showToast('Enter valid, non-negative numbers', 'error');
+      return;
+    }
+    try {
+      await callAdmin('/update-campaign-rate', {
+        campaignId: window._currentCampaignId,
+        payoutPerThousandViews: rate,
+        maxPayoutPerVideo: cap,
+      });
+      showToast('Payout settings updated for this campaign', 'success');
+      closeModal('adjustRateModal');
+      loadCampaigns();
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -1390,8 +1652,7 @@
       if (!res.ok) return null;
       const doc = await res.json();
       const f = doc.fields || {};
-      
-      // Extract documents from Firestore
+
       const documents = (f.documents?.arrayValue?.values || []).map(v => ({
         url: v.mapValue?.fields?.url?.stringValue || '',
         documentType: v.mapValue?.fields?.documentType?.stringValue || '',
@@ -1410,7 +1671,6 @@
     }
   }
 
-  // Render documents (images and files)
   function renderMaterials(documents) {
     if (!documents || documents.length === 0) {
       return '<div class="empty-state">No reference materials uploaded.</div>';
@@ -1441,9 +1701,9 @@
       const campaign = campaignsData.find(c => c.orderTrackingId === campaignId);
       if (!campaign) return;
 
-      // Fetch business details and documents from Firestore
       const businessDetails = await fetchCampaignDocuments(campaignId);
-      
+      const pkg = getPackageInfo(campaign.businessPayment || 0);
+
       const detailsHtml = `
         <div style="margin-bottom: 16px;">
           <h3 style="margin-bottom: 12px; font-size: 18px; font-weight: 700;">Campaign Details</h3>
@@ -1457,15 +1717,19 @@
               <p style="font-size: 15px; font-weight: 600;">${escapeHtml(businessDetails?.businessType || '—')}</p>
             </div>
             <div>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Package</p>
+              <p style="font-size: 15px; font-weight: 600;">${pkg ? `${pkg.creators} creators / ${pkg.days} days` : 'Custom (legacy)'}</p>
+            </div>
+            <div>
               <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Business Payment</p>
               <p style="font-size: 15px; font-weight: 600;">${(campaign.businessPayment || 0).toLocaleString()} UGX</p>
             </div>
             <div>
-              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Boujee Fee</p>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Boujee Fee (30%)</p>
               <p style="font-size: 15px; font-weight: 600;">${(campaign.boujeeFee || 0).toLocaleString()} UGX</p>
             </div>
             <div>
-              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Creator Pool</p>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Creator Pool (70%)</p>
               <p style="font-size: 15px; font-weight: 600;">${(campaign.creatorPool || 0).toLocaleString()} UGX</p>
             </div>
             <div>
@@ -1473,12 +1737,12 @@
               <p style="font-size: 15px; font-weight: 600;">${(campaign.poolRemaining || 0).toLocaleString()} UGX</p>
             </div>
             <div>
-              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Max Payout Per Video</p>
-              <p style="font-size: 15px; font-weight: 600;">${(campaign.maxPayoutPerVideo || 0).toLocaleString()} UGX</p>
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Payout Rate / Cap</p>
+              <p style="font-size: 15px; font-weight: 600;">${(campaign.payoutPerThousandViews || 2000).toLocaleString()} / ${(campaign.maxPayoutPerVideo || 10000).toLocaleString()} UGX</p>
             </div>
             <div>
               <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Status</p>
-              <p style="font-size: 15px; font-weight: 600;">${campaign.status === 'active' ? 'Active' : 'Expired'}</p>
+              <p style="font-size: 15px; font-weight: 600;">${escapeHtml(campaign.status || '—')}</p>
             </div>
             <div>
               <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Created</p>
@@ -1507,15 +1771,15 @@
   async function loadRunners() {
     try {
       const data = await callAdmin('/list-runners');
-      const runners = data.runners || [];
+      runnersData = data.runners || [];
       const body = document.getElementById('runnersTableBody');
 
-      if (!runners.length) {
+      if (!runnersData.length) {
         body.innerHTML = '<tr><td colspan="4"><div class="empty-state">No runners yet.</div></td></tr>';
         return;
       }
 
-      body.innerHTML = runners.map(r => `
+      body.innerHTML = runnersData.map(r => `
         <tr>
           <td>${escapeHtml(r.tiktokHandle || '—')}</td>
           <td>${escapeHtml(r.email || '—')}</td>
@@ -1526,6 +1790,66 @@
     } catch (err) {
       document.getElementById('runnersTableBody').innerHTML =
         `<tr><td colspan="4"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
+    }
+  }
+
+  // ════════════════════════════════════════════════════════
+  // PENDING RUNNERS (approval gate before a runner is active on a campaign)
+  // ════════════════════════════════════════════════════════
+  async function loadPendingRunners() {
+    try {
+      const data = await callAdmin('/list-pending-runners');
+      pendingRunnersData = data.pendingRunners || [];
+      renderPendingRunnersTable();
+      refreshBadges();
+    } catch (err) {
+      document.getElementById('pendingRunnersTableBody').innerHTML =
+        `<tr><td colspan="6"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
+    }
+  }
+
+  function renderPendingRunnersTable() {
+    const body = document.getElementById('pendingRunnersTableBody');
+    if (!pendingRunnersData.length) {
+      body.innerHTML = '<tr><td colspan="6"><div class="empty-state">No runners waiting for approval.</div></td></tr>';
+      return;
+    }
+
+    body.innerHTML = pendingRunnersData.map(p => `
+      <tr>
+        <td>${escapeHtml(p.runnerName || p.runnerUid || '—')}</td>
+        <td>${escapeHtml(p.tiktokHandle || '—')}</td>
+        <td>${escapeHtml(p.email || '—')}</td>
+        <td>${escapeHtml(p.businessName || p.campaignId || '—')}</td>
+        <td style="font-family:var(--font-mono); font-size:11px;">${formatDate(p.requestedAt)}</td>
+        <td>
+          <div class="row-actions">
+            <button class="btn-secondary btn-small btn-success" onclick="approveRunner('${escapeAttr(p.campaignId)}', '${escapeAttr(p.runnerUid)}')">Approve</button>
+            <button class="btn-secondary btn-small btn-danger" onclick="rejectRunner('${escapeAttr(p.campaignId)}', '${escapeAttr(p.runnerUid)}')">Reject</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function approveRunner(campaignId, runnerUid) {
+    try {
+      await callAdmin('/approve-runner', { campaignId, runnerUid });
+      showToast('Runner approved — notification email sent', 'success');
+      loadPendingRunners();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  async function rejectRunner(campaignId, runnerUid) {
+    if (!confirm('Reject this runner\'s request to join the campaign?')) return;
+    try {
+      await callAdmin('/reject-runner', { campaignId, runnerUid });
+      showToast('Runner request rejected', 'success');
+      loadPendingRunners();
+    } catch (err) {
+      showToast(err.message, 'error');
     }
   }
 
@@ -1577,13 +1901,112 @@
     if (isNaN(verifiedViews) || verifiedViews < 0) { showToast('Enter a valid number', 'error'); return; }
 
     try {
-      await callOps('/admin/force-verify-submission', { 
-        submissionId: window._currentSubmissionId, 
-        verifiedViews: verifiedViews 
+      await callOps('/admin/force-verify-submission', {
+        submissionId: window._currentSubmissionId,
+        verifiedViews: verifiedViews
       });
       showToast('Force recheck triggered', 'success');
       closeModal('forceRecheckModal');
       loadSubmissions();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ════════════════════════════════════════════════════════
+  // PAYMENTS (runners owed money once a campaign period expires)
+  // ════════════════════════════════════════════════════════
+  async function loadPayments() {
+    try {
+      const data = await callAdmin('/list-pending-payments');
+      paymentsData = data.payments || [];
+      renderPaymentsTable();
+      refreshBadges();
+    } catch (err) {
+      document.getElementById('paymentsTableBody').innerHTML =
+        `<tr><td colspan="6"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
+    }
+  }
+
+  function renderPaymentsTable() {
+    const body = document.getElementById('paymentsTableBody');
+    if (!paymentsData.length) {
+      body.innerHTML = '<tr><td colspan="6"><div class="empty-state">No payments pending.</div></td></tr>';
+      return;
+    }
+
+    body.innerHTML = paymentsData.map(p => `
+      <tr>
+        <td>${escapeHtml(p.businessName || p.campaignId || '—')}</td>
+        <td>${escapeHtml(p.runnerName || p.runnerUid || '—')}</td>
+        <td>${(p.periodViews || 0).toLocaleString()}</td>
+        <td>${(p.amountOwed || 0).toLocaleString()} UGX</td>
+        <td><span class="badge ${p.status === 'paid' ? 'paid' : 'pending'}">${escapeHtml(p.status || 'pending')}</span></td>
+        <td>
+          ${p.status === 'paid'
+            ? '—'
+            : `<button class="btn-secondary btn-small btn-success" onclick="markPaymentPaid('${escapeAttr(p.paymentId)}')">Mark as Paid</button>`}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function markPaymentPaid(paymentId) {
+    if (!confirm('Confirm you have sent this payment to the runner? This cannot be undone.')) return;
+    try {
+      await callAdmin('/mark-payment-paid', { paymentId });
+      showToast('Marked as paid', 'success');
+      loadPayments();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ════════════════════════════════════════════════════════
+  // REFERRALS (5% of a referred business's first paid campaign)
+  // ════════════════════════════════════════════════════════
+  async function loadReferrals() {
+    try {
+      const data = await callAdmin('/list-referrals');
+      referralsData = data.referrals || [];
+      renderReferralsTable();
+    } catch (err) {
+      document.getElementById('referralsTableBody').innerHTML =
+        `<tr><td colspan="6"><div class="empty-state">${escapeHtml(err.message)}</div></td></tr>`;
+    }
+  }
+
+  function renderReferralsTable() {
+    const body = document.getElementById('referralsTableBody');
+    if (!referralsData.length) {
+      body.innerHTML = '<tr><td colspan="6"><div class="empty-state">No referrals yet.</div></td></tr>';
+      return;
+    }
+
+    body.innerHTML = referralsData.map(r => {
+      const nextAction = r.status === 'pending'
+        ? `<button class="btn-secondary btn-small btn-gold" onclick="updateReferralStatus('${escapeAttr(r.referralId)}', 'approved')">Approve</button>`
+        : r.status === 'approved'
+        ? `<button class="btn-secondary btn-small btn-success" onclick="updateReferralStatus('${escapeAttr(r.referralId)}', 'paid')">Mark Paid</button>`
+        : '—';
+      return `
+        <tr>
+          <td>${escapeHtml(r.referrerName || r.referrerUid || '—')}</td>
+          <td>${escapeHtml(r.referredBusinessName || r.referredUid || '—')}</td>
+          <td>${escapeHtml(r.campaignId || '—')}</td>
+          <td>${(r.rewardAmount || 0).toLocaleString()} UGX</td>
+          <td><span class="badge ${escapeHtml(r.status || 'pending')}">${escapeHtml(r.status || 'pending')}</span></td>
+          <td>${nextAction}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  async function updateReferralStatus(referralId, status) {
+    try {
+      await callAdmin('/update-referral-status', { referralId, status });
+      showToast(`Referral marked as ${status}`, 'success');
+      loadReferrals();
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -1663,19 +2086,18 @@
       const data = await callOps('/list-recipients');
       recipientsData = data.recipients || [];
       const select = document.getElementById('recipientPicker');
-      
+
       if (!recipientsData.length) {
         select.innerHTML = '<option value="">— No recipients found —</option>';
         return;
       }
 
-      // Group recipients by type
       const businesses = recipientsData.filter(r => r.type === 'business');
       const runners = recipientsData.filter(r => r.type === 'runner');
       const others = recipientsData.filter(r => r.type !== 'business' && r.type !== 'runner');
 
       let html = '<option value="">— Select a recipient —</option>';
-      
+
       if (businesses.length > 0) {
         html += '<optgroup label="Businesses">';
         businesses.forEach(r => {
@@ -1716,8 +2138,8 @@
     if (selectedUid) {
       manualPhone.value = '';
       const recipient = recipientsData.find(r => r.uid === selectedUid);
-      selectedRecipient = recipient ? { 
-        uid: recipient.uid, 
+      selectedRecipient = recipient ? {
+        uid: recipient.uid,
         collection: recipient.type === 'runner' ? 'runners' : 'users',
         firstName: recipient.firstName || (recipient.name ? recipient.name.split(' ')[0] : '')
       } : null;
@@ -1740,7 +2162,7 @@
 
   function updateMessagePlaceholder() {
     const textarea = document.getElementById('messageTextarea');
-    const firstName = selectedRecipient && typeof selectedRecipient === 'object' ? 
+    const firstName = selectedRecipient && typeof selectedRecipient === 'object' ?
       (selectedRecipient.firstName || '') : '';
     if (firstName) {
       textarea.placeholder = `Hi ${firstName}, ...`;
@@ -1765,10 +2187,10 @@
     }
 
     try {
-      await callOps('/send-message', { 
-        recipient: recipientPayload, 
-        message, 
-        save: saveTemplate 
+      await callOps('/send-message', {
+        recipient: recipientPayload,
+        message,
+        save: saveTemplate
       });
       showToast('Message sent', 'success');
       if (saveTemplate) loadTemplates();
