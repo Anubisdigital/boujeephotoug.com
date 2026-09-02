@@ -358,6 +358,15 @@
                 <div id="availableCampaigns" class="grid-3"></div>
             </div>
 
+            <!-- JOINED CAMPAIGNS (FIXED) -->
+            <div style="margin-top: 24px;">
+                <div class="flex-header">
+                    <h3 class="section-title" style="margin:0;">Joined Campaigns</h3>
+                    <span style="font-size: 13px; color: var(--text-muted);">Your active campaigns with business details.</span>
+                </div>
+                <div id="joinedCampaignsList" class="grid-3"></div>
+            </div>
+
             <div class="grid-2" style="margin-top: 24px;">
                 <div class="card">
                     <h4 style="margin-bottom: 12px;">Submit a new video</h4>
@@ -837,6 +846,7 @@
                 if (existing) {
                     joined.push(existing);
                 } else {
+                    // FIX: Use worker to fetch campaign instead of direct Firestore
                     const fetched = await fetchCampaignById(id);
                     if (fetched) joined.push(fetched);
                 }
@@ -866,7 +876,7 @@
                 });
             }
 
-            // RENDER JOINED CAMPAIGNS (with business details)
+            // RENDER JOINED CAMPAIGNS (FIXED)
             const joinedEl = document.getElementById('joinedCampaignsList');
             if (joinedEl) {
                 joinedEl.innerHTML = '';
@@ -1085,24 +1095,15 @@
             }
         });
 
-        // ── FETCH CAMPAIGN BY ID ──
+        // ── FETCH CAMPAIGN BY ID (FIXED) ──
         async function fetchCampaignById(campaignId) {
             try {
-                const res = await fetch(
-                    `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/campaigns/${campaignId}`,
-                    { headers: { Authorization: `Bearer ${TOKEN}` } }
-                );
-                if (!res.ok) return null;
-                const doc = await res.json();
-                const f = doc.fields || {};
-                return {
-                    orderTrackingId: campaignId,
-                    businessName: f.businessName?.stringValue || 'Campaign',
-                    businessPayment: parseInt(f.businessPayment?.integerValue || '0', 10),
-                    poolRemaining: parseInt(f.poolRemaining?.integerValue || '0', 10),
-                    maxPayoutPerVideo: parseInt(f.maxPayoutPerVideo?.integerValue || '10000', 10),
-                    status: f.status?.stringValue || 'unknown'
-                };
+                // Use worker to fetch campaign data instead of direct Firestore
+                const data = await apiCall(`${RUNNER_WORKER_URL}/get-campaign`, { campaignId });
+                if (data.campaign) {
+                    return data.campaign;
+                }
+                return null;
             } catch (err) {
                 console.error('Error fetching campaign:', err);
                 return null;
