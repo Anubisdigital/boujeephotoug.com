@@ -1244,6 +1244,7 @@
   const ADMIN_WORKER = 'https://boujee-admin-worker.kakoozaronald71.workers.dev';
   const OPS_WORKER = 'https://boujee-ops-worker.kakoozaronald71.workers.dev';
   const DETAILS_WORKER = 'https://details-boujee-worker.kakoozaronald71.workers.dev';
+  const REFERRAL_WORKER = 'https://boujee-referral-worker.kakoozaronald71.workers.dev';
   const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
   const FIREBASE_PROJECT_ID = 'boujee-academy';
 
@@ -1400,6 +1401,18 @@
   // Details Worker calls (uses idToken)
   async function callDetails(route, extra = {}) {
     const res = await fetch(`${DETAILS_WORKER}${route}`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(authBody(extra)),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  }
+
+  // Referral Worker calls (uses idToken)
+  async function callReferral(route, extra = {}) {
+    const res = await fetch(`${REFERRAL_WORKER}${route}`, {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify(authBody(extra)),
@@ -2100,8 +2113,15 @@
   // ════════════════════════════════════════════════════════
   async function loadReferrals() {
     try {
-      const data = await callAdmin('/list-referrals');
-      referralsData = data.referrals || [];
+      // Try to load from referral worker first, fall back to admin worker
+      try {
+        const data = await callReferral('/admin/list-all-earnings', {});
+        referralsData = data.earnings || [];
+      } catch (err) {
+        console.warn('Referral worker failed, falling back to admin worker:', err.message);
+        const data = await callAdmin('/list-referrals');
+        referralsData = data.referrals || [];
+      }
       renderReferralsTable();
     } catch (err) {
       document.getElementById('referralsTableBody').innerHTML =
@@ -2118,16 +2138,16 @@
 
     body.innerHTML = referralsData.map(r => {
       const nextAction = r.status === 'pending'
-        ? `<button class="btn-secondary btn-small btn-gold" onclick="updateReferralStatus('${escapeAttr(r.referralId)}', 'approved')">Approve</button>`
+        ? `<button class="btn-secondary btn-small btn-gold" onclick="updateReferralStatus('${escapeAttr(r.earningId || r.referralId)}', 'approved')">Approve</button>`
         : r.status === 'approved'
-        ? `<button class="btn-secondary btn-small btn-success" onclick="updateReferralStatus('${escapeAttr(r.referralId)}', 'paid')">Mark Paid</button>`
+        ? `<button class="btn-secondary btn-small btn-success" onclick="updateReferralStatus('${escapeAttr(r.earningId || r.referralId)}', 'paid')">Mark Paid</button>`
         : '—';
       return `
         <tr>
           <td>${escapeHtml(r.referrerName || r.referrerUid || '—')}</td>
-          <td>${escapeHtml(r.referredBusinessName || r.referredUid || '—')}</td>
+          <td>${escapeHtml(r.businessName || r.referredBusinessName || r.businessUid || '—')}</td>
           <td>${escapeHtml(r.campaignId || '—')}</td>
-          <td>${(r.rewardAmount || 0).toLocaleString()} UGX</td>
+          <td>${(r.amount || r.rewardAmount || 0).toLocaleString()} UGX</td>
           <td><span class="badge ${escapeHtml(r.status || 'pending')}">${escapeHtml(r.status || 'pending')}</span></td>
           <td>${nextAction}</td>
         </tr>
@@ -2137,7 +2157,12 @@
 
   async function updateReferralStatus(referralId, status) {
     try {
-      await callAdmin('/update-referral-status', { referralId, status });
+      if (status === 'paid') {
+        await callReferral('/admin/mark-paid', { earningId: referralId });
+      } else {
+        // For approve, fall back to admin worker
+        await callAdmin('/update-referral-status', { referralId, status });
+      }
       showToast(`Referral marked as ${status}`, 'success');
       loadReferrals();
     } catch (err) {
@@ -2533,4 +2558,4 @@
   });
 </script>
 </body>
- </html>
+           </html>
