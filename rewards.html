@@ -424,6 +424,7 @@
         const PAYMENT_WORKER_URL  = 'https://boujee-payment-worker.kakoozaronald71.workers.dev';
         const REWARDS_WORKER_URL  = 'https://boujee-rewards-worker.kakoozaronald71.workers.dev';
         const DETAILS_WORKER_URL  = 'https://details-boujee-worker.kakoozaronald71.workers.dev';
+        const REFERRAL_WORKER_URL = 'https://boujee-referral-worker.kakoozaronald71.workers.dev';
         const TOKEN = localStorage.getItem('ba_token');
         const UID = localStorage.getItem('ba_uid');
 
@@ -477,13 +478,47 @@
             return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
+        // ── REFERRAL API CALLS ──
+        async function fetchReferralCode() {
+            try {
+                const data = await apiCall(`${REFERRAL_WORKER_URL}/my-code`, {});
+                return data.code || null;
+            } catch (err) {
+                console.error('Error fetching referral code:', err);
+                return null;
+            }
+        }
+
+        async function fetchReferralEarnings() {
+            try {
+                const data = await apiCall(`${REFERRAL_WORKER_URL}/my-earnings`, {});
+                return data;
+            } catch (err) {
+                console.error('Error fetching referral earnings:', err);
+                return { earnings: [], totalPending: 0, totalPaid: 0 };
+            }
+        }
+
+        async function fetchMyReferrals() {
+            try {
+                const data = await apiCall(`${REFERRAL_WORKER_URL}/my-referrals`, {});
+                return data.referrals || [];
+            } catch (err) {
+                console.error('Error fetching my referrals:', err);
+                return [];
+            }
+        }
+
         // ── REFERRAL LINK ──
-        function getReferralLink() {
+        function getReferralLink(code) {
+            if (code) {
+                return `https://boujeephotoug.com/subscribe.html?ref=${code}`;
+            }
             return `https://boujeephotoug.com/subscribe.html?ref=${UID}`;
         }
 
         function copyBusinessReferralLink() {
-            const link = getReferralLink();
+            const link = document.getElementById('businessReferralLink').value;
             navigator.clipboard.writeText(link).then(() => {
                 showToast('Referral link copied!', 'success');
             }).catch(() => {
@@ -495,7 +530,7 @@
         }
 
         function copyRunnerReferralLink() {
-            const link = getReferralLink();
+            const link = document.getElementById('runnerReferralLink').value;
             navigator.clipboard.writeText(link).then(() => {
                 showToast('Referral link copied!', 'success');
             }).catch(() => {
@@ -504,6 +539,80 @@
                 document.execCommand('copy');
                 showToast('Referral link copied!', 'success');
             });
+        }
+
+        // ── LOAD REFERRAL DATA (BUSINESS) ──
+        async function loadBusinessReferrals() {
+            try {
+                // Fetch referral code
+                const code = await fetchReferralCode();
+                const refLink = getReferralLink(code);
+                const businessRef = document.getElementById('businessReferralLink');
+                if (businessRef) businessRef.value = refLink;
+
+                // Fetch referrals
+                const referrals = await fetchMyReferrals();
+                const earningsData = await fetchReferralEarnings();
+                const tbody = document.getElementById('businessReferralsBody');
+                tbody.innerHTML = '';
+
+                if (referrals.length === 0 && earningsData.earnings.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No referrals yet.</td></tr>`;
+                    return;
+                }
+
+                // Show referrals with earnings
+                earningsData.earnings.forEach(e => {
+                    const statusClass = e.status === 'paid' ? 'paid' : e.status === 'approved' ? 'approved' : 'pending';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${escapeHtml(e.businessName || 'Unknown')}</strong></td>
+                        <td>${escapeHtml(e.campaignId || '—')}</td>
+                        <td>${formatMoney(e.amount || 0)}</td>
+                        <td><span class="badge ${statusClass}">${escapeHtml(e.status || 'pending')}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error('Error loading referrals:', err);
+            }
+        }
+
+        // ── LOAD REFERRAL DATA (RUNNER) ──
+        async function loadRunnerReferrals() {
+            try {
+                // Fetch referral code
+                const code = await fetchReferralCode();
+                const refLink = getReferralLink(code);
+                const runnerRef = document.getElementById('runnerReferralLink');
+                if (runnerRef) runnerRef.value = refLink;
+
+                // Fetch referrals
+                const referrals = await fetchMyReferrals();
+                const earningsData = await fetchReferralEarnings();
+                const tbody = document.getElementById('runnerReferralsBody');
+                tbody.innerHTML = '';
+
+                if (referrals.length === 0 && earningsData.earnings.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No referrals yet.</td></tr>`;
+                    return;
+                }
+
+                // Show referrals with earnings
+                earningsData.earnings.forEach(e => {
+                    const statusClass = e.status === 'paid' ? 'paid' : e.status === 'approved' ? 'approved' : 'pending';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${escapeHtml(e.businessName || 'Unknown')}</strong></td>
+                        <td>${escapeHtml(e.campaignId || '—')}</td>
+                        <td>${formatMoney(e.amount || 0)}</td>
+                        <td><span class="badge ${statusClass}">${escapeHtml(e.status || 'pending')}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error('Error loading referrals:', err);
+            }
         }
 
         // ── FETCH BUSINESS DETAILS ──
@@ -575,7 +684,8 @@
         async function init() {
             try {
                 // Set referral links
-                const refLink = getReferralLink();
+                const code = await fetchReferralCode();
+                const refLink = getReferralLink(code);
                 const businessRef = document.getElementById('businessReferralLink');
                 const runnerRef = document.getElementById('runnerReferralLink');
                 if (businessRef) businessRef.value = refLink;
@@ -651,34 +761,6 @@
                 card.addEventListener('click', () => loadCampaignDetail(c.orderTrackingId));
                 listEl.appendChild(card);
             });
-        }
-
-        async function loadBusinessReferrals() {
-            try {
-                const data = await apiCall(`${PAYMENT_WORKER_URL}/my-referrals`, {});
-                const referrals = data.referrals || [];
-                const tbody = document.getElementById('businessReferralsBody');
-                tbody.innerHTML = '';
-
-                if (referrals.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No referrals yet.</td></tr>`;
-                    return;
-                }
-
-                referrals.forEach(r => {
-                    const statusClass = r.status === 'paid' ? 'paid' : r.status === 'approved' ? 'approved' : 'pending';
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><strong>${escapeHtml(r.referredBusinessName || 'Unknown')}</strong></td>
-                        <td>${escapeHtml(r.campaignId || '—')}</td>
-                        <td>${formatMoney(r.rewardAmount || 0)}</td>
-                        <td><span class="badge ${statusClass}">${escapeHtml(r.status || 'pending')}</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                console.error('Error loading referrals:', err);
-            }
         }
 
         async function loadCampaignDetail(id) {
@@ -847,34 +929,6 @@
                 `;
                 tbody.appendChild(tr);
             });
-        }
-
-        async function loadRunnerReferrals() {
-            try {
-                const data = await apiCall(`${PAYMENT_WORKER_URL}/my-referrals`, {});
-                const referrals = data.referrals || [];
-                const tbody = document.getElementById('runnerReferralsBody');
-                tbody.innerHTML = '';
-
-                if (referrals.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No referrals yet.</td></tr>`;
-                    return;
-                }
-
-                referrals.forEach(r => {
-                    const statusClass = r.status === 'paid' ? 'paid' : r.status === 'approved' ? 'approved' : 'pending';
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><strong>${escapeHtml(r.referredBusinessName || 'Unknown')}</strong></td>
-                        <td>${escapeHtml(r.campaignId || '—')}</td>
-                        <td>${formatMoney(r.rewardAmount || 0)}</td>
-                        <td><span class="badge ${statusClass}">${escapeHtml(r.status || 'pending')}</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                console.error('Error loading referrals:', err);
-            }
         }
 
         async function loadApprovalStatus() {
@@ -1059,4 +1113,4 @@
         init();
     </script>
 </body>
-</html>
+    </html>
