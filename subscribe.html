@@ -899,6 +899,7 @@
     <script>
         // ── CONFIG ──
         const PAYMENT_WORKER = 'https://boujee-payment-worker.kakoozaronald71.workers.dev';
+        const REFERRAL_WORKER = 'https://boujee-referral-worker.kakoozaronald71.workers.dev';
         const FIREBASE_API_KEY = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
         const DEPOSIT_AMOUNT = 200000;
         const CAMPAIGN_MIN_AMOUNT = 50000;
@@ -908,6 +909,7 @@
         let promoApplied = false;
         let promoCodeValidated = false;
         let promoChargeAmount = null;
+        let userReferralCode = null;
 
         // ── FETCH WITH TIMEOUT ──
         async function fetchWithTimeout(url, options = {}, ms = 8000) {
@@ -1034,38 +1036,51 @@
             });
         }
 
-        // ── Get Referral Code ──
-        function getReferralCode() {
-            // Check URL params first
-            const urlParams = new URLSearchParams(window.location.search);
-            const refFromUrl = urlParams.get('ref');
-            if (refFromUrl) {
-                localStorage.setItem('ba_referral_code', refFromUrl);
-                return refFromUrl;
+        // ── REFERRAL WORKER: Get My Code ──
+        async function fetchMyReferralCode() {
+            if (!idToken) return null;
+
+            try {
+                const res = await fetchWithTimeout(`${REFERRAL_WORKER}/my-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken })
+                });
+
+                const data = await res.json();
+
+                if (data.error) {
+                    console.warn('Referral code fetch error:', data.error);
+                    return null;
+                }
+
+                return data.code;
+            } catch (err) {
+                console.warn('Referral code fetch failed:', err.message);
+                return null;
             }
-            
-            // Check localStorage
-            const refFromStorage = localStorage.getItem('ba_referral_code');
-            if (refFromStorage) {
-                return refFromStorage;
-            }
-            
-            // Generate if not exists (for logged-in user)
-            if (uid) {
-                const generatedCode = `BP${uid.slice(0, 6).toUpperCase()}`;
-                localStorage.setItem('ba_referral_code', generatedCode);
-                return generatedCode;
-            }
-            
-            return null;
         }
 
         // ── Display Referral Link ──
-        function displayReferralLink() {
-            const refCode = getReferralCode();
+        async function displayReferralLink() {
+            const refCode = await fetchMyReferralCode();
+            
             if (refCode) {
+                userReferralCode = refCode;
                 const referralLink = `https://boujeephotoug.com/signup?ref=${refCode}`;
                 document.getElementById('referralLinkInput').value = referralLink;
+            } else {
+                // Fallback: use URL param or generate simple code
+                const urlParams = new URLSearchParams(window.location.search);
+                const refFromUrl = urlParams.get('ref');
+                if (refFromUrl) {
+                    userReferralCode = refFromUrl;
+                    document.getElementById('referralLinkInput').value = `https://boujeephotoug.com/signup?ref=${refFromUrl}`;
+                } else if (uid) {
+                    // Simple fallback for display only
+                    userReferralCode = `BP${uid.slice(0, 6).toUpperCase()}`;
+                    document.getElementById('referralLinkInput').value = `https://boujeephotoug.com/signup?ref=${userReferralCode}`;
+                }
             }
         }
 
@@ -1102,7 +1117,7 @@
             document.getElementById('logoutBtn').style.display = 'inline';
 
             // Display referral link
-            displayReferralLink();
+            await displayReferralLink();
 
             // Check if already booked
             const orderTrackingId = localStorage.getItem('ba_order_tracking_id');
@@ -1380,4 +1395,4 @@
         }
     </script>
 </body>
-    </html>
+</html>
