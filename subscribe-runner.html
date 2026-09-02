@@ -260,6 +260,15 @@
                 </div>
                 <!-- ── END RUNNER SOCIAL FIELD ── -->
 
+                <!-- ── REFERRAL CODE FIELD ── -->
+                <div class="field">
+                    <label for="referralCode">Referral code (optional)</label>
+                    <input type="text" id="referralCode" placeholder="e.g. RONALD4821" autocomplete="off">
+                    <span class="field-error" id="referralCodeErr">Invalid referral code</span>
+                    <small style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">If someone referred you, enter their code here.</small>
+                </div>
+                <!-- ── END REFERRAL CODE FIELD ── -->
+
                 <div class="field">
                     <label for="password">Password</label>
                     <div class="input-wrap">
@@ -304,6 +313,7 @@
         const FIREBASE_API_KEY    = 'AIzaSyAdToVQOzBO8_dZUJuKRPoNb2ci8uAUilo';
         const FIREBASE_PROJECT_ID = 'boujee-academy';
         const EMAIL_WORKER_URL    = 'https://boujee-email-worker.kakoozaronald71.workers.dev';
+        const REFERRAL_WORKER_URL = 'https://boujee-referral-worker.kakoozaronald71.workers.dev';
 
         // ── FETCH WITH TIMEOUT ──
         // Wraps every outbound call so a slow/unresponsive Google, Firestore,
@@ -397,6 +407,47 @@
             return handle.trim().replace(/^@/, '');
         }
 
+        // ── REFERRAL CODE VALIDATION ──
+        async function validateReferralCode(code) {
+            if (!code) return { valid: true }; // Empty code is valid (optional)
+            
+            try {
+                const res = await fetchWithTimeout(`${REFERRAL_WORKER_URL}/validate-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+                
+                const data = await res.json();
+                return data;
+            } catch (err) {
+                console.warn('Referral code validation failed:', err.message);
+                return { valid: false, error: 'Could not validate code' };
+            }
+        }
+
+        // ── REGISTER REFERRAL ──
+        async function registerReferral(uid, code) {
+            if (!code) return { success: true }; // No code = no referral to register
+            
+            try {
+                const idToken = localStorage.getItem('ba_token');
+                if (!idToken) return { success: false, error: 'No token found' };
+                
+                const res = await fetchWithTimeout(`${REFERRAL_WORKER_URL}/register-referral`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken, code })
+                });
+                
+                const data = await res.json();
+                return data;
+            } catch (err) {
+                console.warn('Referral registration failed:', err.message);
+                return { success: false, error: err.message };
+            }
+        }
+
         function validate() {
             let valid = true;
 
@@ -408,6 +459,7 @@
             const confirm   = document.getElementById('confirmPassword').value;
             const terms     = document.getElementById('terms').checked;
             const tiktokHandleRaw = document.getElementById('tiktokHandle').value;
+            const referralCode = document.getElementById('referralCode').value.trim();
 
             if (!firstName) {
                 showErr('firstNameErr'); setInputError('firstName', true); valid = false;
@@ -468,7 +520,8 @@
                 firstName, lastName, email,
                 phone: phoneNormalized,
                 password,
-                tiktokHandle
+                tiktokHandle,
+                referralCode
             };
         }
 
@@ -538,6 +591,19 @@
             let idToken, uid;
 
             try {
+                // Validate referral code if provided
+                if (data.referralCode) {
+                    const validation = await validateReferralCode(data.referralCode);
+                    if (!validation.valid) {
+                        showErr('referralCodeErr');
+                        setInputError('referralCode', true);
+                        showToast('Invalid referral code', 'error');
+                        btn.classList.remove('loading');
+                        btn.disabled = false;
+                        return;
+                    }
+                }
+
                 // STEP 1: Create Firebase Auth account
                 const signupRes = await fetchWithTimeout(
                     `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_API_KEY}`, {
@@ -629,7 +695,17 @@
                 localStorage.setItem('ba_name',  `${data.firstName} ${data.lastName}`);
                 localStorage.setItem('ba_email', data.email);
 
-                // STEP 5: Send welcome email (non-blocking)
+                // STEP 5: Register referral if code was provided
+                if (data.referralCode) {
+                    const referralResult = await registerReferral(uid, data.referralCode);
+                    if (referralResult.success) {
+                        console.log('Referral registered successfully');
+                    } else {
+                        console.warn('Referral registration failed:', referralResult.error);
+                    }
+                }
+
+                // STEP 6: Send welcome email (non-blocking)
                 const emailSent = await sendWelcomeEmailWithRetry(data.email, data.firstName);
 
                 if (emailSent) {
@@ -676,7 +752,7 @@
         }
 
         // ── INLINE ERROR CLEAR ON INPUT ──
-        ['firstName', 'lastName', 'email', 'phone', 'password', 'confirmPassword', 'tiktokHandle'].forEach(id => {
+        ['firstName', 'lastName', 'email', 'phone', 'password', 'confirmPassword', 'tiktokHandle', 'referralCode'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 el.addEventListener('input', () => {
